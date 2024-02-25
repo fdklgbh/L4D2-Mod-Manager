@@ -100,10 +100,9 @@ class CustomTableView(TableView):
         logger.debug(userData)
         type_ = userData['check_type'] if userData['father_type'] else ModType.key_to_value(userData['check_type'])
         type_action = Action(FIF.FLAG, f"类型： {type_.title()}", self)
-        type_action.setToolTip(self.tr('重新读取文件夹内vpk信息'))
         menu.addAction(type_action)
-        change_type = Action(FIF.EDIT, '修改Mod分类', self)
-        menu.addAction(change_type)
+        # change_type = Action(FIF.EDIT, '修改Mod分类', self)
+        # menu.addAction(change_type)
         parent_folder_path = self.parent_obj.folder_path
         if not l4d2Config.is_disable_mod_path(parent_folder_path):
             move = Action(FIF.CANCEL_MEDIUM, self.tr('禁用mode'))
@@ -125,7 +124,7 @@ class CustomTableView(TableView):
 
         open_file.triggered.connect(lambda x: self.openFolderSignal.emit(filename))
         open_gcf.triggered.connect(lambda x: self.openGCFSpaceSignal.emit(filename))
-        change_type.triggered.connect(lambda x: self.show_change_type(item.data(Qt.UserRole + 2), **userData))
+        type_action.triggered.connect(lambda x: self.show_change_type(item.data(Qt.UserRole + 2), **userData))
         move.triggered.connect(lambda x: self.modeEnableSignal.emit(target_path, row, filename))
         menu.closedSignal.connect(menu.deleteLater)
         menu.exec(a0.globalPos(), aniType=MenuAnimationType.DROP_DOWN)

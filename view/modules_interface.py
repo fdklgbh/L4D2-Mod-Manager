@@ -75,7 +75,7 @@ class ModuleStacked(QWidget, Ui_Frame):
         self.per_data_thread = PrePareDataThread(self.mode, self.folder_path)
         self.onThreadSignalToSlot()
         self.set_table_view()
-        self.refresh_btn.setToolTip(self.tr('重新读取文件夹内vpk信息'))
+        self.refresh_btn.setToolTip(self.tr('重新加载VPK文件'))
         self.refresh_btn.installEventFilter(ToolTipFilter(self.refresh_btn, 300, ToolTipPosition.BOTTOM))
         self.connectSignalToSlot()
         self.hide_vkp_info()
@@ -160,27 +160,30 @@ class ModuleStacked(QWidget, Ui_Frame):
     def show_type_menu(self, *args):
         type_key = ModType.type_key()
         menu = RoundMenu(self)
-        menu.addAction(Action('全部'))
+        menu.addAction(Action(f'全部({self.mode.all_data_num})'))
         for i in type_key:
             if isinstance(i, dict):
                 for key, value in i.items():
-                    key_action = RoundMenu(key, parent=menu)
+                    num_str = f"({self.mode.get_type_num(key)})"
+                    key_action = RoundMenu(f"{key}{num_str}", parent=menu)
                     menu.addMenu(key_action)
-                    key_action.addAction(Action(text='全部', parent=key_action))
+                    key_action.addAction(Action(text=f'全部{num_str}', parent=key_action))
                     for j in value:
                         j: str
-                        key_action.addAction(Action(text=j.title(), parent=key_action))
+                        key_action.addAction(
+                            Action(text=f"{j.title()}({len(getattr(self.mode, f'_{j}'))})", parent=key_action))
             else:
-                menu.addAction(Action(i))
+                menu.addAction(Action(f"{i}({self.mode.get_type_num(i)})"))
         position = self.sender().mapToGlobal(QPoint(-10, 30))
         menu.popup(position)
         menu.triggered.connect(self.type_menu_selection)
 
     def type_menu_selection(self, action: Action):
-        search_type = btn_text = action.text().lower()
+        search_type = btn_text = action.text().lower().split('(')[0]
         father_menu = ''
         if action.parentWidget():
-            father_title = action.parentWidget().title()
+            father_title = action.parentWidget().title().split('(')[0]
+            logger.debug(f'father_title: {father_title}')
             father_menu = father_title
             if btn_text == '全部':
                 search_type = ModType.value_to_key(father_title)
@@ -190,6 +193,7 @@ class ModuleStacked(QWidget, Ui_Frame):
         self.type_btn.setText(btn_text.title())
         self.mode.search_type = search_type
         self.mode.father_type = father_menu
+        logger.debug(f'search type: {search_type}, father_type: {father_menu}')
         self.mode.changeType(search_type)
         self.restartPage(True)
 
@@ -245,11 +249,13 @@ class ModuleStacked(QWidget, Ui_Frame):
             self.search_edit.setText('')
             info = {
                 'data': data,
-                'file_type': file_type
+                'file_type': file_type,
+                'need_insert': self.mode.need_insert(**file_type)
             }
             self.mode.insertRow(info)
             self.hide_vkp_info()
             self.tableView.setCurrentIndex(QModelIndex())
+
     def move_file(self, target_path: Path, row, filename: str):
         data = self.mode.get_row_data(row)
         if not l4d2Config.debug:
@@ -321,7 +327,6 @@ class ModuleStacked(QWidget, Ui_Frame):
                 signalBus.modulePathChanged.emit(target_path, data, self.mode.customData[filename])
             self.mode.removeRow(row, filename)
             self.restartPage()
-            logger.debug(self.tableView.currentIndex())
 
     def restartPage(self, restart_sort=False):
         if restart_sort:
@@ -364,7 +369,6 @@ class ModuleStacked(QWidget, Ui_Frame):
         self.per_data_thread.finished.connect(self.mod_load_finished)
         self.per_data_thread.progressSignal.connect(self.mod_load_progress)
         self.per_data_thread.addRowSignal.connect(self.mode.addRow)
-
 
     def mod_load_started(self):
         self.setDisabled(True)

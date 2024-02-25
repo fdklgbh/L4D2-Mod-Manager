@@ -1,0 +1,6 @@
+pyqt5>=5.15.10
+qfluentpackage>=1.0.3
+vdf>=3.4
+logzero>=1.7.0
+chardet>=5.2.0
+PyQt-Fluent-Widgets >=1.4.3

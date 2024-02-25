@@ -2,6 +2,8 @@
 # @Time: 2023/12/31
 # @Author: Administrator
 # @File: tableModules.py
+from typing import Union
+
 from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, pyqtSignal
 
 from common import logger
@@ -124,6 +126,13 @@ class TableModel(QAbstractTableModel):
         self._search_result = self._data[:]
         self.beginResetModel()
 
+    @property
+    def all_data_num(self):
+        return len(self._data)
+
+    def get_type_num(self, key):
+        return len(getattr(self, f'_{ModType.value_to_key(key)}'))
+
     def addRow(self, data: dict):
         title = data.get('filePath').stem
         add_data = [title]
@@ -170,7 +179,7 @@ class TableModel(QAbstractTableModel):
         for i in ModType.child_keys():
             setattr(self, f'_{i}', [])
 
-    def changeType(self, type_data):
+    def changeType(self, type_data: Union[str, None]):
         self.beginResetModel()
         if type_data:
             self._search_result = getattr(self, f'_{type_data}')[:]
@@ -219,24 +228,35 @@ class TableModel(QAbstractTableModel):
         file_type: dict = info.get('file_type')
         check_type = file_type.get('check_type', 'other')
         father_type = file_type.get('father_type')
-        self.beginInsertRows(parent, len(self._data), len(self._data))
-        self._data = self._insertData(self._data, data)
-
+        need_insert = file_type.get('need_insert', True)
         if father_type:
             setattr(self, f'_{father_type}',
                     self._insertData(getattr(self, f'_{father_type}'), data))
         if check_type:
             setattr(self, f'_{check_type}',
                     self._insertData(getattr(self, f'_{check_type}'), data))
-        if self.search_type == check_type:
-            self._search_result = getattr(self, f'_{check_type}')
-        elif self.search_type == father_type:
-            self._search_result = getattr(self, f'_{father_type}')
-        else:
-            self._search_result = self._data[:]
+        self._data = self._insertData(self._data, data)
         self.customData[data[0]] = file_type
-        logger.debug(f'data: {data}')
-        self.endInsertRows()
+        logger.debug(f'self.search_type: {self.search_type}, self.father_type: {self.father_type}'
+                     f'check_type: {check_type}, father_type: {father_type}')
+        if need_insert:
+            self.beginInsertRows(parent, len(self._search_result), len(self._search_result))
+            if self.search_type is None or self.search_type == '':
+                self._search_result = self._data[:]
+            elif self.search_type == check_type:
+                self._search_result = getattr(self, f'_{check_type}')[:]
+            elif father_type and self.search_type == father_type:
+                self._search_result = getattr(self, f'_{father_type}')[:]
+            else:
+                logger.debug(f'insertRow: self.search_type: {self.search_type}, '
+                             f'self.father_type: {self.father_type}'
+                             f'check_type: {check_type}, father_type: {father_type}')
+            self.endInsertRows()
+
+    def need_insert(self, check_type, father_type) -> bool:
+        if not self.search_type or self.search_type == check_type or self.search_type == father_type:
+            return True
+        return False
 
     def _insertData(self, data: list, insert_data: list):
         index = -1

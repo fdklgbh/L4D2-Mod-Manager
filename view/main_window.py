@@ -10,6 +10,7 @@ from qfluentPackage.windows import CFluentWindow
 
 from common.Bus import signalBus
 from common.ExceptionHook import ExceptionHook
+from common.conf import WINDOWS_TITLE, VERSION
 from common.config.main_config import l4d2Config
 from common.myIcon import MyIcon
 from common.style_sheet import StyleSheet
@@ -89,7 +90,7 @@ class MainWindow(CFluentWindow, ExceptionHook):
         self.resize(960, 780)
         self.setMinimumWidth(760)
         self.setMinimumHeight(580)
-        self.setWindowTitle('L4D2 Mod管理器')
+        self.setWindowTitle(WINDOWS_TITLE + ' ' + VERSION)
         super(MainWindow, self).initWindow()
 
     def connectSignalToSlot(self):

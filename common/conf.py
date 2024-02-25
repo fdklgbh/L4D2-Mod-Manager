@@ -192,7 +192,9 @@ CustomData = {}
 
 WORKSPACE = Path(__file__).parent
 
+WINDOWS_TITLE = 'L4D2 Mod管理器'
+
+VERSION = 'Beta 1.0.0'
+
 if __name__ == '__main__':
-    print(ModType.type_key())
     print(ModType.child_keys())
-    print(ModType.keys())
