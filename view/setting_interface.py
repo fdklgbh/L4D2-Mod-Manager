@@ -52,7 +52,7 @@ class SettingInterface(ScrollArea):
             'https://github.com/fdklgbh/L4D2-Mod-Manager',
             '打开github项目', FIF.INFO,
             self.tr('About'),
-            '开源项目 ' + self.tr('版本') + f" {VERSION} beta版本暂时未开源",
+            '开源项目 ' + self.tr('版本') + f" {VERSION}",
             self.aboutGroup
         )
         self.aboutCard.linkButton.setIcon(FIF.GITHUB)
