@@ -60,7 +60,13 @@ def read_addons_txt(path: Path, return_file_type=False):
                         new_value.append(i.replace(" ", ''))
                         new_value.append(i.replace(' ', '_'))
                 goods[father_key][child_key] = new_value
-        filepath_list = [i for i in pak1]
+        try:
+            filepath_list = [i for i in pak1]
+        except Exception as e:
+            logger.warning(f'打开vpk文件后,读取文件路径出现错误, 错误文件:{path}')
+            logger.exception(e)
+            return_data["type"] = False
+            return return_data
         for i in filepath_list:
             if i.startswith('maps/') or findall('materials/.*?/maps/.*', i):
                 return_data['check_type'] = 'map'
