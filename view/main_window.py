@@ -81,7 +81,8 @@ class MainWindow(CFluentWindow, ExceptionHook):
         self.show_update_interface = UpdateInfoInterface(self)
         # self.modules_interface = ModulesInterface(
         #     [l4d2Config.addons_path, l4d2Config.workshop_path, l4d2Config.disable_mod_path], self)
-        self.modules_interface_splitter = ModulesInterfaceSplitter([l4d2Config.addons_path, l4d2Config.workshop_path, l4d2Config.disable_mod_path], self)
+        self.modules_interface_splitter = ModulesInterfaceSplitter(
+            [l4d2Config.addons_path, l4d2Config.workshop_path, l4d2Config.disable_mod_path], self)
         self.settings_interface = SettingInterface(self)
 
         # self.test_interface = QTest(self)
@@ -92,8 +93,7 @@ class MainWindow(CFluentWindow, ExceptionHook):
         self.addSubInterface(self.show_update_interface, FIF.HOME, VERSION + self.tr('更新日志'))
         # self.addSubInterface(self.modules_interface, MyIcon.M, self.tr('Mod'))
         self.addSubInterface(self.modules_interface_splitter, MyIcon.M, self.tr('Mod'))
-        self.addSubInterface(self.settings_interface, FIF.SETTING, self.tr('Setting'), NavigationItemPosition.BOTTOM)
-
+        self.addSubInterface(self.settings_interface, FIF.SETTING, self.tr('设置'), NavigationItemPosition.BOTTOM)
 
     def initWindow(self):
         self.resize(960, 780)

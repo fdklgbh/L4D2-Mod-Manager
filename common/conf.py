@@ -10,6 +10,10 @@ WINDOWS_TITLE = 'L4D2 Mod管理器'
 
 VERSION = 'Beta 1.0.1'
 
+AUTHOR = 'fdklgbh'
+
+YEAR = 2024
+
 DATA = ['addontitle', 'addonauthor', 'addondescription', 'addonversion', 'addoncontent_campaign', 'addonsteamappid',
         'addontagline', 'addonauthorsteamid', 'addonsteamgroupname', 'addonurl0',
         'addoncontent_survivaladdoncontent_versusaddoncontent_scavenge', 'addoncontent_prefab',

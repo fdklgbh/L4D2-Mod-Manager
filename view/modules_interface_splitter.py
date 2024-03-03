@@ -165,7 +165,7 @@ class ModuleStacked(QWidget, Ui_Frame):
         self.splitter.setHandleWidth(handle_width)
         self.splitter.setSizes(sizes)
 
-    def on_splitter_moved(self):
+    def on_splitter_moved(self, *args):
         sizes = self.splitter.sizes()
         if sizes[1] == 0:
             self.splitter.setHandleWidth(0)

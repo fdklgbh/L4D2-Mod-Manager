@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import QLabel, QWidget, QFileDialog
 from qfluentwidgets import ScrollArea, SettingCardGroup, ExpandLayout, PushSettingCard, MessageBox,HyperlinkCard
 from qfluentwidgets import FluentIcon as FIF
 
-from common.conf import VERSION
+from common.conf import VERSION, YEAR, AUTHOR
 from common.config.main_config import l4d2Config
 from common.style_sheet import StyleSheet
 from common.validator import GCFApplicationPathValidator
@@ -52,7 +52,7 @@ class SettingInterface(ScrollArea):
             'https://github.com/fdklgbh/L4D2-Mod-Manager',
             '打开github项目', FIF.INFO,
             self.tr('About'),
-            '开源项目 ' + self.tr('版本') + f" {VERSION}",
+            '© ' + f"版权所有 {YEAR}, {AUTHOR}. 当前版本 {VERSION}",
             self.aboutGroup
         )
         self.aboutCard.linkButton.setIcon(FIF.GITHUB)
