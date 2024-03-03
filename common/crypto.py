@@ -101,8 +101,6 @@ def main():
     input_file = r'F:\求生之路2\2509195428.vpk'
     encrypted_file = r'F:\求生之路2\2509195428.bin'
     decrypted_file = r'F:\求生之路2\2509195428.bin.vpk'
-    # print(file_md5(input_file))
-    # print(file_md5(decrypted_file))
     # assert file_md5(input_file) == file_md5(decrypted_file)
     encrypt_file(input_file, encrypted_file)
     decrypt_file(encrypted_file, decrypted_file)

@@ -14,6 +14,7 @@ from qfluentwidgets import InfoBar, InfoBarIcon, InfoBarPosition, TableItemDeleg
 from common import logger
 from common.Bus import signalBus
 from common.config.main_config import l4d2Config
+from common.entrust import EditDelegate
 from common.module.modules import TableModel
 from common.read_vpk import read_addons_txt, get_vpk_addon_image_data
 from common.thread import PrePareDataThread, OpenGCFScape
@@ -22,13 +23,16 @@ from glob import glob
 from qfluentPackage.widget import CSegmentedWidget
 
 from common.conf import ModType
-from ui.modules_page import Ui_Frame
+# from ui.modules_page import Ui_Frame
+from ui.modules_page_splitter import Ui_Frame
 
 
 # from ui.modules_page import Ui_Frame
 
 
-# 初始版本,先保留
+# todo 多选时，禁用启用mod
+#  移动文件的时候 加一个进度条在当前窗口顶部
+#  切换到类型后,数据没有排序
 
 
 class MyDelegate(TableItemDelegate):
@@ -76,34 +80,31 @@ class ModuleStacked(QWidget, Ui_Frame):
         self.refresh_btn.setToolTip(self.tr('重新加载VPK文件'))
         self.refresh_btn.installEventFilter(ToolTipFilter(self.refresh_btn, 300, ToolTipPosition.BOTTOM))
         self.connectSignalToSlot()
-        self.hide_vkp_info()
         self.file_pic.setScaledContents(True)
         self.pix: QPixmap = None
         self.original_pix: QPixmap = None
         # self.tableView.horizontalHeader().setSortIndicatorShown(False)
         self.thread_pool = QThreadPool.globalInstance()
+        self.splitter.setStyleSheet("QSplitter::handle { background: transparent;}")
+        self.hide_vkp_info()
+
+        # self.splitter.setStretchFactor(0, 7)
+        # self.splitter.setStretchFactor(1, 3)
 
     def hide_vkp_info(self):
-        self.gridLayout.removeItem(self.vkp_info)
-        self.addons_info.setVisible(False)
-        self.file_pic.setVisible(False)
-        self.file_pic.setEnabled(False)
-        self.gridLayout.setColumnStretch(1, 1)
-        self.gridLayout.removeWidget(self.tableView)
-        self.gridLayout.addWidget(self.tableView, 1, 0, 1, 2)
+        self.resize_splitter()
 
     def show_addon_info(self, current: QModelIndex, previous: QModelIndex):
+        self.vkp_info.show()
         self.file_pic.clear()
         if current.row() < 0:
             return
         last_row = current.row()
         file_title = self.mode.get_row_title(last_row)
         pic = self.folder_path / f'{file_title}.jpg'
-        has_pic = True
         layout_width = int(self.width() * 0.3)
         pic_success = False
         if pic.exists():
-            # self.file_pic.show()
             self.original_pix = QPixmap(pic.__str__())
             if not self.original_pix.isNull():
                 self.pix = self.original_pix
@@ -129,6 +130,15 @@ class ModuleStacked(QWidget, Ui_Frame):
                         pic_success = True
                 except Exception as e:
                     logger.error(e)
+        addons_txt = read_addons_txt(self.folder_path / f'{file_title}.vpk')
+        has_content = bool(addons_txt.get('content'))
+        if not has_content and pic_success is False:
+            self.hide_vkp_info()
+            self.pix = None
+            self.original_pix = None
+            return
+        else:
+            self.resize_splitter(layout_width)
         if pic_success:
             self.pix = self.original_pix.scaledToWidth(layout_width, mode=Qt.SmoothTransformation)
             # self.pix = self.pix.scaled(layout_width, layout_width, aspectRatioMode=Qt.KeepAspectRatio,
@@ -138,22 +148,29 @@ class ModuleStacked(QWidget, Ui_Frame):
         else:
             self.pix = None
             self.original_pix = None
-            has_pic = False
-
-        self.file_pic.setVisible(has_pic)
-        self.file_pic.setEnabled(has_pic)
-        addons_txt = read_addons_txt(self.folder_path / f'{file_title}.vpk')
-        if addons_txt.get('type'):
+        self.file_pic.setVisible(pic_success)
+        if has_content:
             self.addons_info.setPlainText(addons_txt['content'])
             self.addons_info.show()
-        if not addons_txt.get('type') and has_pic is False:
-            self.hide_vkp_info()
         else:
-            self.gridLayout.removeWidget(self.tableView)
-            self.gridLayout.addWidget(self.tableView, 1, 0, 1, 1)
-            self.gridLayout.addLayout(self.vkp_info, 1, 1, 1, 1)
-            self.gridLayout.setColumnMinimumWidth(1, layout_width)
-        self.addons_info.setVisible(bool(addons_txt.get('type')))
+            self.addons_info.setVisible(False)
+        self.vkp_info.setMaximumWidth(layout_width)
+
+    def resize_splitter(self, vpk_info_size=0):
+        sizes = self.splitter.sizes()
+        sizes[1] = vpk_info_size
+        handle_width = 6
+        if vpk_info_size == 0:
+            handle_width = 0
+        self.splitter.setHandleWidth(handle_width)
+        self.splitter.setSizes(sizes)
+
+    def on_splitter_moved(self):
+        sizes = self.splitter.sizes()
+        if sizes[1] == 0:
+            self.splitter.setHandleWidth(0)
+        else:
+            self.splitter.setHandleWidth(6)
 
     def show_type_menu(self, *args):
         type_key = ModType.type_key()
@@ -196,17 +213,22 @@ class ModuleStacked(QWidget, Ui_Frame):
         self.restartPage(True)
 
     def set_table_view(self):
-        # delegate = MyDelegate(self.tableView)
-        # self.tableView.setItemDelegate(delegate)
+        delegate = EditDelegate(self.tableView)
+        self.tableView.setItemDelegate(delegate)
         # 边框可见
         self.tableView.setBorderVisible(True)
         self.tableView.setBorderRadius(8)
+        # 自动换行
         self.tableView.setWordWrap(True)
         self.tableView.setModel(self.mode)
         self.per_data_thread.start()
+        # 表头隐藏
         self.tableView.verticalHeader().hide()
+        # 按照内容自适应宽度大小
         self.tableView.resizeColumnsToContents()
+        # 水平表头设置为自动拉伸
         self.tableView.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        # 排序
         self.tableView.setSortingEnabled(True)
 
     def copy_data(self, copy_data, content=None):
@@ -230,7 +252,7 @@ class ModuleStacked(QWidget, Ui_Frame):
 
     def connectSignalToSlot(self):
         self.tableView.horizontalHeader().sectionClicked.connect(self.table_sort_changed)
-        signalBus.tableItemChanged.connect(self.item_text_changed)
+        # signalBus.tableItemChanged.connect(self.item_text_changed)
         self.tableView.selectionModel().currentRowChanged.connect(self.show_addon_info)
         self.tableView.openGCFSpaceSignal.connect(self.show_gcfspace)
         self.tableView.openFolderSignal.connect(self.show_vpk_file)
@@ -265,6 +287,7 @@ class ModuleStacked(QWidget, Ui_Frame):
         if not l4d2Config.debug:
             self.move_module(filename, target_path, data, row)
         else:
+            # debug
             file_type = self.mode.customData[filename]
             logger.debug(f'move_file: {file_type}')
             signalBus.modulePathChanged.emit(target_path, data, file_type)
@@ -397,15 +420,12 @@ class ModuleStacked(QWidget, Ui_Frame):
         self.setDisabled(False)
         self.mode.sortData()
 
-    def item_text_changed(self, file_name, text: str):
-        print(f'{file_name}更新后文本', text)
-
     def table_sort_changed(self, *args):
+        logger.debug('隐藏vpk')
         self.tableView.clearSelection()
         self.hide_vkp_info()
 
     def onDoubleClicked(self, e: QModelIndex):
-        print('双击')
         col = e.column()
         if col == 0:
             self.copy_data(e.data())
@@ -427,18 +447,19 @@ class ModuleStacked(QWidget, Ui_Frame):
 
     def mainWindowResize(self, a0):
         new_size = a0.size()
-        new_width = int(new_size.width() * 0.3)
+        # new_width = int(new_size.width() * 0.3)
+        new_width = int(self.width() * 0.3)
         if self.stateTooltip:
             try:
                 self.stateTooltip.move(self.width() - self.stateTooltip.width(), 10)
             except Exception as e:
                 logger.warning(e)
         if self.addons_info.isVisible() or self.file_pic.isEnabled():
-            self.gridLayout.setColumnMinimumWidth(1, new_width)
             if self.file_pic.isEnabled() and self.original_pix:
                 self.file_pic.clear()
                 self.pix = self.original_pix.scaledToWidth(new_width, mode=Qt.SmoothTransformation)
                 self.file_pic.setPixmap(self.pix)
+        self.vkp_info.setMaximumWidth(new_width)
 
     def perform_search(self, text: str = ''):
         self.tableView.horizontalHeader().setSortIndicator(-1, Qt.AscendingOrder)
@@ -448,7 +469,7 @@ class ModuleStacked(QWidget, Ui_Frame):
         self.hide_vkp_info()
 
 
-class ModulesInterface(CSegmentedWidget):
+class ModulesInterfaceSplitter(CSegmentedWidget):
     def __init__(self, folder_path: List[Path], parent=None):
         super().__init__(parent=parent)
         if folder_path:

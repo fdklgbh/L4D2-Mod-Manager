@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'modules_page.ui'
+# Form implementation generated from reading ui file 'modules_page_splitter.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.9
 #
@@ -16,8 +16,8 @@ class Ui_Frame(object):
         Frame.setObjectName("Frame")
         Frame.resize(733, 510)
         Frame.setTabletTracking(False)
-        self.gridLayout = QtWidgets.QGridLayout(Frame)
-        self.gridLayout.setObjectName("gridLayout")
+        self.verticalLayout = QtWidgets.QVBoxLayout(Frame)
+        self.verticalLayout.setObjectName("verticalLayout")
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
@@ -68,40 +68,49 @@ class Ui_Frame(object):
         self.horizontalLayout.addWidget(self.type_btn)
         spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem1)
-        self.gridLayout.addLayout(self.horizontalLayout, 0, 0, 1, 2)
-        self.vkp_info = QtWidgets.QVBoxLayout()
+        self.verticalLayout.addLayout(self.horizontalLayout)
+        self.splitter = QtWidgets.QSplitter(Frame)
+        self.splitter.setOrientation(QtCore.Qt.Horizontal)
+        self.splitter.setHandleWidth(6)
+        self.splitter.setChildrenCollapsible(True)
+        self.splitter.setObjectName("splitter")
+        self.tableView = CustomTableView(self.splitter)
+        self.tableView.setObjectName("tableView")
+        self.vkp_info = QtWidgets.QWidget(self.splitter)
         self.vkp_info.setObjectName("vkp_info")
-        spacerItem2 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.vkp_info.addItem(spacerItem2)
-        self.file_pic = PixmapLabel(Frame)
+        self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.vkp_info)
+        self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
+        self.verticalLayout_2.setObjectName("verticalLayout_2")
+        spacerItem2 = QtWidgets.QSpacerItem(286, 37, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.verticalLayout_2.addItem(spacerItem2)
+        self.file_pic = PixmapLabel(self.vkp_info)
         self.file_pic.setObjectName("file_pic")
-        self.vkp_info.addWidget(self.file_pic)
-        self.addons_info = PlainTextEdit(Frame)
+        self.verticalLayout_2.addWidget(self.file_pic)
+        self.addons_info = PlainTextEdit(self.vkp_info)
+        self.addons_info.setTabletTracking(False)
         self.addons_info.setTabChangesFocus(True)
         self.addons_info.setLineWrapMode(QtWidgets.QPlainTextEdit.NoWrap)
         self.addons_info.setReadOnly(True)
         self.addons_info.setBackgroundVisible(False)
         self.addons_info.setObjectName("addons_info")
-        self.vkp_info.addWidget(self.addons_info)
+        self.verticalLayout_2.addWidget(self.addons_info)
         spacerItem3 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.vkp_info.addItem(spacerItem3)
-        self.vkp_info.setStretch(2, 5)
-        self.gridLayout.addLayout(self.vkp_info, 1, 1, 1, 1)
-        self.tableView = CustomTableView(Frame)
-        self.tableView.setObjectName("tableView")
-        self.gridLayout.addWidget(self.tableView, 1, 0, 1, 1)
-        self.gridLayout.setColumnStretch(0, 7)
+        self.verticalLayout_2.addItem(spacerItem3)
+        self.verticalLayout_2.setStretch(2, 5)
+        self.verticalLayout.addWidget(self.splitter)
+        self.verticalLayout.setStretch(0, 1)
+        self.verticalLayout.setStretch(1, 9)
 
         self.retranslateUi(Frame)
         self.search_edit.searchSignal['QString'].connect(Frame.perform_search) # type: ignore
         self.search_edit.textChanged['QString'].connect(Frame.perform_search) # type: ignore
         self.search_edit.clearSignal.connect(Frame.perform_search) # type: ignore
         self.type_btn.clicked.connect(Frame.show_type_menu) # type: ignore
+        self.splitter.splitterMoved['int','int'].connect(Frame.on_splitter_moved) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(Frame)
         Frame.setTabOrder(self.search_edit, self.refresh_btn)
         Frame.setTabOrder(self.refresh_btn, self.type_btn)
         Frame.setTabOrder(self.type_btn, self.tableView)
-        Frame.setTabOrder(self.tableView, self.addons_info)
 
     def retranslateUi(self, Frame):
         _translate = QtCore.QCoreApplication.translate

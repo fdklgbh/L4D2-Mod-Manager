@@ -14,7 +14,7 @@ class Config(CustomConfig):
     )
 
     disable_mod_path = ConfigItem(
-        'L4D2', 'disable_mod_path', '', FolderValidator()
+        'L4D2', 'disable_mod_path', '', FolderValidator(True)
     )
 
     gcfspace_path = ConfigItem(

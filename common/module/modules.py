@@ -50,19 +50,25 @@ class TableModel(QAbstractTableModel):
         row = index.row()
         col = index.column()
         if role == Qt.DisplayRole or role == Qt.EditRole:
+            if col == 1:
+                data = str(self._search_result[row][-1])
+                if data:
+                    return data
             return str(self._search_result[row][col])
         if role == Qt.UserRole + 1:
             title = self._search_result[row][0]
             return self.customData.get(title)
         if role == Qt.UserRole + 2:
             return self._search_result[row]
+        # if role == Qt.UserRole + 3:
+        #     # 自定义标题
+        #     return self._search_result[row][-1]
         return None
 
     def changeCustomData(self, data_info, check_type: str, father_type: str):
         title = data_info[0]
         if not self.customData.get(title):
             return
-        print('设置customData')
         old_custom = self.customData.get(title)
         logger.debug(f'old_custom: {old_custom}')
         self.customData[title] = {
@@ -72,7 +78,6 @@ class TableModel(QAbstractTableModel):
         logger.debug(f'new customData: {self.customData[title]}')
         if old_custom["father_type"]:
             old_father_type: list = getattr(self, f'_{old_custom["father_type"]}')
-            print('old_father_type', old_father_type)
             old_father_type.remove(data_info)
         if father_type:
             new_father_type: list = getattr(self, f'_{father_type}')
@@ -138,6 +143,7 @@ class TableModel(QAbstractTableModel):
         add_data = [title]
         for i in NEED_DATA:
             add_data.append(data.get(i, ''))
+        add_data.append(data.get('customTitle', ''))
         date_len = len(self._data)
         self.beginInsertRows(QModelIndex(), date_len, date_len)
         self._data.append(add_data)
@@ -199,6 +205,7 @@ class TableModel(QAbstractTableModel):
         self._remove_file_type(filename)
         self.endRemoveRows()
 
+
     def _remove_file_type(self, filename: str):
         """
         删除customData 数据 以及对应类型中的数据
@@ -219,9 +226,6 @@ class TableModel(QAbstractTableModel):
                     if value[0] == filename:
                         _list.pop(i)
                         break
-
-    def _insert_file_type(self, filename: str, file_type: dict):
-        pass
 
     def insertRow(self, info: dict, parent=QModelIndex()):
         data = info.get('data')
@@ -263,6 +267,7 @@ class TableModel(QAbstractTableModel):
         for i, value in enumerate(data):
             if value[0] == insert_data[0]:
                 index = i
+                break
         if index >= 0:
             # data.pop(index)
             # data.insert(index, insert_data)

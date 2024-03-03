@@ -30,7 +30,6 @@ class PrePareDataThread(QThread):
         for index, data in enumerate(self.read_data()):
             file_path = data.get('filePath')
             file_name = file_path.stem
-
             self.progressSignal.emit(file_name)
             self.addRowSignal.emit(data)
 
@@ -54,7 +53,6 @@ class PrePareDataThread(QThread):
                     logger.error(file_path)
                     continue
                 elif res is None:
-                    # print(file_path, '不存在addone.txt')
                     pass
                 else:
                     pass

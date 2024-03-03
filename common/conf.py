@@ -6,6 +6,9 @@ from enum import Enum, unique
 from pathlib import Path
 
 # from common.config.main_config import setting_cfg
+WINDOWS_TITLE = 'L4D2 Mod管理器'
+
+VERSION = 'Beta 1.0.1'
 
 DATA = ['addontitle', 'addonauthor', 'addondescription', 'addonversion', 'addoncontent_campaign', 'addonsteamappid',
         'addontagline', 'addonauthorsteamid', 'addonsteamgroupname', 'addonurl0',
@@ -191,10 +194,6 @@ VALUE_TO_KEY = {value: key for key, value in MOD_TYPE_KEY.items()}
 CustomData = {}
 
 WORKSPACE = Path(__file__).parent
-
-WINDOWS_TITLE = 'L4D2 Mod管理器'
-
-VERSION = 'Beta 1.0.0'
 
 if __name__ == '__main__':
     print(ModType.child_keys())

@@ -119,11 +119,9 @@ def read_addons_txt(path: Path, return_file_type=False):
                 if had_type:
                     return_data.update(update)
 
-    if return_file_type and not had_type:
-        return_data["check_type"] = 'other'
     if return_file_type:
-        if path.stem == '1085548012':
-            logger.debug(return_data)
+        if not had_type:
+            return_data["check_type"] = 'other'
         vpkConfig.change_file_config(path.stem, return_data)
     return return_data.copy()
 

@@ -23,6 +23,8 @@ class GamePathValidator(ConfigValidator):
 
 class FolderValidator(ConfigValidator):
     """ Folder validator """
+    def __init__(self, mkdir=False):
+        self.mkdir = mkdir
 
     def validate(self, value):
         path = Path(value)
@@ -34,8 +36,13 @@ class FolderValidator(ConfigValidator):
         if not value:
             return ''
         path = Path(value).absolute()
-        if path == WORKSPACE or not path.exists():
+        if path == WORKSPACE:
             return ''
+        if not path.exists():
+            if self.mkdir:
+                path.mkdir(exist_ok=True)
+            else:
+                return ''
         return str(path.absolute()).replace("\\", "/")
 
 

@@ -32,8 +32,6 @@ class ChangeTypeMessageBox(MessageBoxBase):
                                                        self.new_check_type), self.new_father_type))
 
     def check(self, check_type: str, father_type):
-        print(f'选中的数据：{check_type}, father_type: {father_type}')
-        print(f'self.check_type: {self.check_type}, self.father_type: {self.father_type}')
         if check_type.lower() != self.check_type:
             self.yesButton.setDisabled(False)
             self.new_check_type = check_type

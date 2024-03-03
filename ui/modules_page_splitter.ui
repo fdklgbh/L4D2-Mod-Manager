@@ -16,8 +16,8 @@
   <property name="windowTitle">
    <string>Frame</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout" columnstretch="7,0">
-   <item row="0" column="0" colspan="2">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="1,9">
+   <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <spacer name="horizontalSpacer">
@@ -113,57 +113,83 @@ ComboBox[isPlaceholderText=true] {
      </item>
     </layout>
    </item>
-   <item row="1" column="1">
-    <layout class="QVBoxLayout" name="vkp_info" stretch="0,0,5,0">
-     <item>
-      <spacer name="verticalSpacer_2">
-       <property name="orientation">
-        <enum>Qt::Vertical</enum>
+   <item>
+    <widget class="QSplitter" name="splitter">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="handleWidth">
+      <number>6</number>
+     </property>
+     <property name="childrenCollapsible">
+      <bool>true</bool>
+     </property>
+     <widget class="CustomTableView" name="tableView"/>
+     <widget class="QWidget" name="vkp_info" native="true">
+      <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0,5,0">
+       <property name="leftMargin">
+        <number>0</number>
        </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>20</width>
-         <height>40</height>
-        </size>
+       <property name="topMargin">
+        <number>0</number>
        </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="PixmapLabel" name="file_pic"/>
-     </item>
-     <item>
-      <widget class="PlainTextEdit" name="addons_info">
-       <property name="tabChangesFocus">
-        <bool>true</bool>
+       <property name="rightMargin">
+        <number>0</number>
        </property>
-       <property name="lineWrapMode">
-        <enum>QPlainTextEdit::NoWrap</enum>
+       <property name="bottomMargin">
+        <number>0</number>
        </property>
-       <property name="readOnly">
-        <bool>true</bool>
-       </property>
-       <property name="backgroundVisible">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <spacer name="verticalSpacer">
-       <property name="orientation">
-        <enum>Qt::Vertical</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>20</width>
-         <height>40</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-    </layout>
-   </item>
-   <item row="1" column="0">
-    <widget class="CustomTableView" name="tableView"/>
+       <item>
+        <spacer name="verticalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>286</width>
+           <height>37</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="PixmapLabel" name="file_pic"/>
+       </item>
+       <item>
+        <widget class="PlainTextEdit" name="addons_info">
+         <property name="tabletTracking">
+          <bool>false</bool>
+         </property>
+         <property name="tabChangesFocus">
+          <bool>true</bool>
+         </property>
+         <property name="lineWrapMode">
+          <enum>QPlainTextEdit::NoWrap</enum>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+         <property name="backgroundVisible">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+    </widget>
    </item>
   </layout>
  </widget>
@@ -209,11 +235,8 @@ ComboBox[isPlaceholderText=true] {
   <tabstop>refresh_btn</tabstop>
   <tabstop>type_btn</tabstop>
   <tabstop>tableView</tabstop>
-  <tabstop>addons_info</tabstop>
  </tabstops>
- <resources>
-  <include location="../resources/resource.qrc"/>
- </resources>
+ <resources/>
  <connections>
   <connection>
    <sender>search_edit</sender>
@@ -279,6 +302,22 @@ ComboBox[isPlaceholderText=true] {
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>splitter</sender>
+   <signal>splitterMoved(int,int)</signal>
+   <receiver>Frame</receiver>
+   <slot>on_splitter_moved()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>366</x>
+     <y>282</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>366</x>
+     <y>254</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>onDoubleClicked()</slot>
@@ -286,5 +325,6 @@ ComboBox[isPlaceholderText=true] {
   <slot>perform_search()</slot>
   <slot>search_restore()</slot>
   <slot>show_type_menu()</slot>
+  <slot>on_splitter_moved()</slot>
  </slots>
 </ui>

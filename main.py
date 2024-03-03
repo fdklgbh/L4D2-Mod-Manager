@@ -25,7 +25,7 @@ locale = QLocale(QLocale.Chinese, QLocale.China)
 translator = FluentTranslator(locale)
 
 app.installTranslator(translator)
-
+app.setStyleSheet("""* {background-color: transparent;border: none}""")
 try:
     w = MainWindow()
     w.show()

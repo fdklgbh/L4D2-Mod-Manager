@@ -3,8 +3,7 @@
 # @Author: Administrator
 # @File: Bus.py
 from PyQt5.QtCore import pyqtSignal, QObject
-from PyQt5.QtGui import QResizeEvent
-from PyQt5.QtWidgets import QTableWidgetItem
+from PyQt5.QtGui import QResizeEvent, QKeyEvent
 from pathlib import WindowsPath
 
 
@@ -15,6 +14,8 @@ class SignalBus(QObject):
     modulePathChanged = pyqtSignal(WindowsPath, list, dict)
 
     fileTypeChanged = pyqtSignal(list, str, str)
+
+    pressKey = pyqtSignal(QKeyEvent)
 
 
 signalBus = SignalBus()

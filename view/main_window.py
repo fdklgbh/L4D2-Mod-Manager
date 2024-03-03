@@ -5,6 +5,7 @@
 import sys
 from pathlib import Path
 
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 from qfluentPackage.windows import CFluentWindow
 
@@ -16,8 +17,10 @@ from common.myIcon import MyIcon
 from common.style_sheet import StyleSheet
 from common.validator import GamePathValidator
 from qfluentwidgets import FluentIcon as FIF, MessageBoxBase, SubtitleLabel, LineEdit, NavigationItemPosition
-from .modules_interface import ModulesInterface
+# from .modules_interface import ModulesInterface
+from .modules_interface_splitter import ModulesInterfaceSplitter
 from .setting_interface import SettingInterface
+from .update_info_interface import UpdateInfoInterface
 
 
 class CustomMessageBox(MessageBoxBase):
@@ -75,16 +78,22 @@ class MainWindow(CFluentWindow, ExceptionHook):
             else:
                 l4d2Config.l4d2_path = w.l4d2_path.text()
                 l4d2Config.disable_mod_path = w.disable_path.text()
-        self.modules_interface = ModulesInterface(
-            [l4d2Config.addons_path, l4d2Config.workshop_path, l4d2Config.disable_mod_path], self)
+        self.show_update_interface = UpdateInfoInterface(self)
+        # self.modules_interface = ModulesInterface(
+        #     [l4d2Config.addons_path, l4d2Config.workshop_path, l4d2Config.disable_mod_path], self)
+        self.modules_interface_splitter = ModulesInterfaceSplitter([l4d2Config.addons_path, l4d2Config.workshop_path, l4d2Config.disable_mod_path], self)
         self.settings_interface = SettingInterface(self)
+
         # self.test_interface = QTest(self)
         self.initNavigation()
         StyleSheet.MAIN_WINDOW.apply(self)
 
     def initNavigation(self):
-        self.addSubInterface(self.modules_interface, MyIcon.M, self.tr('Mod'))
+        self.addSubInterface(self.show_update_interface, FIF.HOME, VERSION + self.tr('更新日志'))
+        # self.addSubInterface(self.modules_interface, MyIcon.M, self.tr('Mod'))
+        self.addSubInterface(self.modules_interface_splitter, MyIcon.M, self.tr('Mod'))
         self.addSubInterface(self.settings_interface, FIF.SETTING, self.tr('Setting'), NavigationItemPosition.BOTTOM)
+
 
     def initWindow(self):
         self.resize(960, 780)
@@ -99,3 +108,7 @@ class MainWindow(CFluentWindow, ExceptionHook):
     def resizeEvent(self, e):
         signalBus.windowSizeChanged.emit(e)
         super(MainWindow, self).resizeEvent(e)
+
+    def keyPressEvent(self, a0):
+        signalBus.pressKey.emit(a0)
+        super().keyPressEvent(a0)
