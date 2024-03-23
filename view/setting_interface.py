@@ -90,7 +90,7 @@ class SettingInterface(ScrollArea):
                 l4d2Config.gcfspace_path = exe_path
                 self.gcfPathCard.setContent(exe_path)
             else:
-                w = MessageBox('程序选择错误', '是否重选', self.parent().parent().parent())
+                w = MessageBox('程序选择错误', '是否重选', self.window())
                 w.yesButton.setText(self.tr('重选'))
                 if w.exec_():
                     self.choice_exe()

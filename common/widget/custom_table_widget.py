@@ -137,8 +137,7 @@ class CustomTableView(TableView):
         """
         logger.debug(data)
         # self.parent().parent().parent().parent().parent().parent()
-        w = ChangeTypeMessageBox(self.parent().parent().parent().parent().parent().parent(),
-                                 [data, check_type, father_type])
+        w = ChangeTypeMessageBox(self.window(), [data, check_type, father_type])
 
         print(w.exec_())
 

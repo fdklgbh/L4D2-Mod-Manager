@@ -2,6 +2,7 @@
 # @Time: 2024/3/3
 # @Author: Administrator
 # @File: update_info_interface.py
+from PyQt5.QtGui import QDesktopServices
 from qfluentwidgets import ScrollArea
 
 from common.conf import VERSION
@@ -17,19 +18,19 @@ class UpdateInfoInterface(ScrollArea, Ui_Form):
 # 求生之路2 模组管理器
 ## {VERSION} 更新日志
 
+##  更新日志
 **优化**
-1. 增加快捷键
-   1. 刷新 F5
-   2. 搜索 Ctrl+F
-2. 列表选中其中一个后,右侧展示信息可拖动隐藏
-3. 增加多个文件一起禁用启用
-4. 筛选分类或者搜索后,移动文件后,操作后还存在数据,不会复原
-5. addonsinfo文件不存在会把文本信息控件隐藏
-6. 新增更新日志
+1. 增加特感类别
+   被遗漏的 牛牛
+2. 增加了生还者类别
+   类别名称为其他(需要手动修改类别)
 
-**修复问题**
-
-1. vpk文件打开成功,读取vpk文件路径,编码错误
-2. 配置禁用目录后,不会自动创建
+## 关于
+1. github打不开
+    可以翻墙或者下载[fastgithub](https://gitee.com/zhaifanhua/FastGithub/releases/download/2.1.4/fastgithub_win-x64.zip)
+2. 快捷键
+    1. 刷新 F5
+    2. 搜索 Ctrl+F
 """
-        self.undate_info.setMarkdown(text)
+        self.update_info.setMarkdown(text)
+        self.update_info.anchorClicked.connect(QDesktopServices.openUrl)

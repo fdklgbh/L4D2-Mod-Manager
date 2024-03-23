@@ -5,6 +5,14 @@
 ![img.png](readme_pic/mod页面选中mod.png)
 ![img.png](readme_pic/mod页面右键菜单.png)
 ![img.png](readme_pic/设置页.png)
+
+## 1.0.2
+**优化**
+1. 增加特感类别
+   被遗漏的 牛牛
+2. 增加了生还者类别
+   类别名称为其他(需要手动修改类别)
+
 ## 1.0.1
 
 **优化**

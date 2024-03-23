@@ -8,7 +8,7 @@ from pathlib import Path
 # from common.config.main_config import setting_cfg
 WINDOWS_TITLE = 'L4D2 Mod管理器'
 
-VERSION = 'Beta 1.0.1'
+VERSION = 'Beta 1.0.2'
 
 AUTHOR = 'fdklgbh'
 
@@ -111,12 +111,14 @@ MOD_TYPE = {
         "ellis": ['mechanic', 'ellis'],
         "coach": ["教练", 'coach'],
         "nick": ['gambler', 'nick'],
-        "rochelle": ["rochelle", "producer"]
+        "rochelle": ["rochelle", "producer"],
+        '其他': []
     },
     # 特感
     "infected": {
         "胖子": ['boomer', 'boomette'],
         "猎人": ['hunter'],
+        "牛牛": ['charger'],
         "舌头": ['smoker'],
         "坦克": ['tank', 'hulk'],
         "猴子": ['jockey'],
@@ -146,7 +148,7 @@ MOD_TYPE = {
         "连狙": ['military sniper', 'sniper military'],
         "大狙": ['awp'],
         "机枪": ['m60'],
-        "榴弹枪": ['榴弹', 'grenade launcher'],
+        "榴弹枪": ['grenade launcher'],
         '加特林枪台': ['minigun'],
         '重机枪': ['50cal']
     },

@@ -18,13 +18,13 @@ class Ui_Form(object):
         self.verticalLayout = QtWidgets.QVBoxLayout(Form)
         self.verticalLayout.setContentsMargins(20, 20, 20, 20)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.undate_info = QtWidgets.QTextBrowser(Form)
-        self.undate_info.setContextMenuPolicy(QtCore.Qt.NoContextMenu)
-        self.undate_info.setStyleSheet("background-color: transparent;\n"
+        self.update_info = QtWidgets.QTextBrowser(Form)
+        self.update_info.setContextMenuPolicy(QtCore.Qt.NoContextMenu)
+        self.update_info.setStyleSheet("background-color: transparent;\n"
 "border: none")
-        self.undate_info.setTextInteractionFlags(QtCore.Qt.NoTextInteraction)
-        self.undate_info.setObjectName("undate_info")
-        self.verticalLayout.addWidget(self.undate_info)
+        self.update_info.setOpenLinks(False)
+        self.update_info.setObjectName("update_info")
+        self.verticalLayout.addWidget(self.update_info)
 
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)
@@ -32,7 +32,7 @@ class Ui_Form(object):
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
         Form.setWindowTitle(_translate("Form", "Form"))
-        self.undate_info.setHtml(_translate("Form", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+        self.update_info.setHtml(_translate("Form", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:\'SimSun\'; font-size:9pt; font-weight:400; font-style:normal;\">\n"
