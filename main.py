@@ -29,6 +29,7 @@ app.setStyleSheet("""* {background-color: transparent;border: none}""")
 try:
     w = MainWindow()
     w.show()
-    app.exec_()
 except Exception as e:
     logger.error(traceback.format_exc())
+finally:
+    app.exec_()

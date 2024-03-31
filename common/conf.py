@@ -8,7 +8,7 @@ from pathlib import Path
 # from common.config.main_config import setting_cfg
 WINDOWS_TITLE = 'L4D2 Mod管理器'
 
-VERSION = 'Beta 1.0.2'
+VERSION = 'Beta 1.0.3'
 
 AUTHOR = 'fdklgbh'
 
@@ -184,7 +184,6 @@ MOD_TYPE = {
         "胆汁": ['bile bomb', 'vomitjar', 'bile flask']
     }
 }
-
 MOD_TYPE_KEY = {
     "survivors": '幸存者',
     "infected": "特感",

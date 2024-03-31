@@ -107,5 +107,4 @@ def main():
 
 
 if __name__ == '__main__':
-    encrypt_data('./tmp.cache', {'dada': 'askfhdwsf'})
-    print(decrypt_data('./tmp.cache'))
+    print(md5('2824268260'))

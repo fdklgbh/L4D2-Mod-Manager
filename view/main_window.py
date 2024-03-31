@@ -7,6 +7,7 @@ from pathlib import Path
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QApplication
 from qfluentPackage.windows import CFluentWindow
 
 from common.Bus import signalBus
@@ -16,7 +17,8 @@ from common.config.main_config import l4d2Config
 from common.myIcon import MyIcon
 from common.style_sheet import StyleSheet
 from common.validator import GamePathValidator
-from qfluentwidgets import FluentIcon as FIF, MessageBoxBase, SubtitleLabel, LineEdit, NavigationItemPosition
+from qfluentwidgets import FluentIcon as FIF, MessageBoxBase, SubtitleLabel, LineEdit, NavigationItemPosition, \
+    MessageBox
 # from .modules_interface import ModulesInterface
 from .modules_interface_splitter import ModulesInterfaceSplitter
 from .setting_interface import SettingInterface
@@ -67,7 +69,7 @@ class MainWindow(CFluentWindow, ExceptionHook):
 
     def __init__(self):
         CFluentWindow.__init__(self)
-        ExceptionHook.__init__(self, self)
+        ExceptionHook.__init__(self)
         self.setWindowIcon(QIcon(MyIcon.L4D2.path()))
         self.initWindow()
         L4D2_PATH = str(l4d2Config.l4d2_path)
@@ -88,6 +90,7 @@ class MainWindow(CFluentWindow, ExceptionHook):
         # self.test_interface = QTest(self)
         self.initNavigation()
         StyleSheet.MAIN_WINDOW.apply(self)
+        self.connectSignalToSlot()
 
     def initNavigation(self):
         self.addSubInterface(self.show_update_interface, FIF.HOME, VERSION + self.tr('更新日志'))
@@ -103,7 +106,14 @@ class MainWindow(CFluentWindow, ExceptionHook):
         super(MainWindow, self).initWindow()
 
     def connectSignalToSlot(self):
-        pass
+        self.exceptionSignal.connect(self.execption)
+
+    def execption(self, msg):
+        w = MessageBox('错误', msg, parent=self)
+        w.cancelButton.setVisible(False)
+        w.show()
+        w.exec_()
+        QApplication.quit()
 
     def resizeEvent(self, e):
         signalBus.windowSizeChanged.emit(e)

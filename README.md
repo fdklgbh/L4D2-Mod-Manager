@@ -1,10 +1,23 @@
 # L4D2 Mod Manager
 
 求生之路2 模组管理器
+
+release中的文件
+
+zip 文件有黑窗口.7z 文件无黑窗口
+
+关于解压后py文件全部为pyd 是因为打包前cython编译过
+
+### 展示
 ![img.png](readme_pic/mod页面.png)
 ![img.png](readme_pic/mod页面选中mod.png)
 ![img.png](readme_pic/mod页面右键菜单.png)
 ![img.png](readme_pic/设置页.png)
+
+## 1.0.3
+**修复BUG**
+1. 打开vpk文件中出现错误,做一个兜底
+2. 出现未处理的错误,弹出的弹窗黑屏问题
 
 ## 1.0.2
 **优化**

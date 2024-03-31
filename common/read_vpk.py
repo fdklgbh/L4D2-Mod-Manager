@@ -25,6 +25,9 @@ def open_vpk(path: Path):
     except struct.error:
         logger.error(f'{path}文件不是vpk文件')
         return False
+    except Exception as e:
+        logger.error(f'{path}文件打开过程中出现错误, 错误信息:{e}')
+        return None
     return pak1
 
 
@@ -136,6 +139,12 @@ def _check_survivors(survivors: list):
 
 
 def _check_file_name(file_path: str):
+    """
+    vmt 材质信息 以及路径
+    vtf 贴图文件
+    :param file_path:
+    :return:
+    """
     if file_path.endswith('.mdl') or file_path.endswith('.vtf') or file_path.endswith('.vmt'):
         return True
     return False
