@@ -25,6 +25,8 @@ def open_vpk(path: Path):
     except struct.error:
         logger.error(f'{path}文件不是vpk文件')
         return False
+    except FileNotFoundError as e:
+        raise FileNotFoundError(e)
     except Exception as e:
         logger.error(f'{path}文件打开过程中出现错误, 错误信息:{e}')
         return None

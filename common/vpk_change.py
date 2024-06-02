@@ -5,7 +5,7 @@
 import struct
 from binascii import crc32
 from hashlib import md5
-from io import open as fopen
+from io import open as fopen, BufferedReader
 import os
 import sys
 import chardet
@@ -222,7 +222,7 @@ class NewVPK(object):
         return VPK(path)
 
 
-def _read_cstring(f, encoding='utf-8'):
+def _read_cstring(f: BufferedReader, encoding='utf-8'):
     buf = b''
 
     for chunk in iter(lambda: f.read(64), b''):
@@ -238,7 +238,13 @@ def _read_cstring(f, encoding='utf-8'):
         return buf.decode(encoding) if encoding else buf
     except UnicodeError as e:
         res = chardet.detect(buf)
-        return buf.decode(res['encoding']) if encoding else buf
+        if res['encoding']:
+            return buf.decode(res['encoding']) if encoding else buf
+        else:
+            try:
+                return buf.decode('iso-8859-1')
+            except UnicodeError:
+                return str(buf)
 
 class VPK(object):
     """
