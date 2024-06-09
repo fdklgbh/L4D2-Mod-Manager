@@ -2,10 +2,9 @@
 # @Time: 2023/12/25
 # @Author: Administrator
 # @File: main_window.py
-import sys
+import os
 from pathlib import Path
 
-from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication
 from qfluentPackage.windows import CFluentWindow
@@ -76,7 +75,7 @@ class MainWindow(CFluentWindow, ExceptionHook):
         if not L4D2_PATH or not l4d2Config.disable_mod_path:
             w = CustomMessageBox(L4D2_PATH, str(l4d2Config.disable_mod_path), self)
             if not w.exec_():
-                sys.exit()
+                self.closeEvent(None)
             else:
                 l4d2Config.l4d2_path = w.l4d2_path.text()
                 l4d2Config.disable_mod_path = w.disable_path.text()
@@ -91,6 +90,10 @@ class MainWindow(CFluentWindow, ExceptionHook):
         self.initNavigation()
         StyleSheet.MAIN_WINDOW.apply(self)
         self.connectSignalToSlot()
+
+    def closeEvent(self, a0):
+        super().closeEvent(a0)
+        os._exit(0)
 
     def initNavigation(self):
         self.addSubInterface(self.show_update_interface, FIF.HOME, VERSION + self.tr('更新日志'))
