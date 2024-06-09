@@ -1,4 +1,16 @@
 # -*- mode: python ; coding: utf-8 -*-
+block_cipher = None
+
+import os
+
+CONSOLE = os.environ.get('CONSOLE')
+if CONSOLE == 'true':
+    console_window = True
+else:
+    console_window = False
+
+# 根据命令行参数来决定是否显示控制台窗口
+
 
 a = Analysis(['main.py'],
              pathex=[],
@@ -25,7 +37,7 @@ exe = EXE(pyz,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
-          console=True,
+          console=console_window,
           disable_windowed_traceback=False,
           target_arch=None,
           codesign_identity=None,
