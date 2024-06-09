@@ -92,7 +92,8 @@ class MainWindow(CFluentWindow, ExceptionHook):
         self.connectSignalToSlot()
 
     def closeEvent(self, a0):
-        super().closeEvent(a0)
+        if a0:
+            super().closeEvent(a0)
         os._exit(0)
 
     def initNavigation(self):
