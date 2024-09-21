@@ -9,9 +9,9 @@ from re import findall
 import chardet
 
 from common.conf import ModType
-from . import vpk_change as vpk, logger
-from .config.main_config import vpkConfig
-from .vpk_change import VPK
+from common import vpk_change as vpk, logger
+from common.config import vpkConfig
+from common.vpk_change import VPK
 
 
 def open_vpk(path: Path):

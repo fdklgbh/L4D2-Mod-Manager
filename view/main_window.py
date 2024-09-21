@@ -11,14 +11,15 @@ from qfluentPackage.windows import CFluentWindow
 
 from common.Bus import signalBus
 from common.ExceptionHook import ExceptionHook
+from common.check_version import show_version_dialog
 from common.conf import WINDOWS_TITLE, VERSION
-from common.config.main_config import l4d2Config
+from common.config import l4d2Config
 from common.myIcon import MyIcon
 from common.style_sheet import StyleSheet
+from common.thread import CheckVersion
 from common.validator import GamePathValidator
-from qfluentwidgets import FluentIcon as FIF, MessageBoxBase, SubtitleLabel, LineEdit, NavigationItemPosition, \
-    MessageBox
-# from .modules_interface import ModulesInterface
+from qfluentwidgets import (FluentIcon as FIF, MessageBoxBase, SubtitleLabel, LineEdit, NavigationItemPosition,
+                            MessageBox)
 from .modules_interface_splitter import ModulesInterfaceSplitter
 from .setting_interface import SettingInterface
 from .update_info_interface import UpdateInfoInterface
@@ -69,6 +70,8 @@ class MainWindow(CFluentWindow, ExceptionHook):
     def __init__(self):
         CFluentWindow.__init__(self)
         ExceptionHook.__init__(self)
+        self.check_version_thread = CheckVersion()
+
         self.setWindowIcon(QIcon(MyIcon.L4D2.path()))
         self.initWindow()
         L4D2_PATH = str(l4d2Config.l4d2_path)
@@ -79,17 +82,23 @@ class MainWindow(CFluentWindow, ExceptionHook):
             else:
                 l4d2Config.l4d2_path = w.l4d2_path.text()
                 l4d2Config.disable_mod_path = w.disable_path.text()
+        # 更新说明页面
         self.show_update_interface = UpdateInfoInterface(self)
-        # self.modules_interface = ModulesInterface(
-        #     [l4d2Config.addons_path, l4d2Config.workshop_path, l4d2Config.disable_mod_path], self)
         self.modules_interface_splitter = ModulesInterfaceSplitter(
             [l4d2Config.addons_path, l4d2Config.workshop_path, l4d2Config.disable_mod_path], self)
         self.settings_interface = SettingInterface(self)
 
-        # self.test_interface = QTest(self)
         self.initNavigation()
         StyleSheet.MAIN_WINDOW.apply(self)
         self.connectSignalToSlot()
+
+    def showEvent(self, event):
+        if l4d2Config.auto_update:
+            self.check_version_thread.resultSignal.connect(self.updateDisplay)
+            self.check_version_thread.start()
+        else:
+            del self.check_version_thread
+        super().showEvent(event)
 
     def closeEvent(self, a0):
         if a0:
@@ -98,7 +107,6 @@ class MainWindow(CFluentWindow, ExceptionHook):
 
     def initNavigation(self):
         self.addSubInterface(self.show_update_interface, FIF.HOME, VERSION + self.tr('更新日志'))
-        # self.addSubInterface(self.modules_interface, MyIcon.M, self.tr('Mod'))
         self.addSubInterface(self.modules_interface_splitter, MyIcon.M, self.tr('Mod'))
         self.addSubInterface(self.settings_interface, FIF.SETTING, self.tr('设置'), NavigationItemPosition.BOTTOM)
 
@@ -110,14 +118,20 @@ class MainWindow(CFluentWindow, ExceptionHook):
         super(MainWindow, self).initWindow()
 
     def connectSignalToSlot(self):
-        self.exceptionSignal.connect(self.execption)
+        self.exceptionSignal.connect(self.exception)
 
-    def execption(self, msg):
+    def exception(self, msg):
         w = MessageBox('错误', msg, parent=self)
-        w.cancelButton.setVisible(False)
+        w.cancelButton.hide()
+        w.buttonLayout.insertStretch(0, 1)
         w.show()
         w.exec_()
         QApplication.quit()
+
+    def updateDisplay(self, data: dict):
+        print('updateDisplay', data)
+        show_version_dialog(data, self, True)
+        del self.check_version_thread
 
     def resizeEvent(self, e):
         signalBus.windowSizeChanged.emit(e)

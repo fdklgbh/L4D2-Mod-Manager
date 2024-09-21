@@ -3,16 +3,12 @@
 # @Author: Administrator
 # @File: vpk_config.py
 
-from pathlib import Path
-from json import load, dump
-from copy import deepcopy
-from common import logger
 from PyQt5.QtCore import QMutex, QMutexLocker
-
+from common.conf import CachePath
 from common.crypto import md5, encrypt_data, decrypt_data
 
 mutex = QMutex()
-cache_path = Path('Cache')
+cache_path = CachePath
 cache_path.mkdir(exist_ok=True)
 
 
@@ -42,8 +38,6 @@ class VPKConfig:
             filename = md5(filename)
             path = cache_path / f"{filename}.cache"
             encrypt_data(path, data)
-            # with open(path, 'w', encoding='utf8') as f_:
-            #     dump(data, f_, ensure_ascii=False, indent=4)
 
     @staticmethod
     def _read(filename):
@@ -53,9 +47,6 @@ class VPKConfig:
             return {}
         with QMutexLocker(mutex):
             return decrypt_data(path)
-            # with open(cache_path / f"{filename}.json", 'r', encoding='utf8') as f_json:
-            #     data = load(f_json)
-            #     return data
 
 
 __all__ = ['VPKConfig']

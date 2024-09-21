@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import QSplitter
 from qfluentwidgets import TableView, RoundMenu, MenuAnimationType, Action, InfoBar, InfoBarPosition
 
 from common import logger
-from common.config.main_config import l4d2Config
+from common.config import l4d2Config
 from common.messagebox import ChangeTypeMessageBox
 from common.module.modules import TableModel
 from qfluentwidgets import FluentIcon as FIF
@@ -40,7 +40,7 @@ class CustomTableView(TableView):
                 isClosable=False,
                 position=InfoBarPosition.TOP,
                 duration=1000,
-                parent=self.parent_obj.parent().parent()
+                parent=self.window()
             )
             return
         item = self.indexAt(a0.pos())
@@ -60,13 +60,12 @@ class CustomTableView(TableView):
         if row not in select_rows:
             self.selectRow(item.row())
         menu = RoundMenu(parent=self)
-
-        # if item.column() == 1:
-        #     edit = Action(FIF.EDIT, self.tr('编辑'))
-        #     menu.addAction(edit)
-        #     edit.triggered.connect(lambda: self.edit(item))
+        if item.column() == 1:
+            edit = Action(FIF.EDIT, self.tr('编辑'))
+            menu.addAction(edit)
+            edit.triggered.connect(lambda: self.edit(item))
         open_file = Action(FIF.FOLDER, self.tr('打开文件所在文件夹'))
-        open_gcf = Action(MyIcon.GCF, text=self.tr('打开GCFSpace'))
+        open_gcf = Action(MyIcon.GCF, self.tr('打开GCFSpace'))
         if not l4d2Config.gcfspace_path:
             open_gcf.setVisible(False)
         else:

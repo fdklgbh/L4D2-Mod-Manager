@@ -8,7 +8,7 @@ from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, pyqtSignal
 
 from common import logger
 from common.Bus import signalBus
-from common.config.main_config import vpkConfig
+from common.config import vpkConfig
 from common.conf import NEED_DATA, ModType
 
 
@@ -20,6 +20,7 @@ class TableModel(QAbstractTableModel):
         self._headers = headers
         self._search_result = []
         self._data = []
+        # 当前目录下所有mod的分类
         self.customData = {}
         # {file_title: {check_type: "", father_type: ""}}
         for i in ModType.keys():
@@ -58,11 +59,12 @@ class TableModel(QAbstractTableModel):
         if role == Qt.UserRole + 1:
             title = self._search_result[row][0]
             return self.customData.get(title)
+        # 整行数据
         if role == Qt.UserRole + 2:
             return self._search_result[row]
-        # if role == Qt.UserRole + 3:
-        #     # 自定义标题
-        #     return self._search_result[row][-1]
+        if role == Qt.UserRole + 3:
+            # 自定义标题
+            return self._search_result[row][-1]
         return None
 
     def changeCustomData(self, data_info, check_type: str, father_type: str):
@@ -126,6 +128,28 @@ class TableModel(QAbstractTableModel):
 
         self.endResetModel()
 
+    def setData(self, index, value, role=...):
+        if index.isValid() and role == Qt.EditRole:
+            row = index.row()
+            column = index.column()
+            if column != 1:
+                return
+            compare = self._search_result[row][-1]
+            if not compare:
+                compare = self._search_result[row][column]
+            if compare != value:
+                print('===>', end='')
+                print(self._search_result[row][column])
+                self._search_result[row][-1] = value
+                print('===>', end='')
+                print(self._search_result[row])
+                title = self.get_row_title(row)
+                print('title', title, value)
+                vpkConfig.update_config(title, {"customTitle": value})
+                self.dataChanged.emit(index, index, [Qt.DisplayRole])
+                return True
+        return False
+
     def resetModel(self):
         self.beginResetModel()
         self._search_result = self._data[:]
@@ -168,7 +192,11 @@ class TableModel(QAbstractTableModel):
     def sort(self, column, order=...):
         if self._search_result:
             self.layoutAboutToBeChanged.emit()
-            self._search_result.sort(key=lambda x: x[column], reverse=(order == Qt.AscendingOrder))
+            if column != 1:
+                key = lambda x: x[column]
+            else:
+                key = lambda x: x[column] if not x[-1] else x[-1]
+            self._search_result.sort(key=key, reverse=(order == Qt.AscendingOrder))
             self.layoutChanged.emit()
 
     def get_header_title(self, index: int):
@@ -204,7 +232,6 @@ class TableModel(QAbstractTableModel):
         self._data.pop(self._find_index(self._data, filename))
         self._remove_file_type(filename)
         self.endRemoveRows()
-
 
     def _remove_file_type(self, filename: str):
         """
@@ -282,3 +309,6 @@ class TableModel(QAbstractTableModel):
         for index, file_data in enumerate(data):
             if remove_file_name == file_data[0]:
                 return index
+
+    def flags(self, index):
+        return Qt.ItemIsSelectable | Qt.ItemIsEditable | Qt.ItemIsEnabled

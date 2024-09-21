@@ -7,60 +7,26 @@ from pathlib import Path
 from typing import List
 from PyQt5.QtCore import Qt, QModelIndex, QByteArray, QThreadPool, QPoint
 from PyQt5.QtGui import QPixmap, QImage, QKeyEvent
-from PyQt5.QtWidgets import QTableWidgetItem, QHeaderView, QApplication, QWidget, QLineEdit
-from qfluentwidgets import InfoBar, InfoBarIcon, InfoBarPosition, TableItemDelegate, StateToolTip, ToolTipFilter, \
+from PyQt5.QtWidgets import QHeaderView, QApplication, QWidget
+from qfluentwidgets import InfoBar, InfoBarIcon, InfoBarPosition, StateToolTip, ToolTipFilter, \
     ToolTipPosition, Dialog, MessageBox, Action, RoundMenu
 
 from common import logger
 from common.Bus import signalBus
-from common.config.main_config import l4d2Config
-from common.entrust import EditDelegate
+from common.config import l4d2Config
 from common.module.modules import TableModel
 from common.read_vpk import read_addons_txt, get_vpk_addon_image_data
 from common.thread import PrePareDataThread, OpenGCFScape
-from common.widget.custom_table_widget import CustomTableView
 from glob import glob
 from qfluentPackage.widget import CSegmentedWidget
 
 from common.conf import ModType
-# from ui.modules_page import Ui_Frame
 from ui.modules_page_splitter import Ui_Frame
 
 
-# from ui.modules_page import Ui_Frame
-
-
-# todo 多选时，禁用启用mod
+# todo
 #  移动文件的时候 加一个进度条在当前窗口顶部
 #  切换到类型后,数据没有排序
-
-
-class MyDelegate(TableItemDelegate):
-    def __init__(self, parent: CustomTableView):
-        super().__init__(parent=parent)
-        self.parent_ = parent
-        self.item: QTableWidgetItem = None
-        self.editBefore: str = None
-
-    def createEditor(self, parent, option, index: QModelIndex):
-        row = index.row()
-        column = index.column()
-        self.item: QTableWidgetItem = self.parent_.item(row, column)
-        self.editBefore = self.item.text()
-        editor = super().createEditor(parent, option, index)
-        editor.editingFinished.connect(self.handle_editing_finished)
-        return editor
-
-    def handle_editing_finished(self):
-        editor = self.sender()
-        if isinstance(editor, QLineEdit):
-            text = editor.text()
-            if self.editBefore is None:
-                return
-            if self.editBefore != text:
-                file_name = self.parent_.item(self.item.row(), 0).text()
-                signalBus.tableItemChanged.emit(file_name, text)
-        self.editBefore = None
 
 
 class ModuleStacked(QWidget, Ui_Frame):
@@ -113,13 +79,16 @@ class ModuleStacked(QWidget, Ui_Frame):
             content = get_vpk_addon_image_data(self.folder_path / f'{file_title}.vpk')
             if isinstance(content, dict):
                 w = MessageBox(
-                    content['title'], content['content'], parent=self.parent().parent()
+                    content['title'], content['content'], parent=self.window()
                 )
-                w.cancelButton.setVisible(False)
+                w.cancelButton.setText('退出程序')
                 w.yesButton.setText('确定')
                 w.show()
-                w.exec_()
+                if not w.exec_():
+                    self.window().close()
+                self.tableView.clearSelection()
                 self.mode.removeRow(last_row, file_title)
+                logger.debug('删除数据行')
                 return
             if content:
                 try:
@@ -175,7 +144,7 @@ class ModuleStacked(QWidget, Ui_Frame):
     def show_type_menu(self, *args):
         type_key = ModType.type_key()
         menu = RoundMenu(self)
-        menu.addAction(Action(f'全部({self.mode.all_data_num})'))
+        menu.addAction(Action(text=f'全部({self.mode.all_data_num})'))
         for i in type_key:
             if isinstance(i, dict):
                 for key, value in i.items():
@@ -194,6 +163,7 @@ class ModuleStacked(QWidget, Ui_Frame):
         menu.triggered.connect(self.type_menu_selection)
 
     def type_menu_selection(self, action: Action):
+        # action.text()拆分数据
         search_type = btn_text = action.text().lower().split('(')[0]
         father_menu = ''
         if action.parentWidget():
@@ -213,8 +183,6 @@ class ModuleStacked(QWidget, Ui_Frame):
         self.restartPage(True)
 
     def set_table_view(self):
-        delegate = EditDelegate(self.tableView)
-        self.tableView.setItemDelegate(delegate)
         # 边框可见
         self.tableView.setBorderVisible(True)
         self.tableView.setBorderRadius(8)
@@ -344,7 +312,7 @@ class ModuleStacked(QWidget, Ui_Frame):
                         orient=Qt.Horizontal,
                         isClosable=False,
                         position=InfoBarPosition.TOP,
-                        parent=self.parent().parent()
+                        parent=self.window()
                     )
                     return
                 logger.debug(e)
@@ -370,7 +338,7 @@ class ModuleStacked(QWidget, Ui_Frame):
             orient=Qt.Horizontal,
             isClosable=False,
             position=InfoBarPosition.TOP,
-            parent=self.parent().parent()
+            parent=self.window()
         )
 
     def refresh(self):

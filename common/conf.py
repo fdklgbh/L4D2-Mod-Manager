@@ -8,7 +8,7 @@ from pathlib import Path
 # from common.config.main_config import setting_cfg
 WINDOWS_TITLE = 'L4D2 Mod管理器'
 
-VERSION = '1.0.4'
+VERSION = '1.0.5'
 
 AUTHOR = 'fdklgbh'
 
@@ -198,7 +198,9 @@ MOD_TYPE_KEY = {
 VALUE_TO_KEY = {value: key for key, value in MOD_TYPE_KEY.items()}
 CustomData = {}
 
-WORKSPACE = Path(__file__).parent
+WORKSPACE = Path(__file__).parent.parent
+
+CachePath = WORKSPACE / 'Cache'
 
 if __name__ == '__main__':
     print(ModType.child_keys())

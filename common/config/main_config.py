@@ -6,7 +6,6 @@
 from pathlib import Path
 
 from common.config.setting_config import setting_cfg
-from common.config.vpk_config import VPKConfig
 
 
 class L4d2Config:
@@ -23,6 +22,14 @@ class L4d2Config:
     @property
     def disable_mod_path(self):
         return self._path(setting_cfg.disable_mod_path)
+
+    @property
+    def auto_update(self):
+        return setting_cfg.auto_update.value
+
+    @staticmethod
+    def set_auto_update(value):
+        setting_cfg.set(setting_cfg.auto_update, value)
 
     @disable_mod_path.setter
     def disable_mod_path(self, value):
@@ -74,8 +81,4 @@ class L4d2Config:
         return self.disable_mod_path == path
 
 
-l4d2Config = L4d2Config()
-
-vpkConfig = VPKConfig()
-
-__all__ = ['vpkConfig', 'l4d2Config']
+__all__ = ['L4d2Config']

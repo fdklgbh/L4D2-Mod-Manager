@@ -19,10 +19,13 @@ class UpdateInfoInterface(ScrollArea, Ui_Form):
 ## {VERSION} 更新日志
 
 ##  更新日志
-###  1.0.4
 **修复BUG**
-1. 1.0.3的兜底把文件找不到一块处理了,暴露出来
-2. 内容编码多次解析失败直接强转字符串
+1. 部分vpk文件解析路径时,解析编码后再次解码失败
+
+**新增功能**
+1. 标题列内容可以自定义,右键编辑(不会存到vpk文件中)
+2. 检查有无版本更新(可以启动就检查,默认关闭, 请求链接: [update_version.json](https://fdklgbh.github.io/L4D2-Mod-Manager/update_version.json))
+3. 设置-清理缓存:清除已删除vpk文件的缓存文件
 
 ## 关于
 1. github打不开

@@ -239,11 +239,15 @@ def _read_cstring(f: BufferedReader, encoding='utf-8'):
     except UnicodeError as e:
         res = chardet.detect(buf)
         if res['encoding']:
-            return buf.decode(res['encoding']) if encoding else buf
+            try:
+                return buf.decode(res['encoding']) if encoding else buf
+            except UnicodeError:
+                return str(buf)
         else:
             try:
                 return buf.decode('iso-8859-1')
             except UnicodeError:
+                print('error')
                 return str(buf)
 
 class VPK(object):

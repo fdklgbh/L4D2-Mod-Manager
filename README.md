@@ -5,7 +5,7 @@
 release中的文件
 
 zip 文件有黑窗口.7z 文件无黑窗口
-
+黑窗口版本有一些调试信息,可以不必理会
 关于解压后py文件全部为pyd 是因为打包前cython编译过
 
 ### 展示
@@ -13,6 +13,16 @@ zip 文件有黑窗口.7z 文件无黑窗口
 ![img.png](readme_pic/mod页面选中mod.png)
 ![img.png](readme_pic/mod页面右键菜单.png)
 ![img.png](readme_pic/设置页.png)
+
+## 1.0.5
+**修复BUG**
+1. 部分vpk文件解析路径时,解析编码后再次解码失败
+
+**新增功能**
+1. 标题列内容可以自定义,右键编辑(不会存到vpk文件中)
+2. 检查有无版本更新(可以启动就检查,默认关闭, 请求链接: [update_version.json](https://fdklgbh.github.io/L4D2-Mod-Manager/update_version.json))
+3. 设置-清理缓存:清除已删除vpk文件的缓存文件
+
 
 ## 1.0.4
 **修复BUG**

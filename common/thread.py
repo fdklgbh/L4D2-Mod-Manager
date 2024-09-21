@@ -7,14 +7,17 @@ import re
 from copy import deepcopy
 from pathlib import Path
 
+import requests
+import urllib3
 import vdf
 from PyQt5.QtCore import QThread, pyqtSignal, QRunnable
 
 from common import logger
-from common.config.main_config import l4d2Config, vpkConfig
+from common.config import l4d2Config, vpkConfig
 from common.module.modules import TableModel
 from common.read_vpk import read_addons_txt, remove_slash
-from common.conf import DATA, MAP_KEY
+from common.conf import DATA, MAP_KEY, VERSION
+from packaging import version
 
 
 class PrePareDataThread(QThread):
@@ -144,4 +147,43 @@ class OpenGCFScape(QRunnable):
         self.vpk_file = vpk_file
 
 
-__all__ = ['PrePareDataThread', 'OpenGCFScape']
+class CheckVersion(QThread):
+    resultSignal = pyqtSignal(dict)
+
+    def run(self):
+        res = self.sendRequest()
+        self.resultSignal.emit(res)
+
+    @staticmethod
+    def sendRequest():
+        url = 'https://fdklgbh.github.io/L4D2-Mod-Manager/update_version.json'
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        try:
+            res = requests.get(url, verify=False, timeout=2)
+        except Exception:
+            return {
+                'status': False,
+                'msg': '请求失败或者超时,请检查网络状态!'
+            }
+        if res.status_code != 200:
+            return {
+                'status': False,
+                'msg': res.status_code
+            }
+        else:
+            return_data = {
+                'status': True
+            }
+            json_data = res.json()
+            local_version = version.parse(VERSION)
+            remote_version = version.parse(json_data['version'])
+            update = False
+            if local_version < remote_version:
+                update = True
+                return_data['url'] = json_data['package']
+                return_data['version'] = json_data['version']
+            return_data['update'] = update
+            return return_data
+
+
+__all__ = ['PrePareDataThread', 'OpenGCFScape', 'CheckVersion']
