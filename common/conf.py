@@ -8,7 +8,7 @@ from pathlib import Path
 # from common.config.main_config import setting_cfg
 WINDOWS_TITLE = 'L4D2 Mod管理器'
 
-VERSION = '1.0.5'
+VERSION = '1.0.6'
 
 AUTHOR = 'fdklgbh'
 

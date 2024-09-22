@@ -93,11 +93,12 @@ class MainWindow(CFluentWindow, ExceptionHook):
         self.connectSignalToSlot()
 
     def showEvent(self, event):
-        if l4d2Config.auto_update:
-            self.check_version_thread.resultSignal.connect(self.updateDisplay)
-            self.check_version_thread.start()
-        else:
-            del self.check_version_thread
+        if hasattr(self, 'check_version_thread'):
+            if l4d2Config.auto_update:
+                self.check_version_thread.resultSignal.connect(self.updateDisplay)
+                self.check_version_thread.start()
+            else:
+                del self.check_version_thread
         super().showEvent(event)
 
     def closeEvent(self, a0):

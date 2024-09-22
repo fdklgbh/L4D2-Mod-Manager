@@ -20,6 +20,10 @@ class UpdateInfoInterface(ScrollArea, Ui_Form):
 
 ##  更新日志
 **修复BUG**
+1. 最小化后再打开出现的错误
+
+## 1.0.5
+**修复BUG**
 1. 部分vpk文件解析路径时,解析编码后再次解码失败
 
 **新增功能**
