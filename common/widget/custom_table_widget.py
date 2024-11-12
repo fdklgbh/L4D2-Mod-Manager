@@ -43,6 +43,7 @@ class CustomTableView(TableView):
                 parent=self.window()
             )
             return
+        # 当前选中的
         item = self.indexAt(a0.pos())
         if not item.isValid():
             return
@@ -70,6 +71,7 @@ class CustomTableView(TableView):
             open_gcf.setVisible(False)
         else:
             open_gcf.setVisible(True)
+        # 选中mod的分类数据 {'check_type': 'other', 'father_type': None}
         userData: dict = item.data(Qt.UserRole + 1)
         logger.debug(f"{filename}: {userData}")
         type_ = userData['check_type'] if userData['father_type'] else ModType.key_to_value(userData['check_type'])
@@ -95,7 +97,8 @@ class CustomTableView(TableView):
             logger.debug(f'{i.row()} ===> {i.data()}')
             select_rows.add(i)
         menu.addAction(move)
-        if len(select_rows) > 1:
+        is_more = len(select_rows) > 1
+        if is_more:
             move_more = Action(icon, self.tr(f'{text}多个mod'))
             menu.addAction(move_more)
             move_more.triggered.connect(lambda x: self.move_more_mod(target_path, select_rows))
@@ -104,7 +107,7 @@ class CustomTableView(TableView):
             menu.addAction(move_to_addons)
             move_to_addons.triggered.connect(
                 lambda x: self.modeEnableSignal.emit(l4d2Config.addons_path, row, filename))
-            if len(select_rows) > 1:
+            if is_more:
                 move_more_to_addons = Action(FIF.MOVE, self.tr('移动多个到Addons'))
                 menu.addAction(move_more_to_addons)
                 move_more_to_addons.triggered.connect(lambda x: self.move_more_mod(l4d2Config.addons_path, select_rows))
@@ -115,7 +118,12 @@ class CustomTableView(TableView):
                 f'https://steamcommunity.com/sharedfiles/filedetails/?id={filename}')))
         open_file.triggered.connect(lambda x: self.openFolderSignal.emit(filename))
         open_gcf.triggered.connect(lambda x: self.openGCFSpaceSignal.emit(filename))
-        type_action.triggered.connect(lambda x: self.show_change_type(item.data(Qt.UserRole + 2), **userData))
+        logger.debug(f'userData: {userData}')
+        # 当多选的时候修改类型,批量修改
+        select_data = [data.data(Qt.UserRole + 2) for data in select_rows]
+        if not is_more:
+            select_data = select_data[0]
+        type_action.triggered.connect(lambda x: self.show_change_type(select_data, **userData, more=is_more))
         move.triggered.connect(lambda x: self.modeEnableSignal.emit(target_path, row, filename))
         menu.closedSignal.connect(menu.deleteLater)
         menu.exec(a0.globalPos(), aniType=MenuAnimationType.DROP_DOWN)
@@ -126,19 +134,19 @@ class CustomTableView(TableView):
         for i in list_rows[::-1]:
             self.modeEnableSignal.emit(target_path, i.row(), i.data())
 
-    def show_change_type(self, data, check_type, father_type):
+    def show_change_type(self, data, check_type, father_type, more=False):
         """
         显示切换类型窗口
+        :param more:
         :param data:
         :param check_type:
         :param father_type:
         :return:
         """
         logger.debug(data)
-        # self.parent().parent().parent().parent().parent().parent()
-        w = ChangeTypeMessageBox(self.window(), [data, check_type, father_type])
-
-        print(w.exec_())
+        w = ChangeTypeMessageBox(self.window(), [data, check_type, father_type], more=more)
+        w.exec_()
+        self.clearSelection()
 
     def mouseDoubleClickEvent(self, e):
         module_index = self.indexAt(e.pos())

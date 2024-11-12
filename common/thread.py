@@ -171,6 +171,7 @@ class CheckVersion(QThread):
                 'msg': res.status_code
             }
         else:
+            logger.info(f'返回数据 ===> {res.json()}')
             return_data = {
                 'status': True
             }

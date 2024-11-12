@@ -18,18 +18,9 @@ class UpdateInfoInterface(ScrollArea, Ui_Form):
 # 求生之路2 模组管理器
 ## {VERSION} 更新日志
 
-##  更新日志
-**修复BUG**
-1. 最小化后再打开出现的错误
+### 优化
 
-## 1.0.5
-**修复BUG**
-1. 部分vpk文件解析路径时,解析编码后再次解码失败
-
-**新增功能**
-1. 标题列内容可以自定义,右键编辑(不会存到vpk文件中)
-2. 检查有无版本更新(可以启动就检查,默认关闭, 请求链接: [update_version.json](https://fdklgbh.github.io/L4D2-Mod-Manager/update_version.json))
-3. 设置-清理缓存:清除已删除vpk文件的缓存文件
+1. 更换类型的时候,选中多个,会同时更改多个mod(打开选择类型窗口后,没有选中mod类型即为多选)
 
 ## 关于
 1. github打不开

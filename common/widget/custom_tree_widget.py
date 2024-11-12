@@ -50,6 +50,7 @@ class CustomTreeWidget(QFrame):
     def itemSelectionChanged(self):
         item = self.tree.currentItem()
         if not item.isSelected() or item.childCount():
+            self.selectedSignal.emit('', '')
             return
         father = ''
         check = item.text(0)

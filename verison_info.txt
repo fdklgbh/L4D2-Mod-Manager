@@ -29,11 +29,11 @@ VSVersionInfo(
         '080404b0',
         [StringStruct('CompanyName', '个人 fdklgbh'),
         StringStruct('FileDescription', '求生之路2模组管理器'),
-        StringStruct('FileVersion', '1.0.6'),
+        StringStruct('FileVersion', '1.0.7'),
         StringStruct('InternalName', 'L4D2 Mod Manager.exe'),
         StringStruct('OriginalFilename', 'L4D2 Mod Manager.exe'),
         StringStruct('ProductName', 'L4D2 Mod Manager'),
-        StringStruct('ProductVersion', '1.0.6')])
+        StringStruct('ProductVersion', '1.0.7')])
       ]),
     VarFileInfo([VarStruct('Translation', [2052, 1200])])
   ]
