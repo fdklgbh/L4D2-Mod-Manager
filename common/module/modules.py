@@ -2,7 +2,7 @@
 # @Time: 2023/12/31
 # @Author: Administrator
 # @File: tableModules.py
-from typing import Union
+from typing import Union, List
 
 from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, pyqtSignal
 
@@ -20,16 +20,70 @@ class TableModel(QAbstractTableModel):
         self._headers = headers
         self._search_result = []
         self._data = []
-        # 当前目录下所有mod的分类
+        # 当前目录下所有mod的分类信息 一级,二级分类
         self.customData = {}
         # {file_title: {check_type: "", father_type: ""}}
-        for i in ModType.keys():
+        for i in ModType.father_type_keys():
             setattr(self, f'_{i}', [])
-        for i in ModType.child_keys():
-            setattr(self, f'_{i}', [])
+            for j in ModType.child_keys(i):
+                setattr(self, f'_{i}_{j}', [])
+        # 当前分类的类型
         self.search_type = ''
+        # 当前分类的父类 当前分类类型为父类,则为父类的翻译,即中文
         self.father_type = ''
+        # 搜索文本
+        self.search_text = ''
         signalBus.fileTypeChanged.connect(self.changeCustomData)
+
+    def set_default_father_type(self):
+        """
+        设置一级分类为默认值
+        :return:
+        """
+        for i in ModType.father_type_keys():
+            setattr(self, f'_{i}', [])
+
+    def set_default_child_type(self):
+        """
+        设置二级分类为默认值
+        :return:
+        """
+        for i in ModType.father_type_keys():
+            for j in ModType.child_keys(i):
+                setattr(self, f'_{i}_{j}', [])
+
+    @staticmethod
+    def get_type_key(child_type=None, father_type=None):
+        key = ''
+        if father_type:
+            key += f'_{father_type}'
+        if child_type:
+            key += f'_{child_type}'
+        return key
+
+    def get_type_data(self, child_type=None, father_type=None, key=None) -> List[list]:
+        """
+        获取数据有修改,也会修改key的值
+        :param child_type:
+        :param father_type:
+        :param key:
+        :return:
+        """
+        if key:
+            return getattr(self, key)
+        try:
+            return getattr(self, self.get_type_key(child_type, father_type))
+        except AttributeError as e:
+            logger.debug(f'xxxxx: {child_type}, {father_type}')
+            raise e
+
+    def set_type_data(self, data, child_type=None, father_type=None):
+        setattr(self, self.get_type_key(child_type, father_type), data)
+
+    def debug_search_result(self):
+        # print(self.customData)
+        # print(self._search_result)
+        pass
 
     def rowCount(self, parent=QModelIndex()):
         return len(self._search_result)
@@ -67,32 +121,54 @@ class TableModel(QAbstractTableModel):
             return self._search_result[row][-1]
         return None
 
-    def changeCustomData(self, data_info, check_type: str, father_type: str):
+    def changeCustomData(self, data_info, child_type: str, father_type: str):
+        """
+        文件类型修改
+        :param data_info:
+        :param child_type:
+        :param father_type:
+        :return:
+        """
         title = data_info[0]
         if not self.customData.get(title):
             return
         old_custom = self.customData.get(title)
         logger.debug(f'old_custom: {old_custom}')
+        logger.debug(f'search_type: {self.search_type}, father_type: {self.father_type}')
         self.customData[title] = {
-            'check_type': check_type,
+            'child_type': child_type,
             'father_type': father_type
         }
         logger.debug(f'new customData: {self.customData[title]}')
-        if old_custom["father_type"]:
-            old_father_type: list = getattr(self, f'_{old_custom["father_type"]}')
+        # 一级分类
+        if father_type != old_custom['father_type']:
+            old_father_type: list = self.get_type_data(father_type=old_custom["father_type"])
             old_father_type.remove(data_info)
-        if father_type:
-            new_father_type: list = getattr(self, f'_{father_type}')
+            new_father_type: list = self.get_type_data(father_type=father_type)
             new_father_type.append(data_info)
             new_father_type.sort(key=lambda x: x[0])
-        old_check_type: list = getattr(self, f'_{old_custom["check_type"]}')
-        old_check_type.remove(data_info)
-        new_check_type: list = getattr(self, f'_{check_type}')
-        new_check_type.append(data_info)
-        new_check_type.sort(key=lambda x: x[0])
+        # 二级分类
+        if old_custom["child_type"]:
+            # 删除二级分类下数据
+            print('清除二级分类下:', f'_{old_custom["child_type"]}_{old_custom["father_type"]}')
+            old_child_type: list = self.get_type_data(old_custom["child_type"], old_custom["father_type"])
+            old_child_type.remove(data_info)
+        if child_type:
+            # 添加数据到新的二级分类下
+            print('添加二级分类下:', f'_{father_type}_{child_type}')
+            new_child_type: list = self.get_type_data(child_type, father_type)
+            new_child_type.append(data_info)
+            new_child_type.sort(key=lambda x: x[0])
         if not self.search_type and not self.father_type:
+            # 全部数据都展示
             vpkConfig.update_config(title, self.customData[title])
             return
+        # 有筛选分类
+        if self.father_type == father_type:
+            if self.search_type == child_type or not self.search_type:
+                vpkConfig.update_config(title, self.customData[title])
+                return
+
         row = self._search_result.index(data_info)
         self.beginRemoveRows(QModelIndex(), row, row)
 
@@ -102,18 +178,23 @@ class TableModel(QAbstractTableModel):
         self.vpkInfoHideSignal.emit()
         vpkConfig.update_config(title, self.customData[title])
 
-    def sortData(self):
-        # todo 排序后无效果
-        key = ModType.keys()[:]
-        key.extend(ModType.child_keys())
-        for i in key:
-            setattr(self, f'_{i}', sorted(getattr(self, f'_{i}'), key=lambda x: x[0]))
+    # def sortData(self):
+    #     key = ModType.father_type_keys()[:]
+    #     key.extend(ModType.child_keys())
+    #     for i in ModType.father_type_keys():
+    #         self.set_type_data(sorted(self.get_type_data(father_type=i), key=lambda x: x[0]), father_type=i)
+    #         for j in ModType.child_keys(i):
+    #             self.set_type_data(sorted(self.get_type_data(j, i), key=lambda x: x[0]), j, i)
 
     def setSearchText(self, text):
-        search_text = text.strip().lower()
+        self.search_text = search_text = text.strip().lower()
         search_data = self._data[:]
-        if self.search_type:
-            search_data = getattr(self, f'_{self.search_type}')[:]
+        logger.debug('setSearchText: %s, %s', self.search_type, self.father_type)
+        if self.father_type:
+            if self.search_type:
+                search_data = self.get_type_data(self.search_type, self.father_type)[:]
+            else:
+                search_data = self.get_type_data(father_type=self.father_type)[:]
         self.beginResetModel()
         if search_text:
             self._search_result = []
@@ -138,13 +219,12 @@ class TableModel(QAbstractTableModel):
             if not compare:
                 compare = self._search_result[row][column]
             if compare != value:
-                print('===>', end='')
-                print(self._search_result[row][column])
                 self._search_result[row][-1] = value
                 print('===>', end='')
                 print(self._search_result[row])
                 title = self.get_row_title(row)
                 print('title', title, value)
+                logger.info(f'文件:{title}标题修改为 <{value}>,原始标题为 <{self._search_result[row][column]}> ')
                 vpkConfig.update_config(title, {"customTitle": value})
                 self.dataChanged.emit(index, index, [Qt.DisplayRole])
                 return True
@@ -159,26 +239,28 @@ class TableModel(QAbstractTableModel):
     def all_data_num(self):
         return len(self._data)
 
-    def get_type_num(self, key):
-        return len(getattr(self, f'_{ModType.value_to_key(key)}'))
+    def get_type_num(self, child_type=None, father_type=None):
+        return len(self.get_type_data(child_type, father_type))
 
     def addRow(self, data: dict):
         title = data.get('filePath').stem
+
         add_data = [title]
         for i in NEED_DATA:
             add_data.append(data.get(i, ''))
+        # 自定义标题
         add_data.append(data.get('customTitle', ''))
         date_len = len(self._data)
         self.beginInsertRows(QModelIndex(), date_len, date_len)
         self._data.append(add_data)
-        father_type = data.get('father_type')
-        check_type = data.get('check_type', 'other')
-        self.customData[title] = {'check_type': check_type, 'father_type': father_type}
-        _list = getattr(self, f'_{check_type}')
-        _list.append(add_data)
-        if father_type:
-            _list = getattr(self, f'_{father_type}')
-            _list.append(add_data)
+        father_type = data.get('father_type', '其他')
+        child_type = data.get('child_type', '')
+        if not child_type and not father_type:
+            print('title ===>', title)
+        self.customData[title] = {'child_type': child_type, 'father_type': father_type}
+        if child_type:
+            self.get_type_data(child_type, father_type).append(add_data)
+        self.get_type_data(father_type=father_type).append(add_data)
         self._search_result.append(add_data)
 
         self.endInsertRows()
@@ -208,15 +290,14 @@ class TableModel(QAbstractTableModel):
         self.search_type = ''
         self.father_type = None
         # self._map = []
-        for i in ModType.keys():
-            setattr(self, f'_{i}', [])
-        for i in ModType.child_keys():
-            setattr(self, f'_{i}', [])
+        self.set_default_father_type()
+        self.set_default_child_type()
 
-    def changeType(self, type_data: Union[str, None]):
+    def changeType(self, type_data: str, father_type: str):
         self.beginResetModel()
-        if type_data:
-            self._search_result = getattr(self, f'_{type_data}')[:]
+        logger.debug(f'type_data: {type_data}, father_type: {father_type}')
+        if type_data or father_type:
+            self._search_result = self.get_type_data(type_data, father_type)[:]
         else:
             self._search_result = self._data[:]
         self.endResetModel()
@@ -225,13 +306,13 @@ class TableModel(QAbstractTableModel):
         logger.debug(f'删除数据行：{row} {filename}')
         _ = self.get_row_title(row)
         logger.debug(f'row:{row}, filename:{filename}')
-        self.beginRemoveRows(parent, row, row)
-
         index = self._find_index(self._search_result, filename)
         self._search_result.pop(index)
         self._data.pop(self._find_index(self._data, filename))
         self._remove_file_type(filename)
+        self.beginRemoveRows(parent, row, row)
         self.endRemoveRows()
+        logger.debug('end')
 
     def _remove_file_type(self, filename: str):
         """
@@ -241,14 +322,17 @@ class TableModel(QAbstractTableModel):
         """
         file_type: dict = self.customData.pop(filename)
         if file_type:
-            _list: list = getattr(self, f'_{file_type.get("check_type")}')
+            logger.debug(f'_remove_file_type ===> {file_type}')
+            child_type = file_type.get('child_type')
+            father_type = file_type.get("father_type")
+            _list: list = self.get_type_data(child_type, father_type)
             for i, value in enumerate(_list[:]):
                 if value[0] == filename:
                     _list.pop(i)
                     break
             father_type = file_type.get("father_type")
             if father_type:
-                _list: list = getattr(self, f'_{father_type}')
+                _list: list = self.get_type_data(father_type=father_type)
                 for i, value in enumerate(_list[:]):
                     if value[0] == filename:
                         _list.pop(i)
@@ -257,40 +341,52 @@ class TableModel(QAbstractTableModel):
     def insertRow(self, info: dict, parent=QModelIndex()):
         data = info.get('data')
         file_type: dict = info.get('file_type')
-        check_type = file_type.get('check_type', 'other')
+        child_type = file_type.get('child_type')
         father_type = file_type.get('father_type')
-        need_insert = file_type.get('need_insert', True)
-        if father_type:
-            setattr(self, f'_{father_type}',
-                    self._insertData(getattr(self, f'_{father_type}'), data))
-        if check_type:
-            setattr(self, f'_{check_type}',
-                    self._insertData(getattr(self, f'_{check_type}'), data))
+        need_insert = self.need_insert(child_type, father_type)
+        logger.debug(f'insertRow ===>{need_insert}')
+        tmp = self._insertData(self.get_type_data(father_type=father_type), data)
+        print(self.get_type_data(father_type=father_type))
+        self.set_type_data(tmp, father_type=father_type)
+        if child_type:
+            tmp1 = self._insertData(self.get_type_data(child_type, father_type), data)
+            self.set_type_data(tmp1, child_type, father_type)
         self._data = self._insertData(self._data, data)
         self.customData[data[0]] = file_type
         logger.debug(f'self.search_type: {self.search_type}, self.father_type: {self.father_type}'
-                     f'check_type: {check_type}, father_type: {father_type}')
+                     f'child_type: {child_type}, father_type: {father_type}')
         if need_insert:
-            self.beginInsertRows(parent, len(self._search_result), len(self._search_result))
-            if self.search_type is None or self.search_type == '':
+            # 一级二级都没有
+            # 一级分类相等
+            # 二级分类要么没有要么相等
+            self.beginInsertRows(parent, self.rowCount(), self.rowCount())
+            if not self.search_type and not self.father_type:
                 self._search_result = self._data[:]
-            elif self.search_type == check_type:
-                self._search_result = getattr(self, f'_{check_type}')[:]
-            elif father_type and self.search_type == father_type:
-                self._search_result = getattr(self, f'_{father_type}')[:]
+            elif self.search_type == '':
+                self._search_result = self.get_type_data(father_type=father_type)[:]
+            elif child_type == self.search_type:
+                self._search_result = self.get_type_data(child_type, father_type)[:]
             else:
-                logger.debug(f'insertRow: self.search_type: {self.search_type}, '
-                             f'self.father_type: {self.father_type}'
-                             f'check_type: {check_type}, father_type: {father_type}')
+                raise TypeError(
+                    f'出现意外情况, 插入目标分类{father_type}->{child_type}, 当前类型:{self.father_type} -> {self.search_type}')
             self.endInsertRows()
 
-    def need_insert(self, check_type, father_type) -> bool:
-        if not self.search_type or self.search_type == check_type or self.search_type == father_type:
+    def need_insert(self, child_type, father_type) -> bool:
+        # 一级二级都没有 直接插入
+        if not self.father_type and not self.search_type:
+            return True
+        # 一级目录必定有
+        # 一级不相等 不插入
+        if self.father_type != father_type:
+            return False
+        # 二级目录不存在 或者 二级目录和目标的二级目录相等
+        if not self.search_type or self.search_type == child_type:
             return True
         return False
 
     def _insertData(self, data: list, insert_data: list):
         index = -1
+        data = data[:]
         for i, value in enumerate(data):
             if value[0] == insert_data[0]:
                 index = i

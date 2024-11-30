@@ -60,14 +60,14 @@ class PrePareDataThread(QThread):
                 else:
                     pass
                 yield_data.update(res_data)
-                if yield_data.get('check_type') == 'other':
+                if yield_data.get('father_type') == '其他':
                     # 类型为other时,先根据地图的两个字段来判断地图,
                     #              不是再根据文件名称和文件标题来判断一下类型
                     # 地图 根据addons字段内容来
                     for key in MAP_KEY:
                         value = yield_data.get(key)
                         if value and value == '1':
-                            yield_data['check_type'] = 'map'
+                            yield_data['father_type'] = '地图'
                             break
                 logger.debug(yield_data)
                 data: dict = yield_data.copy()
@@ -159,7 +159,7 @@ class CheckVersion(QThread):
         url = 'https://fdklgbh.github.io/L4D2-Mod-Manager/update_version.json'
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         try:
-            res = requests.get(url, verify=False, timeout=2)
+            res = requests.get(url, verify=False, timeout=3)
         except Exception:
             return {
                 'status': False,
@@ -176,14 +176,21 @@ class CheckVersion(QThread):
                 'status': True
             }
             json_data = res.json()
-            local_version = version.parse(VERSION)
+            is_dev = 'dev' in VERSION
+            local_version = version.parse(VERSION.split(' ')[0])
             remote_version = version.parse(json_data['version'])
             update = False
             if local_version < remote_version:
                 update = True
                 return_data['url'] = json_data['package']
                 return_data['version'] = json_data['version']
+            elif local_version == remote_version:
+                if is_dev:
+                    update = True
+                    return_data['url'] = json_data['package']
+                    return_data['version'] = json_data['version']
             return_data['update'] = update
+            print('return_data', return_data)
             return return_data
 
 

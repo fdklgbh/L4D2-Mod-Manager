@@ -70,6 +70,9 @@ class MainWindow(CFluentWindow, ExceptionHook):
     def __init__(self):
         CFluentWindow.__init__(self)
         ExceptionHook.__init__(self)
+        screen = QApplication.primaryScreen()
+        scale = screen.devicePixelRatio()
+        print(f'缩放因子:{scale}')
         self.check_version_thread = CheckVersion()
 
         self.setWindowIcon(QIcon(MyIcon.L4D2.path()))
@@ -87,7 +90,6 @@ class MainWindow(CFluentWindow, ExceptionHook):
         self.modules_interface_splitter = ModulesInterfaceSplitter(
             [l4d2Config.addons_path, l4d2Config.workshop_path, l4d2Config.disable_mod_path], self)
         self.settings_interface = SettingInterface(self)
-
         self.initNavigation()
         StyleSheet.MAIN_WINDOW.apply(self)
         self.connectSignalToSlot()

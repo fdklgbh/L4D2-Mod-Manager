@@ -15,12 +15,12 @@ class ChangeTypeMessageBox(MessageBoxBase):
         self.new_check_type = ''
         self.new_father_type = ''
         self.setWindowTitle('修改Mod分类')
-        self._more = more
-        self.data_info, self.check_type, self.father_type = data
+        self.data_info, self.child_type, self.father_type = data
+        self._more = len(self.data_info) > 1
         if more:
-            self.check_type = None
-            self.father_type = None
-        self.tableWidget = CustomTreeWidget(self, [self.check_type, self.father_type])
+            self.child_type = ''
+            self.father_type = ''
+        self.tableWidget = CustomTreeWidget(self, [self.child_type, self.father_type])
 
         # add widget to view layout
         self.viewLayout.addWidget(self.tableWidget)
@@ -34,27 +34,41 @@ class ChangeTypeMessageBox(MessageBoxBase):
         self.yesButton.clicked.connect(self.yesButton_clicked)
 
     def yesButton_clicked(self, *args):
-        check_type = self.new_check_type.lower() if self.new_father_type else ModType.value_to_key(self.new_check_type)
+        child_type = self.new_check_type.lower()
         father_type = self.new_father_type
-        if not self._more:
-            signalBus.fileTypeChanged.emit(self.data_info, check_type, father_type)
-        else:
-            for data in self.data_info:
-                signalBus.fileTypeChanged.emit(data, check_type, father_type)
+        print('yesButton_clicked', child_type, father_type)
+        for data in self.data_info:
+            signalBus.fileTypeChanged.emit(data, child_type, father_type)
 
-
-    def check(self, check_type: str, father_type):
+    def check(self, child_type: str, father_type: str, no_child: bool):
         """
         确定按钮显示与否
-        :param check_type:
+        :param no_child: 是否无二级分类
+        :param child_type:
         :param father_type:
         :return:
         """
-        if not check_type and not father_type:
-            self.yesButton.setDisabled(True)
-        elif check_type.lower() != self.check_type:
-            self.yesButton.setDisabled(False)
-            self.new_check_type = check_type
-            self.new_father_type = father_type
+
+        def change_disable_status(status):
+            self.yesButton.setDisabled(status)
+            if status is False:
+                self.new_check_type = child_type
+                self.new_father_type = father_type
+
+        if father_type == self.father_type:
+            if child_type and child_type.lower() != self.child_type:
+                change_disable_status(False)
+                return
+            change_disable_status(True)
+            return
+        # 一级目录不一样的时候
+        if no_child:
+            change_disable_status(False)
+        elif child_type:
+            change_disable_status(False)
         else:
-            self.yesButton.setDisabled(True)
+            change_disable_status(True)
+
+
+
+

@@ -81,13 +81,15 @@ class ModuleStacked(QWidget, Ui_Frame):
                 w = MessageBox(
                     content['title'], content['content'], parent=self.window()
                 )
-                w.cancelButton.setText('退出程序')
+                w.cancelButton.hide()
                 w.yesButton.setText('确定')
+                w.buttonLayout.insertStretch(0, 1)
                 w.show()
-                if not w.exec_():
-                    self.window().close()
+                w.exec_()
                 self.tableView.clearSelection()
                 self.mode.removeRow(last_row, file_title)
+                if self.mode.rowCount() == 0:
+                    self.restartPage(True)
                 logger.debug('删除数据行')
                 return
             if content:
@@ -110,8 +112,6 @@ class ModuleStacked(QWidget, Ui_Frame):
             self.resize_splitter(layout_width)
         if pic_success:
             self.pix = self.original_pix.scaledToWidth(layout_width, mode=Qt.SmoothTransformation)
-            # self.pix = self.pix.scaled(layout_width, layout_width, aspectRatioMode=Qt.KeepAspectRatio,
-            #                            transformMode=Qt.SmoothTransformation)
             self.pix.setDevicePixelRatio(2)
             self.file_pic.setPixmap(self.pix)
         else:
@@ -142,44 +142,49 @@ class ModuleStacked(QWidget, Ui_Frame):
             self.splitter.setHandleWidth(6)
 
     def show_type_menu(self, *args):
-        type_key = ModType.type_key()
+        type_key = ModType.type_menu_info()
+        self.mode.debug_search_result()
         menu = RoundMenu(self)
         menu.addAction(Action(text=f'全部({self.mode.all_data_num})'))
         for i in type_key:
             if isinstance(i, dict):
                 for key, value in i.items():
-                    num_str = f"({self.mode.get_type_num(key)})"
+                    # 一级分类的数量
+                    num_str = f"({self.mode.get_type_num(father_type=key)})"
                     key_action = RoundMenu(f"{key}{num_str}", parent=menu)
                     menu.addMenu(key_action)
                     key_action.addAction(Action(text=f'全部{num_str}', parent=key_action))
                     for j in value:
                         j: str
                         key_action.addAction(
-                            Action(text=f"{j.title()}({len(getattr(self.mode, f'_{j}'))})", parent=key_action))
+                            Action(text=f"{j.title()}({self.mode.get_type_num(j, key)})", parent=key_action))
             else:
-                menu.addAction(Action(f"{i}({self.mode.get_type_num(i)})"))
+                menu.addAction(Action(text=f"{i}({self.mode.get_type_num(father_type=i)})"))
         position = self.sender().mapToGlobal(QPoint(-10, 30))
         menu.popup(position)
         menu.triggered.connect(self.type_menu_selection)
 
     def type_menu_selection(self, action: Action):
-        # action.text()拆分数据
-        search_type = btn_text = action.text().lower().split('(')[0]
-        father_menu = ''
+        # 点击的action 文本拆分
+        btn_text = action.text().lower().split('(')[0]
+        search_type = ''
         if action.parentWidget():
-            father_title = action.parentWidget().title().split('(')[0]
-            logger.debug(f'father_title: {father_title}')
-            father_menu = father_title
+            father_menu = action.parentWidget().title().split('(')[0]
+            logger.debug(f'father_title: {father_menu}')
             if btn_text == '全部':
-                search_type = ModType.value_to_key(father_title)
-                btn_text = father_title
+                search_type = ''
+                btn_text = father_menu
+            else:
+                search_type = btn_text
         else:
-            search_type = ModType.value_to_key(btn_text)
+            father_menu = btn_text
+            if father_menu == '全部':
+                father_menu = ''
         self.type_btn.setText(btn_text.title())
         self.mode.search_type = search_type
         self.mode.father_type = father_menu
         logger.debug(f'search type: {search_type}, father_type: {father_menu}')
-        self.mode.changeType(search_type)
+        self.mode.changeType(search_type, father_menu)
         self.restartPage(True)
 
     def set_table_view(self):
@@ -244,8 +249,8 @@ class ModuleStacked(QWidget, Ui_Frame):
             info = {
                 'data': data,
                 'file_type': file_type,
-                'need_insert': self.mode.need_insert(**file_type)
             }
+            logger.debug(f'insertMod: {file_type}')
             self.mode.insertRow(info)
             self.hide_vkp_info()
             self.tableView.setCurrentIndex(QModelIndex())
@@ -304,6 +309,10 @@ class ModuleStacked(QWidget, Ui_Frame):
                     else:
                         pic_path.rename(target_pic)
             except PermissionError as e:
+                # todo 游戏占用vpk后移动提示是否覆盖,覆盖提示不存在
+                #  D 241126 19:28:21 menu:626] [WinError 5]
+                #  拒绝访问。: 'F:\\求生之路2\\禁用mod\\xxx.vpk' -> 'F:\\求生之路2\\addons\\xxx.vpk'
+
                 if '另一个程序正在使用此文件，进程无法访问。' in str(e):
                     logger.warning('当前文件被占用')
                     InfoBar.error(
@@ -359,7 +368,7 @@ class ModuleStacked(QWidget, Ui_Frame):
 
     def show_vpk_file(self, filename):
         file_path = self.folder_path / f'{filename}.vpk'
-        os.system(f'explorer /select,"{file_path}"')
+        os.system(f'start explorer /select,"{file_path}"')
 
     def onThreadSignalToSlot(self):
         self.per_data_thread.started.connect(self.mod_load_started)
@@ -386,7 +395,7 @@ class ModuleStacked(QWidget, Ui_Frame):
         self.tableView.finished = True
         # self.setEnabled(True)
         self.setDisabled(False)
-        self.mode.sortData()
+        # self.mode.sortData()
 
     def table_sort_changed(self, *args):
         logger.debug('隐藏vpk')

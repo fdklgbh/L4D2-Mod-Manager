@@ -107,4 +107,9 @@ def main():
 
 
 if __name__ == '__main__':
-    print(md5('2824268260'))
+    # print(md5('2824268260'))
+    import json
+    name = md5('2629325742')
+    path = fr'F:\pythonData\left4dead2\Cache\{name}.cache'
+    data = decrypt_data(path)
+    print(json.dumps(data, indent=4, ensure_ascii=False))

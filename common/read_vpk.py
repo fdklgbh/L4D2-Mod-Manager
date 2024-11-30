@@ -5,6 +5,7 @@
 import struct
 from pathlib import Path
 from re import findall
+from typing import List
 
 import chardet
 
@@ -43,46 +44,24 @@ def read_addons_txt(path: Path, return_file_type=False):
     }
     pak1 = open_vpk(path)
     # 是否需要跳过
-    need_break = False
     # 是否判断了类型
     had_type = False
-    goods = {}
+    goods = ModType.weapons_goods()
     if not isinstance(pak1, VPK):
         return_data["type"] = pak1
         return return_data
-    if return_file_type:
-        for father_key, father_value in ModType.weapons_goods().items():
-            goods[father_key] = {}
-            for child_key, child_value in father_value.items():
-                child_value: list
-                if not child_value:
-                    child_value.append(child_key)
-                new_value = []
-                for i in child_value[:]:
-                    i: str
-                    new_value.append(i)
-                    if ' ' in i:
-                        new_value.append(i.replace(" ", ''))
-                        new_value.append(i.replace(' ', '_'))
-                goods[father_key][child_key] = new_value
-        try:
-            filepath_list = [i for i in pak1]
-        except Exception as e:
-            logger.warning(f'打开vpk文件后,读取文件路径出现错误, 错误文件:{path}')
-            logger.exception(e)
-            return_data["type"] = False
-            return return_data
-        for i in filepath_list:
-            if i.startswith('maps/') or findall('materials/.*?/maps/.*', i):
-                return_data['check_type'] = 'map'
-                had_type = True
-                break
-            if i.startswith('models/xdreanims'):
-                return_data['check_type'] = 'other'
-                need_break = True
-                break
-    for filepath in pak1:
-        filepath: str
+
+    file_path_dict = {}
+    need_continue = False
+    try:
+        vpk_path_list = [i for i in pak1]
+    except Exception as e:
+        logger.warning(f'打开vpk文件后,读取文件路径出现错误, 错误文件:{path}')
+        logger.exception(e)
+        return_data["type"] = False
+        return return_data
+
+    for filepath in vpk_path_list:
         if filepath == 'addoninfo.txt':
             with pak1.get_file(filepath) as f_obj:
                 content = f_obj.read()
@@ -105,74 +84,219 @@ def read_addons_txt(path: Path, return_file_type=False):
                 else:
                     return_data["type"] = True
             return_data['content'] = content
-        else:
-            if not return_file_type or had_type or need_break or not _check_file_name(filepath):
-                continue
-            if filepath.startswith('models/infected/'):
-                update, had_type = _check_infected(filepath)
-                if had_type:
-                    return_data.update(update)
-            # 枪械 近战
-            if findall(r'^(?:materials/)?models(?:/[vw]_models)?/(weapons).*$', filepath):
-                update, had_type = _check_type(filepath, path.stem, goods)
-                if had_type:
-                    return_data.update(update)
-            # 角色
-            survivors = findall(r'models/survivors/survivor_(.+)\.mdl', filepath)
-            if survivors:
-                update, had_type = _check_survivors(survivors)
-                if had_type:
-                    return_data.update(update)
 
     if return_file_type:
+        for filepath in vpk_path_list:
+            if filepath.startswith('maps/') or filepath.startswith('missions/') or findall('materials/.*?/maps/.*',
+                                                                                           filepath):
+                return_data['father_type'] = '地图'
+                return_data['child_type'] = ''
+                had_type = True
+        for filepath in vpk_path_list:
+            filepath: str
+            if had_type:
+                break
+            if filepath.startswith('materials/skybox') and Path(filepath).stem.startswith('sky_'):
+                return_data['child_type'] = '天空盒'
+                return_data['father_type'] = '杂项'
+                need_continue = True
+            elif filepath.startswith('models/xdreanims'):
+                return_data['father_type'] = '其他'
+                return_data['child_type'] = ''
+                need_continue = True
+            if need_continue:
+                had_type = True
+                file_path_dict = {}
+                continue
+            if _check_file_name(filepath, 'mdl'):
+                file_path_dict.setdefault('mdl', [])
+                file_path_dict['mdl'].append(filepath)
+            elif _check_file_name(filepath, 'vtf'):
+                file_path_dict.setdefault('vtf', [])
+                file_path_dict['vtf'].append(filepath)
+            elif _check_file_name(filepath, 'vmt'):
+                file_path_dict.setdefault('vmt', [])
+                file_path_dict['vmt'].append(filepath)
+            if not any([filepath.startswith('map'), filepath.endswith('.txt'), filepath.endswith('.vtx'),
+                        filepath.endswith('.vvd'), filepath.endswith('.phy'), filepath.endswith('.jpg')]):
+                file_path_dict.setdefault('path', [])
+
+                file_path_dict['path'].append(filepath)
         if not had_type:
-            return_data["check_type"] = 'other'
+            # 特感
+            update = _check_infected(file_path_dict, path.stem)
+            if update:
+                return_data.update(update)
+                had_type = True
+        if not had_type:
+            # 角色
+            return_data, had_type = _check_survivors(file_path_dict, return_data)
+        if not had_type:
+            return_data, had_type = _check_weapon(file_path_dict, goods, return_data)
+
+        if not had_type:
+            return_data["father_type"] = '其他'
+            return_data['child_type'] = ''
         vpkConfig.change_file_config(path.stem, return_data)
     return return_data.copy()
 
 
-def _check_survivors(survivors: list):
+def _check_survivors(file_path_dict: dict, return_data):
+    mdl_path = file_path_dict.get('mdl', [])
     survivors_dict = ModType.SURVIVORS.data()
-    for key, survivor_list in survivors_dict.items():
-        for survivor in survivor_list:
-            if survivor in survivors:
-                return {'check_type': key, 'father_type': ModType.SURVIVORS.value}, True
-    return {}, False
+    for mdl in mdl_path:
+        result = findall(r'models/survivors/survivor_(.+)\.mdl', mdl)
+        if result:
+            for key, survivor in survivors_dict.items():
+                if key == '语音':
+                    continue
+                if result[0].lower() == survivor:
+                    return_data.update({'child_type': key, 'father_type': ModType.SURVIVORS.value})
+                    return return_data, True
+    path = file_path_dict.get('path', [])
+    for path in path:
+        if findall(r'^sound/player/survivor/voice/(?:coach|gambler|mechanic|producer|biker|teengirl|namvet|manager).*?\.wav$',
+                   path):
+            return_data.update({'child_type': '语音', 'father_type': ModType.SURVIVORS.value})
+            return return_data, True
+    return return_data, False
 
 
-def _check_file_name(file_path: str):
+def _check_file_name(file_path: str, check_suffix: str = None):
     """
     vmt 材质信息 以及路径
     vtf 贴图文件
     :param file_path:
     :return:
     """
+    if check_suffix:
+        return file_path.endswith('.' + check_suffix)
+
     if file_path.endswith('.mdl') or file_path.endswith('.vtf') or file_path.endswith('.vmt'):
         return True
     return False
 
 
-def _check_type(file_path, file_name, goods: dict) -> tuple:
-    path = file_path.split('/weapons/')[1]
-    # logger.debug(f"{file_name} {file_path}, path: {path}, goods: {goods}")
-    for k, v in goods.items():
-        for key, value in v.items():
-            for good_name in value:
-                pattern = fr'(?<![a-zA-Z]){good_name}(?![a-zA-Z])'
-                if findall(pattern, path):
-                    return {'check_type': key, 'father_type': k}, True
+def _check_weapon(file_path_dict: dict, goods: dict, return_data) -> tuple:
+    """
+    检查其他类型
+    :param file_path_dict: vpk文件数据
+    :param goods: 分类信息(排除人物 特感)
+    :param return_data: 返回数据 检查出类型后,需要update进去,
+    :return: return_data, True/False
+    """
 
-    return {}, False
+    def return_info(child_type, faster_type):
+        return_data.update({'child_type': child_type, 'father_type': faster_type})
+        return return_data, True
+
+    def check_mdl_vmt_vtf(file_path, data_list: list):
+        if not data_list:
+            return False
+        if Path(file_path).stem in data_list:
+            return True
+        return False
+
+    def check_path(file_path: List[str], need_path: List[str], regex=False):
+        if not need_path:
+            return False
+        for need in need_path:
+            for file in file_path:
+                if regex:
+                    if findall(need, file):
+                        return True
+                if file.startswith(need):
+                    return True
+        return False
+
+    def check_type(data_list, file_suffix):
+        if not data_list:
+            return False
+        for data in data_list:
+            for k, v in goods.items():
+                v: dict
+                if k == '语音':
+                    continue
+                if k in ['武器', '近战', '医疗品', '投掷'] and not findall(
+                        r'^(?:materials/)?models(?:/[vw]_models)?.*$', data):
+                    continue
+                # 只有顶级分类
+                if v.get('no_child'):
+                    v_data = v.get(file_suffix, [])
+                    if check_mdl_vmt_vtf(data, v_data):
+                        return return_info('', k)
+                    continue
+                # 二级分类
+                for key, value in v.items():
+                    value_mdl: list = value.get(file_suffix, [])
+                    if not value_mdl:
+                        continue
+                    if check_mdl_vmt_vtf(data, value_mdl):
+                        return return_info(key, k)
+
+    # 检查mdl文件
+    res = check_type(file_path_dict.get('mdl', []), 'mdl')
+    if res:
+        return res
+    # 检查vtf文件
+    res = check_type(file_path_dict.get('vtf', []), 'vtf')
+    if res:
+        return res
+    # 检查vmt
+    res = check_type(file_path_dict.get('vmt', []), 'vmt')
+    if res:
+        return res
+    # 目录
+    filepath_list: list = file_path_dict.get('path', [])
+    for father, child in goods.items():
+        child: dict
+        if child.get('no_child'):
+            if check_path(filepath_list, child.get('path'), child.get('regex', False)):
+                return return_info(father, '')
+            continue
+        for chile_key, chile_value in child.items():
+            if check_path(filepath_list, chile_value.get('path', []), chile_value.get('regex', False)):
+                return return_info(chile_key, father)
+    return return_data, False
 
 
-def _check_infected(file_path) -> tuple:
+def _check_infected(file_info: dict, tmp) -> dict:
+    """
+    特感类型
+    :param file_info: mod文件中数据信息
+    :return:
+    """
     infected = ModType.INFECTED.data()
-    for i in infected.keys():
-        for j in infected[i]:
-            pattern = fr'(?<![a-zA-Z]){j}(?![a-zA-Z])'
-            if findall(pattern, file_path):
-                return {'check_type': i, 'father_type': ModType.INFECTED.value}, True
-    return {}, False
+    mdl_data: List[str] = file_info.get('mdl', [])
+    # infected_mdl = infected['mdl']
+    for file_path in mdl_data:
+        if not file_path.startswith('models/infected/'):
+            continue
+        name = Path(file_path).stem
+        for i in infected.keys():
+            if name in infected[i].get('mdl', []):
+                return {'child_type': i, 'father_type': ModType.INFECTED.value}
+    folder_list = []
+    for file_path in file_info.get('vtf', []) + file_info.get('vmt', []):
+        if not file_path.startswith('materials/models/infected'):
+            continue
+        folder = file_path.replace('materials/models/infected/', '').split('/')[0]
+        if folder not in folder_list:
+            folder_list.append(folder)
+    sound_regex = infected.get('语音').get('path', [])
+    for file in file_info.get('path', []):
+        for regex in sound_regex:
+            if findall(regex, file):
+                return {'child_type': '语音', 'father_type': ModType.INFECTED.value}
+    if not folder_list:
+        return {}
+    if len(folder_list) > 1:
+        return {'child_type': '多种特感', 'father_type': ModType.INFECTED.value}
+    else:
+        for i in infected.keys():
+            if folder_list[0] == infected[i]['folder']:
+                print('3' * 10)
+                return {'child_type': i, 'father_type': ModType.INFECTED.value}
 
 
 def get_vpk_addon_image_data(path: Path):

@@ -13,6 +13,8 @@ from common.conf import VERSION
 def show_version_dialog(result, parent, isAuto=False):
     yes_text = '去更新'
     need_open = False
+    # 是否隐藏取消按钮
+    need_hide = False
     if result.get('status') is True:
         if result['update'] is True:
             content = f'有新版本 {VERSION} -> {result["version"]}'
@@ -21,12 +23,16 @@ def show_version_dialog(result, parent, isAuto=False):
             if isAuto:
                 return
             content = '当前已是最新版本, 无需更新'
+            need_hide = True
             yes_text = '确定'
     else:
         content = result.get('msg')
         yes_text = '确定'
     w = MessageBox('更新', content, parent.window())
     w.yesButton.setText(yes_text)
+    if need_hide:
+        w.cancelButton.hide()
+        w.buttonLayout.insertStretch(0, 1)
     w.cancelButton.setText('关闭')
     if w.exec() and need_open:
         QDesktopServices.openUrl(QUrl(result.get('url') + f'/tag/' + result.get('version')))

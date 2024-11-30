@@ -17,6 +17,8 @@ class SignalBus(QObject):
 
     pressKey = pyqtSignal(QKeyEvent)
 
+    loggerSignal = pyqtSignal(str)
+
 
 signalBus = SignalBus()
 

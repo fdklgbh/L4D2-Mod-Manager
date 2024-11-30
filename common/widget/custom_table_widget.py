@@ -17,7 +17,7 @@ from common.module.modules import TableModel
 from qfluentwidgets import FluentIcon as FIF
 
 from common.myIcon import MyIcon
-from common.conf import ModType
+from common.conf import ModType, VERSION, WORKSPACE
 
 
 class CustomTableView(TableView):
@@ -71,13 +71,8 @@ class CustomTableView(TableView):
             open_gcf.setVisible(False)
         else:
             open_gcf.setVisible(True)
-        # 选中mod的分类数据 {'check_type': 'other', 'father_type': None}
+        # 选中mod的分类数据 {'child_type': 'other', 'father_type': None}
         userData: dict = item.data(Qt.UserRole + 1)
-        logger.debug(f"{filename}: {userData}")
-        type_ = userData['check_type'] if userData['father_type'] else ModType.key_to_value(userData['check_type'])
-        type_action = Action(FIF.FLAG, f"类型： {type_.title()}", self)
-        menu.addActions([open_file, open_gcf, type_action])
-        menu.addSeparator()
         parent = self.parent()
         if isinstance(self.parent_obj, QSplitter):
             parent = self.parent_obj.parent()
@@ -91,60 +86,91 @@ class CustomTableView(TableView):
             target_path = l4d2Config.addons_path
             text = '启用'
             icon = FIF.ACCEPT_MEDIUM
-        move = Action(icon, self.tr(f"{text}当前mod"))
         select_rows = set()
         for i in self.selectionModel().selectedRows():
             logger.debug(f'{i.row()} ===> {i.data()}')
             select_rows.add(i)
-        menu.addAction(move)
         is_more = len(select_rows) > 1
+        logger.debug(f"{filename}: {userData}")
+        type_ = userData['child_type'] if userData['child_type'] else userData["father_type"]
+        type_action = Action(FIF.FLAG, f"类型： {type_.title()}" if not is_more else "修改分类", self)
+        menu.addActions([open_file, open_gcf, type_action])
+        menu.addSeparator()
         if is_more:
-            move_more = Action(icon, self.tr(f'{text}多个mod'))
-            menu.addAction(move_more)
-            move_more.triggered.connect(lambda x: self.move_more_mod(target_path, select_rows))
+            more_text = '多个'
+        else:
+            more_text = ''
+
         if l4d2Config.is_workshop(parent_folder_path):
-            move_to_addons = Action(FIF.MOVE, self.tr('移动到Addons'))
+            move_to_addons = Action(FIF.MOVE, self.tr(f'移动{more_text}到Addons'))
             menu.addAction(move_to_addons)
-            move_to_addons.triggered.connect(
-                lambda x: self.modeEnableSignal.emit(l4d2Config.addons_path, row, filename))
-            if is_more:
-                move_more_to_addons = Action(FIF.MOVE, self.tr('移动多个到Addons'))
-                menu.addAction(move_more_to_addons)
-                move_more_to_addons.triggered.connect(lambda x: self.move_more_mod(l4d2Config.addons_path, select_rows))
+            move_to_addons.triggered.connect(lambda x: self.move_mod(l4d2Config.addons_path, select_rows))
+        move_more = Action(icon, self.tr(f'{text}{more_text}mod'))
+        menu.addAction(move_more)
+
         if filename.isdigit():
             open_url_action = Action(FIF.LINK, self.tr('打开steam链接'))
             menu.addAction(open_url_action)
             open_url_action.triggered.connect(lambda x: QDesktopServices.openUrl(QUrl(
                 f'https://steamcommunity.com/sharedfiles/filedetails/?id={filename}')))
+        if 'dev' in VERSION:
+            dev_action = Action(text='导出文件结构到dev文件下')
+            menu.addAction(dev_action)
+            dev_action.triggered.connect(lambda x: self.dev_action(parent_folder_path, select_rows))
+
         open_file.triggered.connect(lambda x: self.openFolderSignal.emit(filename))
         open_gcf.triggered.connect(lambda x: self.openGCFSpaceSignal.emit(filename))
+        # userData: {'child_type': '声音', 'father_type': '杂项'}
         logger.debug(f'userData: {userData}')
         # 当多选的时候修改类型,批量修改
         select_data = [data.data(Qt.UserRole + 2) for data in select_rows]
-        if not is_more:
-            select_data = select_data[0]
         type_action.triggered.connect(lambda x: self.show_change_type(select_data, **userData, more=is_more))
-        move.triggered.connect(lambda x: self.modeEnableSignal.emit(target_path, row, filename))
+        move_more.triggered.connect(lambda x: self.move_mod(target_path, select_rows))
         menu.closedSignal.connect(menu.deleteLater)
         menu.exec(a0.globalPos(), aniType=MenuAnimationType.DROP_DOWN)
 
-    def move_more_mod(self, target_path, data_set: Set[QModelIndex]):
+    def dev_action(self, folder_path, select_rows: Set[QModelIndex]):
+        from common.read_vpk import open_vpk
+        print(f'[DEV]目录:{folder_path}')
+        print('[DEV]select_titles: ', *[i.data(Qt.UserRole + 2)[0] for i in select_rows])
+        dev_folder = WORKSPACE / 'dev'
+        dev_folder.mkdir(parents=True, exist_ok=True)
+        for i in select_rows:
+            title = i.data(Qt.UserRole + 2)[0]
+            vpk_file = folder_path / f'{title}.vpk'
+            vpk = open_vpk(vpk_file)
+            if not vpk:
+                logger.debug(f'[DEV]{vpk_file}文件打开失败,无法导出vpk结构')
+                continue
+            txt_file = dev_folder / f'{title}.txt'
+            try:
+                with open(txt_file, 'w', encoding='utf8') as f:
+                    for vpk_file_path in vpk:
+                        f.write(vpk_file_path + '\n')
+                        f.flush()
+            except Exception as e:
+                logger.warn('[DEV]出现错误')
+                logger.exception(e)
+            else:
+                logger.debug(f'[DEV]文件结构导出成功->{txt_file}')
+
+    def move_mod(self, target_path, data_set: Set[QModelIndex]):
         list_rows = list(data_set)
         list_rows.sort(key=lambda x: x.row())
         for i in list_rows[::-1]:
             self.modeEnableSignal.emit(target_path, i.row(), i.data())
 
-    def show_change_type(self, data, check_type, father_type, more=False):
+    def show_change_type(self, data, child_type, father_type, more=False):
         """
         显示切换类型窗口
         :param more:
         :param data:
-        :param check_type:
+        :param child_type:
         :param father_type:
         :return:
         """
         logger.debug(data)
-        w = ChangeTypeMessageBox(self.window(), [data, check_type, father_type], more=more)
+        w = ChangeTypeMessageBox(self.window(), [data, child_type, father_type], more=more)
         w.exec_()
         self.clearSelection()
 

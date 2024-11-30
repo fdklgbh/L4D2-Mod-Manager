@@ -2,7 +2,9 @@
 # @Time: 2024/2/23
 # @Author: Administrator
 # @File: custom_tree_widget.py
-from PyQt5.QtCore import pyqtSignal
+from typing import Union
+
+from PyQt5.QtCore import pyqtSignal, QModelIndex
 from PyQt5.QtWidgets import QFrame, QTreeWidgetItem, QHBoxLayout
 from qfluentwidgets import TreeWidget
 
@@ -10,7 +12,7 @@ from common.conf import ModType
 
 
 class CustomTreeWidget(QFrame):
-    selectedSignal = pyqtSignal(str, str)
+    selectedSignal = pyqtSignal(str, str, bool)
 
     def __init__(self, parent, data: list):
         super().__init__(parent=parent)
@@ -19,17 +21,18 @@ class CustomTreeWidget(QFrame):
         self.setObjectName('frame')
         self.tree = TreeWidget(self)
         self.tree.setBorderVisible(True)
-        check_type, father_type = data
+        child_type, father_type = data
         self.hBoxLayout.addWidget(self.tree)
-        for key in ModType.type_key():
+        for key in ModType.type_menu_info():
             if isinstance(key, dict):
                 for key_, value in key.items():
-                    is_father_item = father_type and key_ == ModType.key_to_value(father_type)
+                    # 判断后续是否需要展开
+                    is_father_item = bool(child_type) and key_ == father_type
                     selected_child = None
                     item = QTreeWidgetItem([key_])
                     for i in value:
                         child = QTreeWidgetItem(item, [i.title()])
-                        if is_father_item and i == check_type:
+                        if is_father_item and i == child_type:
                             selected_child = child
                     self.tree.addTopLevelItem(item)
                     if is_father_item:
@@ -39,22 +42,29 @@ class CustomTreeWidget(QFrame):
             else:
                 item = QTreeWidgetItem([key])
                 self.tree.addTopLevelItem(item)
-                if not father_type:
-                    if key == ModType.key_to_value(check_type):
-                        item.setSelected(True)
+                if father_type == key:
+                    item.setSelected(True)
 
         self.tree.setHeaderHidden(True)
         self.tree.itemSelectionChanged.connect(self.itemSelectionChanged)
+        self.tree.itemClicked.connect(self.trigger_item)
         self.setFixedSize(300, 380)
+
+    @staticmethod
+    def trigger_item(item: QTreeWidgetItem):
+        if item.childCount():
+            item.setExpanded(not item.isExpanded())
 
     def itemSelectionChanged(self):
         item = self.tree.currentItem()
         if not item.isSelected() or item.childCount():
-            self.selectedSignal.emit('', '')
+            self.selectedSignal.emit('', '', False)
             return
-        father = ''
-        check = item.text(0)
+        child = item.text(0)
         parent = item.parent()
         if parent:
-            father = ModType.value_to_key(parent.text(0))
-        self.selectedSignal.emit(check, father)
+            father = parent.text(0)
+        else:
+            father = child
+            child = ''
+        self.selectedSignal.emit(child, father, not bool(parent))
