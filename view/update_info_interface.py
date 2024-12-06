@@ -18,6 +18,8 @@ class UpdateInfoInterface(ScrollArea, Ui_Form):
 # 求生之路2 模组管理器
 ## {VERSION} 更新日志
 
+### 新增
+
 ### 优化
 
 1. 更换类型的时候,选中多个,会同时更改多个mod(打开选择类型窗口后,没有选中mod类型即为多选)
@@ -28,6 +30,8 @@ class UpdateInfoInterface(ScrollArea, Ui_Form):
 2. 快捷键
     1. 刷新 F5
     2. 搜索 Ctrl+F
+3. 更新
+    可以在设置中检查更新,或者设置启动后自动检查更新
 """
         self.update_info.setMarkdown(text)
         self.update_info.anchorClicked.connect(QDesktopServices.openUrl)

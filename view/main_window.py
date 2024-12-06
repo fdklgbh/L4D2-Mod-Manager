@@ -9,6 +9,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication
 from qfluentPackage.windows import CFluentWindow
 
+from common import logger
 from common.Bus import signalBus
 from common.ExceptionHook import ExceptionHook
 from common.check_version import show_version_dialog
@@ -20,6 +21,8 @@ from common.thread import CheckVersion
 from common.validator import GamePathValidator
 from qfluentwidgets import (FluentIcon as FIF, MessageBoxBase, SubtitleLabel, LineEdit, NavigationItemPosition,
                             MessageBox)
+
+from .log_interface import LogInterface
 from .modules_interface_splitter import ModulesInterfaceSplitter
 from .setting_interface import SettingInterface
 from .update_info_interface import UpdateInfoInterface
@@ -76,6 +79,7 @@ class MainWindow(CFluentWindow, ExceptionHook):
         self.check_version_thread = CheckVersion()
 
         self.setWindowIcon(QIcon(MyIcon.L4D2.path()))
+        self.log_interface = LogInterface(self)
         self.initWindow()
         L4D2_PATH = str(l4d2Config.l4d2_path)
         if not L4D2_PATH or not l4d2Config.disable_mod_path:
@@ -111,6 +115,7 @@ class MainWindow(CFluentWindow, ExceptionHook):
     def initNavigation(self):
         self.addSubInterface(self.show_update_interface, FIF.HOME, VERSION + self.tr('更新日志'))
         self.addSubInterface(self.modules_interface_splitter, MyIcon.M, self.tr('Mod'))
+        self.addSubInterface(self.log_interface, FIF.FILTER, self.tr('日志'), NavigationItemPosition.BOTTOM)
         self.addSubInterface(self.settings_interface, FIF.SETTING, self.tr('设置'), NavigationItemPosition.BOTTOM)
 
     def initWindow(self):
@@ -132,7 +137,7 @@ class MainWindow(CFluentWindow, ExceptionHook):
         QApplication.quit()
 
     def updateDisplay(self, data: dict):
-        print('updateDisplay', data)
+        logger.debug(f'updateDisplay: {data}')
         show_version_dialog(data, self, True)
         del self.check_version_thread
 

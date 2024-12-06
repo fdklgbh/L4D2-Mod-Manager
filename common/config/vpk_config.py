@@ -9,7 +9,6 @@ from common.crypto import md5, encrypt_data, decrypt_data
 
 mutex = QMutex()
 cache_path = CachePath
-cache_path.mkdir(exist_ok=True)
 
 
 class VPKConfig:

@@ -4,9 +4,9 @@
 # @File: loggerConfig.py
 import logging
 import colorlog
-
+from common.conf import LogPath
 from common.Bus import signalBus
-
+from logging.handlers import RotatingFileHandler
 
 class CustomHandler(logging.Handler):
     def emit(self, record):
@@ -21,13 +21,19 @@ def get_logger(level=logging.DEBUG):
     logger = logging.getLogger('L4D2Manager')
     logger.setLevel(level)
     handler = CustomHandler()
-    formatter = '%(asctime)s %(levelname)s %(filename)s:%(lineno)d %(message)s'
-    color_formatter = colorlog.ColoredFormatter(formatter, datefmt='%Y-%m-%d %H:%M:%S')
-    handler.setFormatter(color_formatter)
+    msg_formatter = '%(asctime)s %(levelname)s %(filename)s:%(lineno)d %(message)s'
+
+    formatter = logging.Formatter(msg_formatter)
     logger.addHandler(handler)
+    handler.setFormatter(formatter)
     stream_handler = logging.StreamHandler()
+    color_formatter = colorlog.ColoredFormatter(msg_formatter, datefmt='%Y-%m-%d %H:%M:%S')
     stream_handler.setFormatter(color_formatter)
     logger.addHandler(stream_handler)
+    log_file = LogPath / 'L4d2ModManager.log'
+    file_handler = RotatingFileHandler(log_file, maxBytes=5 * 1024 * 1024, backupCount=3, encoding='utf8')
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
     return logger
 
 

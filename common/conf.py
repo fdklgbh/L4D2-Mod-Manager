@@ -451,6 +451,25 @@ CHILE_MENUS = {
             "vmt": ["w_laser_sights"]
         },
         "油桶": {
+            "mdl": ["gascan001a", 'wooden_barricade_gascans', 'dieselcan'],
+            "vtf": ["phys_objects02d", "phys_objects02a", "phys_objects02a_normal", "phys_objects02b",
+                    "phys_objects02c", "phys_objects04a"],
+            "vmt": ["phys_objects02a", "phys_objects02b", "phys_objects02c", "phys_objects02d", "phys_objects04a"]
+        },
+        "煤气罐": {
+            "vmt": ["propanecanister01a"],
+            "vtf": ["propanecanister01a"],
+            "mdl": ["propanecanister001a"]
+        },
+        "氧气罐": {
+            "vtf": ["oxygentank01"],
+            "mdl": ["oxygentank01"],
+            "vmt": ["oxygentank01"]
+        },
+        "烟花盒": {
+            "vtf": ["explosive_box001"],
+            "vmt": ["explosive_box001_hinges", "explosive_box001"],
+            "mdl": ["explosive_box001"]
         },
         "树": {
             'path': ['materials/models/props_foliage']
@@ -458,8 +477,8 @@ CHILE_MENUS = {
         "声音": {
             'path': ['sound']
         },
-        'hud': {
-            'path': ['materials/vgui/hud']
+        'ui': {
+            'path': ['resource/ui', 'materials/vgui']
         },
         "喷漆": {
             'path': ['materials/vgui/logos']
@@ -469,6 +488,9 @@ CHILE_MENUS = {
         },
         "动作": {
             'path': ['models/xdreanims']
+        },
+        "侏儒": {
+            "mdl": ['gnome', 'v_gnome']
         },
         "脚本": {
             'path': ['scripts']
@@ -507,3 +529,6 @@ CustomData = {}
 WORKSPACE = Path(__file__).parent.parent
 
 CachePath = WORKSPACE / 'Cache'
+CachePath.mkdir(parents=True, exist_ok=True)
+LogPath = WORKSPACE / 'log'
+LogPath.mkdir(parents=True, exist_ok=True)

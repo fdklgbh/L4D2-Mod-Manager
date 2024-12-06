@@ -66,7 +66,10 @@ def read_addons_txt(path: Path, return_file_type=False):
             with pak1.get_file(filepath) as f_obj:
                 content = f_obj.read()
             try:
-                content = content.decode()
+                try:
+                    content = content.decode('utf8')
+                except UnicodeError:
+                    content = content.decode('gbk')
             except UnicodeError:
                 try:
                     res = chardet.detect(content)
@@ -99,10 +102,6 @@ def read_addons_txt(path: Path, return_file_type=False):
             if filepath.startswith('materials/skybox') and Path(filepath).stem.startswith('sky_'):
                 return_data['child_type'] = '天空盒'
                 return_data['father_type'] = '杂项'
-                need_continue = True
-            elif filepath.startswith('models/xdreanims'):
-                return_data['father_type'] = '其他'
-                return_data['child_type'] = ''
                 need_continue = True
             if need_continue:
                 had_type = True
