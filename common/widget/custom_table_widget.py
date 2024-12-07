@@ -17,7 +17,7 @@ from common.module.modules import TableModel
 from qfluentwidgets import FluentIcon as FIF
 
 from common.myIcon import MyIcon
-from common.conf import ModType, VERSION, WORKSPACE
+from common.conf import IS_DEV, WORKSPACE
 
 
 class CustomTableView(TableView):
@@ -93,7 +93,7 @@ class CustomTableView(TableView):
         is_more = len(select_rows) > 1
         logger.debug(f"{filename}: {userData}")
         type_ = userData['child_type'] if userData['child_type'] else userData["father_type"]
-        type_action = Action(FIF.FLAG, f"类型： {type_.title()}" if not is_more else "修改分类", self)
+        type_action = Action(FIF.FLAG, f"类型： {type_}" if not is_more else "修改分类", self)
         menu.addActions([open_file, open_gcf, type_action])
         menu.addSeparator()
         if is_more:
@@ -113,7 +113,7 @@ class CustomTableView(TableView):
             menu.addAction(open_url_action)
             open_url_action.triggered.connect(lambda x: QDesktopServices.openUrl(QUrl(
                 f'https://steamcommunity.com/sharedfiles/filedetails/?id={filename}')))
-        if 'dev' in VERSION:
+        if IS_DEV:
             dev_action = Action(text='导出文件结构到dev文件下')
             menu.addAction(dev_action)
             dev_action.triggered.connect(lambda x: self.dev_action(parent_folder_path, select_rows))

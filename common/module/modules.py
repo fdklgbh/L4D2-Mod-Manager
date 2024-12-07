@@ -74,15 +74,13 @@ class TableModel(QAbstractTableModel):
         try:
             return getattr(self, self.get_type_key(child_type, father_type))
         except AttributeError as e:
-            logger.debug(f'xxxxx: {child_type}, {father_type}')
+            logger.error(f'get_type_data 二级分类:{child_type}, 一级分类{father_type}')
             raise e
 
     def set_type_data(self, data, child_type=None, father_type=None):
         setattr(self, self.get_type_key(child_type, father_type), data)
 
     def debug_search_result(self):
-        # print(self.customData)
-        # print(self._search_result)
         pass
 
     def rowCount(self, parent=QModelIndex()):
@@ -150,12 +148,10 @@ class TableModel(QAbstractTableModel):
         # 二级分类
         if old_custom["child_type"]:
             # 删除二级分类下数据
-            print('清除二级分类下:', f'_{old_custom["child_type"]}_{old_custom["father_type"]}')
             old_child_type: list = self.get_type_data(old_custom["child_type"], old_custom["father_type"])
             old_child_type.remove(data_info)
         if child_type:
             # 添加数据到新的二级分类下
-            print('添加二级分类下:', f'_{father_type}_{child_type}')
             new_child_type: list = self.get_type_data(child_type, father_type)
             new_child_type.append(data_info)
             new_child_type.sort(key=lambda x: x[0])
@@ -178,13 +174,11 @@ class TableModel(QAbstractTableModel):
         self.vpkInfoHideSignal.emit()
         vpkConfig.update_config(title, self.customData[title])
 
-    # def sortData(self):
-    #     key = ModType.father_type_keys()[:]
-    #     key.extend(ModType.child_keys())
-    #     for i in ModType.father_type_keys():
-    #         self.set_type_data(sorted(self.get_type_data(father_type=i), key=lambda x: x[0]), father_type=i)
-    #         for j in ModType.child_keys(i):
-    #             self.set_type_data(sorted(self.get_type_data(j, i), key=lambda x: x[0]), j, i)
+    def sortData(self):
+        for i in ModType.father_type_keys():
+            self.set_type_data(sorted(self.get_type_data(father_type=i), key=lambda x: x[0]), father_type=i)
+            for j in ModType.child_keys(i):
+                self.set_type_data(sorted(self.get_type_data(j, i), key=lambda x: x[0]), j, i)
 
     def setSearchText(self, text):
         self.search_text = search_text = text.strip().lower()
@@ -220,10 +214,7 @@ class TableModel(QAbstractTableModel):
                 compare = self._search_result[row][column]
             if compare != value:
                 self._search_result[row][-1] = value
-                print('===>', end='')
-                print(self._search_result[row])
                 title = self.get_row_title(row)
-                print('title', title, value)
                 logger.info(f'文件:{title}标题修改为 <{value}>,原始标题为 <{self._search_result[row][column]}> ')
                 vpkConfig.update_config(title, {"customTitle": value})
                 self.dataChanged.emit(index, index, [Qt.DisplayRole])
@@ -255,8 +246,6 @@ class TableModel(QAbstractTableModel):
         self._data.append(add_data)
         father_type = data.get('father_type', '其他')
         child_type = data.get('child_type', '')
-        if not child_type and not father_type:
-            print('title ===>', title)
         self.customData[title] = {'child_type': child_type, 'father_type': father_type}
         if child_type:
             self.get_type_data(child_type, father_type).append(add_data)

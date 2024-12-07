@@ -37,7 +37,6 @@ class VPKConfig:
     def update_config(self, file_name, new_config: dict, pop_key: list = None):
         data = self._read(file_name)
         if new_config.get('father_type') and 'check_type' in data.keys():
-            print('处理check_type')
             data.pop('check_type', '')
         data.update(new_config)
         if pop_key:

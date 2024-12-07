@@ -6,7 +6,7 @@ import sys
 import time
 import traceback
 from pathlib import Path
-
+from common import logger
 from PyQt5.QtCore import pyqtSignal
 
 
@@ -23,7 +23,7 @@ class ExceptionHook:
         traceback_format = traceback.format_exception(type_, value, trace)
         error_msg = "".join(traceback_format)
         file_name = f'error_{int(time.time())}.log'
-        print(error_msg)
+        logger.exception(f"错误信息:\n{error_msg}")
         self.exceptionSignal.emit(str(error_msg) + f'日志文件保存在Log文件夹下\n文件名：{file_name}')
         # QMessageBox.critical(self.form, "错误", str(error_msg) + f'日志文件保存在Log文件夹下\n文件名：{file_name}')
         path = Path(self.log_folder)

@@ -157,7 +157,7 @@ class ModuleStacked(QWidget, Ui_Frame):
                     for j in value:
                         j: str
                         key_action.addAction(
-                            Action(text=f"{j.title()}({self.mode.get_type_num(j, key)})", parent=key_action))
+                            Action(text=f"{j}({self.mode.get_type_num(j, key)})", parent=key_action))
             else:
                 menu.addAction(Action(text=f"{i}({self.mode.get_type_num(father_type=i)})"))
         position = self.sender().mapToGlobal(QPoint(-10, 30))
@@ -166,7 +166,7 @@ class ModuleStacked(QWidget, Ui_Frame):
 
     def type_menu_selection(self, action: Action):
         # 点击的action 文本拆分
-        btn_text = action.text().lower().split('(')[0]
+        btn_text = action.text().split('(')[0]
         search_type = ''
         if action.parentWidget():
             father_menu = action.parentWidget().title().split('(')[0]
@@ -180,7 +180,7 @@ class ModuleStacked(QWidget, Ui_Frame):
             father_menu = btn_text
             if father_menu == '全部':
                 father_menu = ''
-        self.type_btn.setText(btn_text.title())
+        self.type_btn.setText(btn_text)
         self.mode.search_type = search_type
         self.mode.father_type = father_menu
         logger.debug(f'search type: {search_type}, father_type: {father_menu}')
@@ -292,6 +292,7 @@ class ModuleStacked(QWidget, Ui_Frame):
             logger.warning('文件已存在了')
             target_exists = True
         if not original_file.exists():
+            print('original_file', original_file)
             self.file_not_exists_bar()
             return
         if cover:
@@ -368,7 +369,7 @@ class ModuleStacked(QWidget, Ui_Frame):
 
     def show_vpk_file(self, filename):
         file_path = self.folder_path / f'{filename}.vpk'
-        os.system(f'start explorer /select,"{file_path}"')
+        os.popen(f'start explorer /select,"{file_path}"')
 
     def onThreadSignalToSlot(self):
         self.per_data_thread.started.connect(self.mod_load_started)
@@ -395,7 +396,7 @@ class ModuleStacked(QWidget, Ui_Frame):
         self.tableView.finished = True
         # self.setEnabled(True)
         self.setDisabled(False)
-        # self.mode.sortData()
+        self.mode.sortData()
 
     def table_sort_changed(self, *args):
         logger.debug('隐藏vpk')

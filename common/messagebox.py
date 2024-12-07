@@ -4,6 +4,7 @@
 # @File: messagebox.py
 from qfluentwidgets import MessageBoxBase
 
+from common import logger
 from common.Bus import signalBus
 from common.widget.custom_tree_widget import CustomTreeWidget
 from common.conf import ModType
@@ -34,9 +35,9 @@ class ChangeTypeMessageBox(MessageBoxBase):
         self.yesButton.clicked.connect(self.yesButton_clicked)
 
     def yesButton_clicked(self, *args):
-        child_type = self.new_check_type.lower()
+        child_type = self.new_check_type
         father_type = self.new_father_type
-        print('yesButton_clicked', child_type, father_type)
+        logger.debug('yesButton_clicked %s %s', child_type, father_type)
         for data in self.data_info:
             signalBus.fileTypeChanged.emit(data, child_type, father_type)
 
@@ -56,7 +57,7 @@ class ChangeTypeMessageBox(MessageBoxBase):
                 self.new_father_type = father_type
 
         if father_type == self.father_type:
-            if child_type and child_type.lower() != self.child_type:
+            if child_type and child_type != self.child_type:
                 change_disable_status(False)
                 return
             change_disable_status(True)

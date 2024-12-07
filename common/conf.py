@@ -8,7 +8,11 @@ from pathlib import Path
 # from common.config.main_config import setting_cfg
 WINDOWS_TITLE = 'L4D2 Mod管理器'
 
-VERSION = '1.0.8 dev'
+IS_DEV = False
+
+VERSION = '1.1.0'
+if IS_DEV:
+    VERSION += ' dev'
 
 AUTHOR = 'fdklgbh'
 
@@ -41,12 +45,14 @@ class ModType(Enum):
     DRUG = '医疗品'
     THROW = '投掷'
     MAP = '地图'
+    AMMO = '弹药'
+    ITEMS = '杂项'
 
     def __str__(self):
         return self.value
 
     def data(self):
-        return CHILE_MENUS.get(self.value.lower())
+        return CHILE_MENUS.get(self.value)
 
     def __eq__(self, other):
         return self.value == other
@@ -59,7 +65,7 @@ class ModType(Enum):
         :return:
         """
         data = []
-        for key, value in FATHER_MENUS.items():
+        for value in FATHER_MENUS:
             tmp: dict = CHILE_MENUS.get(value)
             if tmp and not tmp.get('no_child'):
                 data.append({value: list(tmp.keys())})
@@ -73,11 +79,7 @@ class ModType(Enum):
         一级分类 返回中文列表
         :return:
         """
-        return list({value: key for key, value in FATHER_MENUS.items()}.keys())
-
-    @classmethod
-    def translate_father_type(cls, father_type):
-        return FATHER_MENUS.get(father_type, father_type)
+        return FATHER_MENUS
 
     @classmethod
     def child_keys(cls, father_type):
@@ -92,10 +94,6 @@ class ModType(Enum):
         return []
 
     @classmethod
-    def value_to_key(cls, value):
-        return TRANSLATE_TO_TYPE_KEY.get(value)
-
-    @classmethod
     def weapons_goods(cls):
         """
         排除 人物 特感
@@ -108,6 +106,11 @@ class ModType(Enum):
 
 
 # 二级目录
+# 人物 特感以外,还有额外可配置项
+# mdl mdl_path_regex
+# vtf vtf_path_regex
+# vmt vmt_path_regex
+
 CHILE_MENUS = {
     # 人物 根据mdl文件检查, 完成
     "幸存者": {
@@ -115,10 +118,10 @@ CHILE_MENUS = {
         "弗朗西斯": 'biker',
         "路易斯": 'manager',
         '佐伊': 'teenangst',
-        "ellis": 'mechanic',
-        "coach": 'coach',
-        "nick": 'gambler',
-        "rochelle": "producer",
+        "Ellis": 'mechanic',
+        "Coach": 'coach',
+        "Nick": 'gambler',
+        "Rochelle": "producer",
         "语音": '',
         '其他': ''
     },
@@ -232,22 +235,22 @@ CHILE_MENUS = {
             "vmt": ["uzi", "uzi_world", "uzi_worn"],
             "vtf": ["uzi", "uzi_worn"]
         },
-        "mac-10": {
+        "MAC-10": {
             "mdl": ["v_silenced_smg", "w_smg_a"],
             "vmt": ["smg_a", "smg_a_worn"],
             "vtf": ["smg_a", "smg_a_worn", "smg_a_worn_exp"]
         },
-        "mp5": {
+        "MP5": {
             "mdl": ["v_smg_mp5", "w_smg_mp5"],
             "vmt": ["mp5_1", "w_smg_mp5"],
             "vtf": ["mp5_1", "mp5_1_ref", "w_smg_mp5"]
         },
-        "ak": {
+        "AK": {
             "mdl": ["v_rifle_ak47", "w_rifle_ak47"],
             "vmt": ["ak47", "ak47_rural", "ak47_wartorn"],
             "vtf": ["ak47", "ak47_exp", "ak47_rural", "ak47_rural_exp", "ak47_wartorn", "ak47_wartorn_exp"]
         },
-        "m4": {
+        "M4": {
             "mdl": ["v_rifle", "w_rifle_m16a2"],
             "vmt": ["m16a2", "m16a2_namvet", "m16a2_world", "m16a2_worn"],
             "vtf": ["m16a2", "m16a2_namvet", "m16a2_worn"]
@@ -257,7 +260,7 @@ CHILE_MENUS = {
             "vtf": ["rifle_b", "rifle_a"],
             "vmt": ["rifle_b"]
         },
-        "sg552": {
+        "SG552": {
             "mdl": ["v_rif_sg552", "w_rifle_sg552"],
             "vmt": ["rif_sg552"],
             "vtf": ["rif_sg552", "rif_sg552_ref"]
@@ -477,20 +480,15 @@ CHILE_MENUS = {
         "声音": {
             'path': ['sound']
         },
-        'ui': {
-            'path': ['resource/ui', 'materials/vgui']
-        },
         "喷漆": {
             'path': ['materials/vgui/logos']
         },
-        "材质特效": {
-
-        },
-        "动作": {
-            'path': ['models/xdreanims']
-        },
         "侏儒": {
             "mdl": ['gnome', 'v_gnome']
+        },
+        "自动贩卖机": {
+            "vmt": ["vending_machine01", "vending_machine", "vending_machine_off"],
+            "vtf": ["vending_machine01", "vending_machine01_mask"]
         },
         "脚本": {
             'path': ['scripts']
@@ -508,22 +506,23 @@ CHILE_MENUS = {
         'vmt': ['exploding_ammo', 'explosive_ammopack', 'incendiary_ammopack', 'w_rd_grenade', 'w_eq_ammopack',
                 'v_eq_ammopack']
     },
+    'UI': {
+        "no_child": True,
+        'path': ['resource/ui', 'materials/vgui']
+    },
+    "材质特效": {
+        "no_child": True,
+    },
+    "动作": {
+        "no_child": True,
+        'path': ['models/xdreanims']
+    },
 }
 # 一级目录
-FATHER_MENUS = {
-    "survivors": '幸存者',
-    "infected": "特感",
-    "weapons": "武器",
-    "jinzhan": '近战',
-    'drug': '医疗品',
-    "throw": "投掷",
-    "items": "杂项",
-    "ammo": "弹药",
-    'map': '地图',
-    'other': '其他'
-}
+FATHER_MENUS = [
+    '幸存者', '特感', '武器', '近战', '医疗品', '投掷', 'UI', '杂项', '弹药', '动作', '地图', '其他'
+]
 
-TRANSLATE_TO_TYPE_KEY = {value: key for key, value in FATHER_MENUS.items()}
 CustomData = {}
 
 WORKSPACE = Path(__file__).parent.parent

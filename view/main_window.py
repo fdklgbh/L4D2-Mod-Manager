@@ -75,11 +75,10 @@ class MainWindow(CFluentWindow, ExceptionHook):
         ExceptionHook.__init__(self)
         screen = QApplication.primaryScreen()
         scale = screen.devicePixelRatio()
-        print(f'缩放因子:{scale}')
         self.check_version_thread = CheckVersion()
-
         self.setWindowIcon(QIcon(MyIcon.L4D2.path()))
         self.log_interface = LogInterface(self)
+        logger.info(f'缩放因子:{scale}')
         self.initWindow()
         L4D2_PATH = str(l4d2Config.l4d2_path)
         if not L4D2_PATH or not l4d2Config.disable_mod_path:

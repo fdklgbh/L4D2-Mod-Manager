@@ -31,7 +31,7 @@ class CustomTreeWidget(QFrame):
                     selected_child = None
                     item = QTreeWidgetItem([key_])
                     for i in value:
-                        child = QTreeWidgetItem(item, [i.title()])
+                        child = QTreeWidgetItem(item, [i])
                         if is_father_item and i == child_type:
                             selected_child = child
                     self.tree.addTopLevelItem(item)
@@ -51,7 +51,7 @@ class CustomTreeWidget(QFrame):
         self.setFixedSize(300, 380)
 
     @staticmethod
-    def trigger_item(item: QTreeWidgetItem):
+    def trigger_item(item: QTreeWidgetItem, *args):
         if item.childCount():
             item.setExpanded(not item.isExpanded())
 
