@@ -114,9 +114,12 @@ class CustomTableView(TableView):
             open_url_action.triggered.connect(lambda x: QDesktopServices.openUrl(QUrl(
                 f'https://steamcommunity.com/sharedfiles/filedetails/?id={filename}')))
         if IS_DEV:
+            from common.crypto import md5
             dev_action = Action(text='导出文件结构到dev文件下')
             menu.addAction(dev_action)
             dev_action.triggered.connect(lambda x: self.dev_action(parent_folder_path, select_rows))
+            title = item.data(Qt.UserRole + 2)[0]
+            print(title, md5(title))
 
         open_file.triggered.connect(lambda x: self.openFolderSignal.emit(filename))
         open_gcf.triggered.connect(lambda x: self.openGCFSpaceSignal.emit(filename))

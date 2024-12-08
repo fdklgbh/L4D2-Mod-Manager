@@ -96,11 +96,12 @@ def run(path: Path, refresh_cache=False):
 
 
 def main():
-    path = Path(input('输入旧版本缓存文件夹(可选中文件夹拖动到这里):'))
+    folder_path = input('输入旧版本缓存文件夹(可选中文件夹拖动到这里):')
+    folder_path = folder_path.replace('"', '')
+    path = Path(folder_path)
     print('选择的缓存文件路径为:', path)
     if not path.exists() or not path.is_dir() or not path.is_absolute():
         print('文件路径不存在或者不为文件夹或者不为绝对路径')
-        input('回车退出')
         return
     false = False
     while True:
@@ -117,7 +118,7 @@ def main():
             refresh_cache = False
         else:
             print('程序退出')
-            return
+            sys.exit()
         break
     run(path.absolute(), refresh_cache)
 
@@ -127,10 +128,14 @@ if __name__ == '__main__':
         main()
     except KeyboardInterrupt:
         print('手动退出, 程序结束...')
+        sys.exit()
     except Exception:
         print('出现错误')
         traceback.print_exc()
     else:
         print('替换完成')
     finally:
-        input('回车退出')
+        try:
+            input('回车退出')
+        except KeyboardInterrupt:
+            pass

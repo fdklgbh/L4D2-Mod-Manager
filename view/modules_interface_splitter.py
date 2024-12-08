@@ -424,8 +424,6 @@ class ModuleStacked(QWidget, Ui_Frame):
         return num
 
     def mainWindowResize(self, a0):
-        new_size = a0.size()
-        # new_width = int(new_size.width() * 0.3)
         new_width = int(self.width() * 0.3)
         if self.stateTooltip:
             try:
@@ -438,6 +436,10 @@ class ModuleStacked(QWidget, Ui_Frame):
                 self.pix = self.original_pix.scaledToWidth(new_width, mode=Qt.SmoothTransformation)
                 self.file_pic.setPixmap(self.pix)
         self.vkp_info.setMaximumWidth(new_width)
+
+    def showEvent(self, a0):
+        self.mainWindowResize(a0)
+        super().showEvent(a0)
 
     def perform_search(self, text: str = ''):
         self.tableView.horizontalHeader().setSortIndicator(-1, Qt.AscendingOrder)

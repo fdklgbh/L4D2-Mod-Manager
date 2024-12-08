@@ -115,6 +115,7 @@ CHILE_MENUS = {
     # 人物 根据mdl文件检查, 完成
     "幸存者": {
         "比尔": 'namvet',
+        "比尔躯体": "namvet_deathpose",
         "弗朗西斯": 'biker',
         "路易斯": 'manager',
         '佐伊': 'teenangst',
@@ -492,8 +493,63 @@ CHILE_MENUS = {
         },
         "脚本": {
             'path': ['scripts']
+        },
+        '医疗箱': {
+            "vtf": ['medicalcabinet02', 'medicalcabinet02_ref'],
+            'vmt': ['medicalcabinet02']
+        },
+        '涂鸦': {
+            'vtf': ["graffiti_alleys_01", "graffiti_alleys_02", "graffiti_alleys_03", "graffiti_alleys_04",
+                    "graffiti_alleys_05", "graffiti_alleys_06", "graffiti_docks_01", "graffiti_docks_02",
+                    "graffiti_docks_03",
+                    "graffiti_docks_04", "graffiti_docks_05", "graffiti_docks_06", "graffiti_docks_07",
+                    "graffiti_fight",
+                    "graffiti_japanese", "graffiti_lighthouse_01", "graffiti_lighthouse_02", "graffiti_lighthouse_03",
+                    "graffiti_lighthouse_04", "graffiti_lighthouse_05", "graffiti_lighthouse_06",
+                    "graffiti_lighthouse_07",
+                    "graffiti_lighthouse_08", "graffiti_lighthouse_08a", "graffiti_lighthouse_09",
+                    "graffiti_lighthouse_10",
+                    "graffiti_nonesurvive", "graffiti_saferoom_airport01_02", "graffiti_saferoom_airport01_03",
+                    "graffiti_saferoom_airport02_01", "graffiti_saferoom_airport02_02",
+                    "graffiti_saferoom_airport03_01",
+                    "graffiti_saferoom_airport03_02", "graffiti_saferoom_c1_m3-4_01", "graffiti_saferoom_c1_m3-4_02",
+                    "graffiti_saferoom_c2_m4-5_01", "graffiti_saferoom_c2_m4-5_02", "graffiti_saferoom_c2_m4-5_03",
+                    "graffiti_saferoom_c3_m2-3_01", "graffiti_saferoom_c3_m2-3_02", "graffiti_saferoom_c3_m2-3_03",
+                    "graffiti_saferoom_c3_m3-4_01", "graffiti_saferoom_c3_m3-4_02", "graffiti_saferoom_c4_m1-2_01",
+                    "graffiti_saferoom_c4_m1-2_02", "graffiti_saferoom_c4_m2-3_01", "graffiti_saferoom_c4_m2-3_02",
+                    "graffiti_saferoom_c4_m2-3_03", "graffiti_saferoom_c4_m2-3_04", "graffiti_saferoom_c4_m2-3_05",
+                    "graffiti_saferoom_c5_m1-2_01", "graffiti_saferoom_c5_m1-2_02", "graffiti_saferoom_c5_m1-2_03",
+                    "graffiti_saferoom_c5_m1-2_04", "graffiti_saferoom_c5_m3-4_01", "graffiti_saferoom_c5_m3-4_02",
+                    "graffiti_saferoom_c5_m3house02", "graffiti_saferoom_c5_m3house03", "graffiti_saferoom_chicagoted",
+                    "graffiti_saferoom_citygone", "graffiti_saferoom_crashcourse01_01",
+                    "graffiti_saferoom_crashcourse01_02",
+                    "graffiti_saferoom_crashcourse01_03", "graffiti_saferoom_crashcourse01_04",
+                    "graffiti_saferoom_farm01_01",
+                    "graffiti_saferoom_farm01_02", "graffiti_saferoom_farm01_03", "graffiti_saferoom_farm01_04",
+                    "graffiti_saferoom_farm02_02", "graffiti_saferoom_farm03_01", "graffiti_saferoom_farm04_01",
+                    "graffiti_saferoom_farm04_02", "graffiti_saferoom_farm04_03", "graffiti_saferoom_heatherignore",
+                    "graffiti_saferoom_hospitaloverrun", "graffiti_saferoom_ikilled63",
+                    "graffiti_saferoom_nobodycoming",
+                    "graffiti_saferoom_nobodysave", "graffiti_saferoom_peterwaited", "graffiti_saferoom_port_m2-3_01",
+                    "graffiti_saferoom_port_m2-3_02", "graffiti_saferoom_port_m2-3_03",
+                    "graffiti_saferoom_port_m2-3_04",
+                    "graffiti_saferoom_port_m2-3_05", "graffiti_saferoom_port_m2-3_06",
+                    "graffiti_saferoom_port_m2-3_07",
+                    "graffiti_saferoom_port_m2-3_08", "graffiti_saferoom_smalltown01_02",
+                    "graffiti_saferoom_smalltown02_01",
+                    "graffiti_saferoom_smalltown02_02", "graffiti_saferoom_smalltown02_03",
+                    "graffiti_saferoom_smalltown03_01",
+                    "graffiti_saferoom_smalltown03_02", "graffiti_saferoom_smalltown03_03",
+                    "graffiti_saferoom_smalltown03_04",
+                    "graffiti_saferoom_smalltown03_05", "graffiti_saferoom_smalltown04_01",
+                    "graffiti_saferoom_smalltown04_02",
+                    "graffiti_saferoom_smalltown04_03"],
+            "vtf_path_regex": ['^materials/graffiti/(?:psd)?.*$']
+        },
+        "手电筒": {
+            'vtf': ['flashlight001'],
+            'vtf_path_regex': ['materials/effects']
         }
-
     },
     # 生成菜单兼容
     "弹药": {

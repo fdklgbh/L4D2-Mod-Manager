@@ -9,6 +9,7 @@ from io import open as fopen, BufferedReader
 import os
 import sys
 import chardet
+from common import logger
 
 __version__ = "1.4.0"
 __author__ = "Rossen Georgiev"
@@ -247,7 +248,7 @@ def _read_cstring(f: BufferedReader, encoding='utf-8'):
             try:
                 return buf.decode('iso-8859-1')
             except UnicodeError:
-                print('error')
+                logger.error('error')
                 return str(buf)
 
 class VPK(object):

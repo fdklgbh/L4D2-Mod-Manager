@@ -155,7 +155,8 @@ class PrePareDataThread(QThread):
             filepath: str
             if had_type:
                 break
-            if filepath.startswith('materials/skybox') and Path(filepath).stem.startswith('sky_'):
+            is_sky = filepath.startswith('materials/skybox') and Path(filepath).stem.startswith('sky_')
+            if is_sky:
                 return_data['child_type'] = '天空盒'
                 return_data['father_type'] = '杂项'
                 need_continue = True
@@ -172,8 +173,8 @@ class PrePareDataThread(QThread):
             elif self._check_file_name(filepath, 'vmt'):
                 file_path_dict.setdefault('vmt', [])
                 file_path_dict['vmt'].append(filepath)
-            if not any([filepath.startswith('map'), filepath.endswith('.vtx'),
-                        filepath.endswith('.vvd'), filepath.endswith('.phy'), filepath.endswith('.jpg')]):
+            if not any([filepath.startswith('maps/') or filepath.startswith('missions/'), filepath.endswith('.vtx'),
+                        is_sky, filepath.endswith('.vvd'), filepath.endswith('.phy'), filepath.endswith('.jpg')]):
                 file_path_dict.setdefault('path', [])
 
                 file_path_dict['path'].append(filepath)
@@ -202,11 +203,14 @@ class PrePareDataThread(QThread):
             result = re.findall(r'models/survivors/survivor_(.+)\.mdl', mdl)
             if result:
                 for key, survivor in survivors_dict.items():
-                    if key == '语音':
+                    if key == '语音' or key == '比尔躯体':
                         continue
                     if result[0] == survivor:
                         return_data.update({'child_type': key, 'father_type': ModType.SURVIVORS.value})
                         return return_data, True
+            if 'models/survivors/namvet/namvet_deathpose.mdl' == mdl:
+                return_data.update({'child_type': '比尔躯体', 'father_type': ModType.SURVIVORS.value})
+                return return_data, True
         path = file_path_dict.get('path', [])
         for path in path:
             if re.findall(
@@ -240,6 +244,7 @@ class PrePareDataThread(QThread):
         :param return_data: 返回数据 检查出类型后,需要update进去,
         :return: return_data, True/False
         """
+
         def return_info(child_type, father_type):
             return_data.update({'child_type': child_type, 'father_type': father_type})
             return return_data, True
@@ -330,8 +335,14 @@ class PrePareDataThread(QThread):
                     return return_info('', father)
                 continue
             for chile_key, chile_value in child.items():
+                if chile_key == '脚本':
+                    continue
                 if check_path(filepath_list, chile_value.get('path', []), chile_value.get('regex', False)):
                     return return_info(chile_key, father)
+        child = goods.get('杂项').get('脚本')
+        if check_path(filepath_list, child.get('path', []), child.get('regex', False)):
+            return return_info('脚本', '杂项')
+
         return return_data, False
 
     @staticmethod

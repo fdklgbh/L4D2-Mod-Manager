@@ -13,7 +13,6 @@ class CustomHandler(logging.Handler):
         log_message = self.format(record)
         log_message = log_message.replace(record.levelname, record.levelname[0])
         signalBus.loggerSignal.emit(log_message)
-        # print(log_message)
         return log_message
 
 
@@ -24,8 +23,8 @@ def get_logger(level=logging.DEBUG):
     msg_formatter = '%(asctime)s %(levelname)s %(filename)s:%(lineno)d %(message)s'
 
     formatter = logging.Formatter(msg_formatter)
-    logger.addHandler(handler)
     handler.setFormatter(formatter)
+    logger.addHandler(handler)
     stream_handler = logging.StreamHandler()
     color_formatter = colorlog.ColoredFormatter(msg_formatter, datefmt='%Y-%m-%d %H:%M:%S')
     stream_handler.setFormatter(color_formatter)
