@@ -395,5 +395,7 @@ class TableModel(QAbstractTableModel):
             if remove_file_name == file_data[0]:
                 return index
 
-    def flags(self, index):
-        return Qt.ItemIsSelectable | Qt.ItemIsEditable | Qt.ItemIsEnabled
+    def flags(self, index: QModelIndex):
+        if index.column() == 1:
+            return Qt.ItemIsSelectable | Qt.ItemIsEditable | Qt.ItemIsEnabled
+        return Qt.ItemIsSelectable | Qt.ItemIsEnabled

@@ -325,8 +325,27 @@ class ModuleStacked(QWidget, Ui_Frame):
                         parent=self.window()
                     )
                     return
-                logger.debug(e)
-                self.file_not_exists_bar()
+                if '拒绝访问' in str(e):
+                    logger.warning('覆盖文件被占用')
+                    InfoBar.error(
+                        title='移动失败',
+                        content='被覆盖文件使用中',
+                        orient=Qt.Horizontal,
+                        isClosable=False,
+                        position=InfoBarPosition.TOP,
+                        parent=self.window()
+                    )
+                    return
+                logger.warning(f'出现其他错误:{e}')
+                logger.exception(e)
+                InfoBar.error(
+                    title='出现其他错误',
+                    content=str(e),
+                    orient=Qt.Horizontal,
+                    isClosable=False,
+                    position=InfoBarPosition.TOP,
+                    parent=self.window()
+                )
                 return
             else:
                 signalBus.modulePathChanged.emit(target_path, data, self.mode.customData[filename])
