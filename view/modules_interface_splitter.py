@@ -340,7 +340,7 @@ class ModuleStacked(QWidget, Ui_Frame):
                 logger.exception(e)
                 InfoBar.error(
                     title='出现其他错误',
-                    content=str(e),
+                    content='请查看日志',
                     orient=Qt.Horizontal,
                     isClosable=False,
                     position=InfoBarPosition.TOP,
