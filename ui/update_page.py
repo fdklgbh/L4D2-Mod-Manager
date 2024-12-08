@@ -9,7 +9,7 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-
+from qfluentwidgets import TextBrowser
 
 class Ui_Form(object):
     def setupUi(self, Form):
@@ -18,7 +18,7 @@ class Ui_Form(object):
         self.verticalLayout = QtWidgets.QVBoxLayout(Form)
         self.verticalLayout.setContentsMargins(20, 20, 20, 20)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.update_info = QtWidgets.QTextBrowser(Form)
+        self.update_info = TextBrowser(Form)
         self.update_info.setContextMenuPolicy(QtCore.Qt.NoContextMenu)
         self.update_info.setStyleSheet("background-color: transparent;\n"
 "border: none")

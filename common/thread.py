@@ -71,7 +71,6 @@ class PrePareDataThread(QThread):
                         if value and value == '1':
                             yield_data['father_type'] = '地图'
                             break
-                logger.debug(f'解析类别后返回数据:{yield_data}')
                 data: dict = yield_data.copy()
                 del data['filePath']
                 data['cache'] = True
