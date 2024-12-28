@@ -236,7 +236,10 @@ def _read_cstring(f: BufferedReader, encoding='utf-8'):
         buf += chunk
 
     try:
-        return buf.decode(encoding) if encoding else buf
+        try:
+            return buf.decode(encoding)
+        except:
+            return buf.decode('gbk')
     except UnicodeError as e:
         res = chardet.detect(buf)
         if res['encoding']:

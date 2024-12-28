@@ -2,12 +2,16 @@
 # @Time: 2024/2/23
 # @Author: Administrator
 # @File: messagebox.py
-from qfluentwidgets import MessageBoxBase
+from pathlib import Path
+
+from PyQt5.QtCore import QThreadPool
+from qfluentwidgets import MessageBoxBase, IndeterminateProgressBar, PlainTextEdit, SubtitleLabel, BodyLabel
 
 from common import logger
 from common.Bus import signalBus
+from common.config import vpkConfig
+from common.thread.rewrite_addoninfo_thread import ReWriteAddonInfoThread
 from common.widget.custom_tree_widget import CustomTreeWidget
-from common.conf import ModType
 
 
 class ChangeTypeMessageBox(MessageBoxBase):
@@ -71,5 +75,51 @@ class ChangeTypeMessageBox(MessageBoxBase):
             change_disable_status(True)
 
 
+class ReWriteMessageBox(MessageBoxBase):
+    def __init__(self, parent, file_path: Path, new_title):
+        super().__init__(parent)
+        self._file = file_path
+        self._new_title = new_title
+        self.inProgressBar = IndeterminateProgressBar(self)
+        self.widget.setMinimumWidth(520)
+        self.plainText = PlainTextEdit(self)
+        self.plainText.setReadOnly(True)
+        self.plainText.setMinimumHeight(100)
+        self._thread_pool = QThreadPool.globalInstance()
+        title = SubtitleLabel(self)
+        title.setText(f'写入标题到 {self._file.stem} 的addoninfo文件中')
+        body = BodyLabel(self)
+        body.setText('写入成功会直接退出,如果没有成功,点击确定')
+        self.cancelButton.setText('我知道了')
+        self.yesButton.setText('确定')
+        self.viewLayout.addWidget(title)
+        self.viewLayout.addWidget(body)
+        self.viewLayout.addWidget(self.inProgressBar)
+        self.viewLayout.addWidget(self.plainText)
+        signalBus.reWriteLogSignal.connect(self.plainText.appendPlainText)
+        res = vpkConfig.get_file_config(self._file.stem)
+        file_info = res.get('file_info', {"addonsteamappid": '550'})
+        file_info.update({'addontitle': new_title})
+        self.yesButton.hide()
+        self.buttonLayout.insertStretch(0, 1)
+        self.cancelButton.setEnabled(False)
+        vpkConfig.change_file_single_config(self._file.stem, 'file_info', file_info)
+        self.thread = ReWriteAddonInfoThread(self._file, file_info)
+        self.thread.resultSignal.connect(self.updateResult)
+        self.thread.finished.connect(self.thread_finished)
+        self.thread.start()
 
+    def thread_finished(self):
+        if self.cancelButton.isEnabled():
+            return
+        self.yesButton.click()
 
+    def updateResult(self, status: bool, data: str, filename: str) -> None:
+        if not status:
+            self.cancelButton.setEnabled(True)
+            return
+        signalBus.reWriteResultSignal.emit(self._file.parent, filename, data)
+        self.buttonLayout.insertStretch(0)
+        self.yesButton.show()
+        self.inProgressBar.pause()
+        self.inProgressBar.hide()

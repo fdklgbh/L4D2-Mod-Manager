@@ -109,7 +109,34 @@ def main():
 if __name__ == '__main__':
     # print(md5('2824268260'))
     import json
-    name = md5('2629325742')
+    from pathlib import Path
+
+    folder = Path(r'F:\pythonData\left4dead2\Cache')
+    for i in []:
+        file = folder / f'{md5(i)}.cache'
+        if file.exists() and file.is_file():
+            file.unlink()
+
+    name = md5('1085548012')
+    # print(name)
+    # print(md5('2829092183'))
     path = fr'F:\pythonData\left4dead2\Cache\{name}.cache'
-    data = decrypt_data(path)
-    print(json.dumps(data, indent=4, ensure_ascii=False))
+    if Path(path).exists():
+        data = decrypt_data(path)
+        print(name)
+        print(json.dumps(data, indent=4, ensure_ascii=False))
+    #
+    # data = set()
+    #
+    # for i in Path(r'F:\pythonData\left4dead2\Cache').glob('*.cache'):
+    #     res: dict = decrypt_data(i)
+    #     key = list(res.keys())
+    #     key.sort()
+    #     one = ['content', 'father_type', 'child_type', 'cache', 'file_info']
+    #     one.sort()
+    #     two = one[:]
+    #     two.append('customTitle')
+    #     two.sort()
+    #     if key != one:
+    #         if key != two:
+    #             print(i.stem, json.dumps(res, ensure_ascii=False, indent=2))

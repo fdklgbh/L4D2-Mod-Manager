@@ -2,6 +2,7 @@
 # @Time: 2024/2/19
 # @Author: Administrator
 # @File: vpk_config.py
+from typing import Union
 
 from PyQt5.QtCore import QMutex, QMutexLocker
 from common.conf import CachePath
@@ -29,7 +30,7 @@ class VPKConfig:
         """
         self._save(file_name, new_config)
 
-    def change_file_single_config(self, file_name, key, value):
+    def change_file_single_config(self, file_name, key, value: Union[dict, str]):
         data = self._read(file_name)
         data[key] = value
         self._save(file_name, data)

@@ -6,9 +6,9 @@ VSVersionInfo(
   ffi=FixedFileInfo(
     #filevers和prodvers应该始终是包含四个项的元组：（1、2、3、4）,将不需要的项设置为0
     # 文件版本******，鼠标悬浮exe会显示，也显示在 详细信息-文件版本,这个是检测版本的依据
-    filevers=(1, 1, 2, 0),
+    filevers=(1, 1, 3, 0),
     # 生产商，未见显示在哪里
-    prodvers=(1, 1, 2, 0),
+    prodvers=(1, 1, 3, 0),
     # 两个位掩码
     mask=0x3f,
     # 为其设计此文件的操作系统,0x4-NT，无需更改它
@@ -29,11 +29,11 @@ VSVersionInfo(
         '080404b0',
         [StringStruct('CompanyName', '个人 fdklgbh'),
         StringStruct('FileDescription', '求生之路2模组管理器'),
-        StringStruct('FileVersion', '1.1.2'),
+        StringStruct('FileVersion', '1.1.3'),
         StringStruct('InternalName', 'L4D2 Mod Manager.exe'),
         StringStruct('OriginalFilename', 'L4D2 Mod Manager.exe'),
         StringStruct('ProductName', 'L4D2 Mod Manager'),
-        StringStruct('ProductVersion', '1.1.2')])
+        StringStruct('ProductVersion', '1.1.3')])
       ]),
     VarFileInfo([VarStruct('Translation', [2052, 1200])])
   ]

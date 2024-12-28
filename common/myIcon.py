@@ -15,6 +15,7 @@ class MyIcon(FluentIconBase, Enum):
     M = 'm'
     GCF = 'gcf'
     L4D2 = 'l4d2'
+    refresh = 'refresh'
 
     def path(self, theme=Theme.AUTO):
         # getIconColor() 根据主题返回字符串 "white" 或者 "black"

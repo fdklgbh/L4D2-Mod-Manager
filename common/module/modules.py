@@ -3,22 +3,27 @@
 # @Author: Administrator
 # @File: tableModules.py
 from typing import Union, List
-
-from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, pyqtSignal
+from pathlib import Path
+from PyQt5.QtCore import QAbstractTableModel, QModelIndex, Qt, pyqtSignal, QThreadPool
+from PyQt5.QtWidgets import QWidget
+from qfluentwidgets import InfoBar, InfoBarPosition
 
 from common import logger
 from common.Bus import signalBus
-from common.config import vpkConfig
+from common.config import vpkConfig, l4d2Config
 from common.conf import NEED_DATA, ModType
+from common.messagebox import ReWriteMessageBox
+from common.read_vpk import open_vpk
 
 
 class TableModel(QAbstractTableModel):
     vpkInfoHideSignal = pyqtSignal()
 
-    def __init__(self, headers):
+    def __init__(self, parent: QWidget, headers, folder_path: Path):
         super().__init__()
         self._headers = headers
         self._search_result = []
+        self.folder_path = folder_path
         self._data = []
         # 当前目录下所有mod的分类信息 一级,二级分类
         self.customData = {}
@@ -34,6 +39,7 @@ class TableModel(QAbstractTableModel):
         # 搜索文本
         self.search_text = ''
         signalBus.fileTypeChanged.connect(self.changeCustomData)
+        self._parent: QWidget = parent
 
     def set_default_father_type(self):
         """
@@ -204,19 +210,109 @@ class TableModel(QAbstractTableModel):
         self.endResetModel()
 
     def setData(self, index, value, role=...):
+        def change_customTitle(change_data=''):
+            self._search_result[row][-1] = change_data
+            vpkConfig.update_config(title, {"customTitle": change_data})
+
+        logger.info(f'修改为:{[value]}, {index.isValid()}')
         if index.isValid() and role == Qt.EditRole:
             row = index.row()
             column = index.column()
             if column != 1:
-                return
-            compare = self._search_result[row][-1]
+                return False
+            data = self._search_result[row]
+            title = data[0]
+            customTitle = compare = data[-1]
+            originalTitle = data[column]
             if not compare:
-                compare = self._search_result[row][column]
-            if compare != value:
-                self._search_result[row][-1] = value
-                title = self.get_row_title(row)
-                logger.info(f'文件:{title}标题修改为 <{value}>,原始标题为 <{self._search_result[row][column]}> ')
-                vpkConfig.update_config(title, {"customTitle": value})
+                # 原始标题
+                compare = data[column]
+            if compare != value or value == customTitle:
+                if not l4d2Config.vpk_application_is_exsits:
+                    # 没有vpk.exe
+                    if not value:
+                        if customTitle:
+                            change_customTitle()
+                            self.dataChanged.emit(index, index, [Qt.DisplayRole])
+                            logger.info(f'清除 {title} 自定义标题')
+                            return True
+                        logger.info('不做任何修改')
+                        return False
+                    else:
+                        if customTitle:
+                            if value == originalTitle:
+                                logger.info(f'{title} 和原本标题一致, 删除自定义标题')
+                                change_customTitle()
+                                self.dataChanged.emit(index, index, [Qt.DisplayRole])
+                                return True
+                            if value == customTitle:
+                                logger.info(f'{title} 修改的标题和自定义标题一样,不做任何修改')
+                                return False
+                        change_customTitle(value)
+                        logger.info(f'mod: {title} 设置自定义标题<{value}>')
+                        self.dataChanged.emit(index, index, [Qt.DisplayRole])
+                        return True
+                logger.info('尝试是否能正常打开vpk')
+                file_path = self.folder_path / f'{title}.vpk'
+                res = open_vpk(file_path)
+                if res in [None, False]:
+                    InfoBar.warning(
+                        title='',
+                        content=f'mod文件打开失败,不写入文件,存入自定义标题',
+                        orient=Qt.Horizontal,
+                        isClosable=False,
+                        position=InfoBarPosition.TOP,
+                        parent=self._parent.window()
+                    )
+                    self._search_result[row][-1] = value
+                    title = self.get_row_title(row)
+                    logger.info(f'文件:{title}标题修改为 <{value}>,原始标题为 <{self._search_result[row][column]}> ')
+                    vpkConfig.update_config(title, {"customTitle": value})
+                    self.dataChanged.emit(index, index, [Qt.DisplayRole])
+                    return True
+                del res
+                new_title = value
+                if not value:
+                    # 输入内容为空
+                    if customTitle:
+                        # 能打开,有自定义标题,则保存到vpk的addoninfo中
+                        logger.info(f'mod:{title} 自定义标题尝试存储到vpk中')
+                        new_title = customTitle
+                        change_customTitle()
+                    else:
+                        # 能打开,没有自定义标题
+                        logger.info(f'mod:{title} 修改为空,无自定义标题,显示原始标题')
+                        return False
+                else:
+                    if value == originalTitle:
+                        logger.info(f'mod:{title} 取消自定义标题')
+                        change_customTitle()
+                        self.dataChanged.emit(index, index, [Qt.DisplayRole])
+                        return True
+                    elif value == customTitle:
+                        logger.info(f'mod:{title} 自定义标题尝试存储到vpk中')
+                        change_customTitle()
+                    else:
+                        logger.info(f'mod:{title} 修改标题为<{value}>并存储到vpk中')
+                        if customTitle:
+                            change_customTitle()
+                box = ReWriteMessageBox(self._parent.window(), file_path, new_title)
+                if not box.exec_():
+                    show = f'mod:{title} 标题修改失败,存储为自定义标题'
+                    logger.error(show)
+                    InfoBar.warning(
+                        title='',
+                        content=show,
+                        orient=Qt.Horizontal,
+                        isClosable=False,
+                        position=InfoBarPosition.TOP,
+                        parent=self._parent.window()
+                    )
+                    change_customTitle(new_title)
+                    self.dataChanged.emit(index, index, [Qt.DisplayRole])
+                    return True
+                logger.info(f'{title} vpk文件写入成功, 标题修改为<{new_title}>')
+                self._search_result[row][1] = new_title
                 self.dataChanged.emit(index, index, [Qt.DisplayRole])
                 return True
         return False
@@ -233,14 +329,20 @@ class TableModel(QAbstractTableModel):
     def get_type_num(self, child_type=None, father_type=None):
         return len(self.get_type_data(child_type, father_type))
 
-    def addRow(self, data: dict):
-        title = data.get('filePath').stem
-
+    @staticmethod
+    def generate_row_data(data: dict, title=None) -> list:
+        if title is None:
+            title = data.get('filePath').stem
         add_data = [title]
         for i in NEED_DATA:
-            add_data.append(data.get(i, ''))
+            add_data.append(data.get('file_info', {}).get(i, ''))
         # 自定义标题
         add_data.append(data.get('customTitle', ''))
+        return add_data
+
+    def addRow(self, data: dict):
+        title = data.get('filePath').stem
+        add_data = self.generate_row_data(data, title)
         date_len = len(self._data)
         self.beginInsertRows(QModelIndex(), date_len, date_len)
         self._data.append(add_data)
@@ -253,6 +355,35 @@ class TableModel(QAbstractTableModel):
         self._search_result.append(add_data)
 
         self.endInsertRows()
+
+    def refresh_row(self, data_info: dict, title: str = None):
+        """
+        刷新单行数据
+        :param data_info: 刷新数据 read_addons_txt 返回数据
+        :param title:
+        :return:
+        """
+        data: list = self.generate_row_data(data_info, title)
+        if title is None:
+            title = data[0]
+        _data_index = self._find_index(self._data, title)
+        if _data_index:
+            self._data[_data_index] = data
+        data_type = self.customData[title]
+        father_type = data_type.get('father_type', "其他")
+        child_type = data_type.get('child_type', "")
+        father_type_index = self._find_index(self.get_type_data(father_type=father_type), title)
+        if father_type_index:
+            self.get_type_data(father_type=father_type)[father_type_index] = data
+        if child_type:
+            child_type_index = self._find_index(self.get_type_data(child_type, father_type), title)
+            if child_type_index:
+                self.get_type_data(child_type, father_type)[child_type_index] = data
+        _search_index = self._find_index(self._search_result, title)
+        self._search_result[_search_index] = data
+        left = self.index(_search_index, 0)
+        right = self.index(_search_index, self.columnCount() - 1)
+        self.dataChanged.emit(left, right)
 
     def get_row_title(self, row):
         return self.get_row_data(row)[0]
@@ -335,7 +466,6 @@ class TableModel(QAbstractTableModel):
         need_insert = self.need_insert(child_type, father_type)
         logger.debug(f'insertRow ===>{need_insert}')
         tmp = self._insertData(self.get_type_data(father_type=father_type), data)
-        print(self.get_type_data(father_type=father_type))
         self.set_type_data(tmp, father_type=father_type)
         if child_type:
             tmp1 = self._insertData(self.get_type_data(child_type, father_type), data)
@@ -390,10 +520,19 @@ class TableModel(QAbstractTableModel):
         return data
 
     @staticmethod
-    def _find_index(data, remove_file_name):
+    def _find_index(data, file_name):
+        """
+        数据列表找到标题对应的下标
+        :param data:
+        :param file_name:
+        :return:
+        """
         for index, file_data in enumerate(data):
-            if remove_file_name == file_data[0]:
+            if file_name == file_data[0]:
                 return index
+
+    def findSearchIndex(self, filename):
+        return self._find_index(self._search_result, filename)
 
     def flags(self, index: QModelIndex):
         if index.column() == 1:

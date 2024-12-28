@@ -2,18 +2,21 @@
 # @Time: 2023/12/26
 # @Author: Administrator
 # @File: modules_interface.py
+import json
 import os
 from pathlib import Path
 from typing import List
-from PyQt5.QtCore import Qt, QModelIndex, QByteArray, QThreadPool, QPoint
 from PyQt5.QtGui import QPixmap, QImage, QKeyEvent
 from PyQt5.QtWidgets import QHeaderView, QApplication, QWidget
+from PyQt5.QtCore import Qt, QModelIndex, QByteArray, QThreadPool, QPoint, QEvent
 from qfluentwidgets import InfoBar, InfoBarIcon, InfoBarPosition, StateToolTip, ToolTipFilter, \
-    ToolTipPosition, Dialog, MessageBox, Action, RoundMenu
+    ToolTipPosition, Dialog, MessageBox, Action, RoundMenu, MenuAnimationType
 
 from common import logger
 from common.Bus import signalBus
-from common.config import l4d2Config
+from common.check_file_used import is_used
+from common.config import l4d2Config, vpkConfig
+from common.handle_addon_info import HandleAddonInfo
 from common.module.modules import TableModel
 from common.read_vpk import read_addons_txt, get_vpk_addon_image_data
 from common.thread import PrePareDataThread, OpenGCFScape
@@ -28,22 +31,31 @@ from ui.modules_page_splitter import Ui_Frame
 #  移动文件的时候 加一个进度条在当前窗口顶部
 #  切换到类型后,数据没有排序
 
+class RefreshMenu(RoundMenu):
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
+        self.installEventFilter(self)
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.Leave:
+            self.close()
+        return super().eventFilter(obj, event)
+
 
 class ModuleStacked(QWidget, Ui_Frame):
     def __init__(self, folder_path: Path, parent=None):
         super().__init__(parent=parent)
-        self.hide_addons_info = False
         self.setupUi(self)
         self.progress_num = 0
         self.tableView.horizontalHeader().setSortIndicator(-1, Qt.AscendingOrder)
         self.folder_path = folder_path
         self.mode_total = self.get_path_vpk_file_number(self.folder_path)
         self.stateTooltip: StateToolTip = None
-        self.mode = TableModel(['文件名', '标题', '作者', '描述', '标语'])
+        self.mode = TableModel(self, ['文件名', '标题', '作者', '描述', '标语'], folder_path)
         self.per_data_thread = PrePareDataThread(self.mode, self.folder_path)
         self.onThreadSignalToSlot()
         self.set_table_view()
-        self.refresh_btn.setToolTip(self.tr('重新加载VPK文件'))
+        self.refresh_btn.setToolTip(self.tr('重新加载VPK缓存文件'))
         self.refresh_btn.installEventFilter(ToolTipFilter(self.refresh_btn, 300, ToolTipPosition.BOTTOM))
         self.connectSignalToSlot()
         self.file_pic.setScaledContents(True)
@@ -235,7 +247,43 @@ class ModuleStacked(QWidget, Ui_Frame):
         signalBus.windowSizeChanged.connect(self.mainWindowResize)
         signalBus.modulePathChanged.connect(self.insertMod)
         signalBus.pressKey.connect(self.pressKey)
+        signalBus.reWriteResultSignal.connect(self.refresh_addonInfo)
+        # signalBus.refreshChangedSignal.connect(self.refreshChanged)
         self.mode.vpkInfoHideSignal.connect(self.hide_vkp_info)
+        self.tableView.refreshCacheSignal.connect(self.refreshCache)
+        self.refresh_btn.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.refresh_btn.customContextMenuRequested.connect(self.refresh_btn_menu)
+
+    def refresh_addonInfo(self, path: Path, filename: str, data) -> None:
+        if self.folder_path == path:
+            vpkConfig.change_file_single_config(filename, 'content', data)
+            tmp = self.mode.index(self.mode.findSearchIndex(filename), 0)
+            self.show_addon_info(tmp, tmp)
+
+    def refresh_btn_menu(self, pos: QPoint):
+        menu = RefreshMenu(self.refresh_btn)
+        refresh_file = Action('重新读取VPK文件')
+        menu.addAction(refresh_file)
+        refresh_file.triggered.connect(lambda x: self.refresh(True))
+        menu.closedSignal.connect(menu.deleteLater)
+        menu.exec(self.refresh_btn.mapToGlobal(pos), aniType=MenuAnimationType.DROP_DOWN)
+
+    def refreshCache(self, filename_list: list):
+        handel = HandleAddonInfo()
+        self.hide_vkp_info()
+        self.tableView.setCurrentIndex(self.tableView.model().index(-1, 0))
+        for filename in filename_list:
+            logger.info(f'读取 {filename} vpk文件中的addoninf文件')
+            res = read_addons_txt(self.folder_path / f'{filename}.vpk', refresh_file=True)
+            logger.info(f'读取返回数据:\n{json.dumps(res, ensure_ascii=False, indent=4)}')
+            if res.get('content'):
+                file_info = handel.run(res.get('content'), filename)
+                if file_info:
+                    res['file_info'] = file_info
+            if 'type' in res:
+                res.pop('type')
+            vpkConfig.change_file_config(filename, res)
+            self.mode.refresh_row(res, filename)
 
     def pressKey(self, a0: QKeyEvent):
         if self.isVisible():
@@ -257,15 +305,7 @@ class ModuleStacked(QWidget, Ui_Frame):
 
     def move_file(self, target_path: Path, row, filename: str):
         data = self.mode.get_row_data(row)
-        if not l4d2Config.debug:
-            self.move_module(filename, target_path, data, row)
-        else:
-            # debug
-            file_type = self.mode.customData[filename]
-            logger.debug(f'move_file: {file_type}')
-            signalBus.modulePathChanged.emit(target_path, data, file_type)
-            self.mode.removeRow(row, filename)
-            self.restartPage()
+        self.move_module(filename, target_path, data, row)
         self.tableView.setCurrentIndex(QModelIndex())
 
     def move_module(self, filename, target_path: Path, data: list, row):
@@ -282,6 +322,30 @@ class ModuleStacked(QWidget, Ui_Frame):
         full_file_name = filename + '.vpk'
         original_file = self.folder_path / full_file_name
         target_file = target_path / full_file_name
+        if is_used(original_file):
+            logger.warning(f'mod文件{filename}被占用')
+            InfoBar.warning(
+                title='',
+                content=f'mod文件{filename}被占用',
+                orient=Qt.Horizontal,
+                isClosable=False,
+                position=InfoBarPosition.TOP,
+                parent=self.window()
+            )
+            return
+        if target_file.exists():
+            if is_used(target_file):
+                logger.warning(f'目标文件夹存在该mod文件且被占用')
+                InfoBar.warning(
+                    title='',
+                    content=f'待覆盖mod文件{filename}被占用',
+                    orient=Qt.Horizontal,
+                    isClosable=False,
+                    position=InfoBarPosition.TOP,
+                    parent=self.window()
+                )
+                return
+
         if target_file.exists():
             w = Dialog('警告', f'文件夹中已存在{filename},是否覆盖', self)
             w.yesButton.setText('覆盖')
@@ -292,7 +356,6 @@ class ModuleStacked(QWidget, Ui_Frame):
             logger.warning('文件已存在了')
             target_exists = True
         if not original_file.exists():
-            print('original_file', original_file)
             self.file_not_exists_bar()
             return
         if cover:
@@ -370,13 +433,14 @@ class ModuleStacked(QWidget, Ui_Frame):
             parent=self.window()
         )
 
-    def refresh(self):
+    def refresh(self, refresh_file=False):
         self.mode_total = self.get_path_vpk_file_number(self.folder_path)
         self.tableView.finished = False
         self.type_btn.setText('全部')
         self.restartPage(True)
         self.mode.beginResetModel()
         self.mode.refresh()
+        self.per_data_thread.refresh_file = refresh_file
         self.per_data_thread.start()
         self.mode.endResetModel()
 
@@ -400,7 +464,8 @@ class ModuleStacked(QWidget, Ui_Frame):
         self.setDisabled(True)
         self.stateTooltip = StateToolTip('正在加载vpk信息',
                                          f'{self.progress_num}/{self.mode_total}', self)
-        self.stateTooltip.move(self.width() - self.stateTooltip.width(), 10)
+        # self.stateTooltip.move(self.width() - self.stateTooltip.width(), 10)
+        self.stateTooltip.move(self.stateTooltip.getSuitablePos())
         self.stateTooltip.show()
 
     def mod_load_progress(self, file_name: str):

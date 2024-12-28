@@ -25,6 +25,7 @@ class CustomTableView(TableView):
     openGCFSpaceSignal = pyqtSignal(str)
     modeEnableSignal = pyqtSignal(Path, int, str)
     doubleClickedSignal = pyqtSignal(QModelIndex)
+    refreshCacheSignal = pyqtSignal(list)
 
     def __init__(self, parent=None):
         super(CustomTableView, self).__init__(parent)
@@ -106,7 +107,8 @@ class CustomTableView(TableView):
             menu.addAction(move_to_addons)
             move_to_addons.triggered.connect(lambda x: self.move_mod(l4d2Config.addons_path, select_rows))
         move_more = Action(icon, self.tr(f'{text}{more_text}mod'))
-        menu.addAction(move_more)
+        refreshAction = Action(MyIcon.refresh, '刷新缓存' if not is_more else '刷新多个缓存', self)
+        menu.addActions([move_more, refreshAction])
 
         if filename.isdigit():
             open_url_action = Action(FIF.LINK, self.tr('打开steam链接'))
@@ -121,14 +123,18 @@ class CustomTableView(TableView):
             title = item.data(Qt.UserRole + 2)[0]
             print(title, md5(title))
 
+        # 信号
         open_file.triggered.connect(lambda x: self.openFolderSignal.emit(filename))
         open_gcf.triggered.connect(lambda x: self.openGCFSpaceSignal.emit(filename))
         # userData: {'child_type': '声音', 'father_type': '杂项'}
         logger.debug(f'userData: {userData}')
         # 当多选的时候修改类型,批量修改
-        select_data = [data.data(Qt.UserRole + 2) for data in select_rows]
-        type_action.triggered.connect(lambda x: self.show_change_type(select_data, **userData, more=is_more))
+        type_action.triggered.connect(
+            lambda x: self.show_change_type([data.data(Qt.UserRole + 2) for data in select_rows], **userData,
+                                            more=is_more))
         move_more.triggered.connect(lambda x: self.move_mod(target_path, select_rows))
+        refreshAction.triggered.connect(
+            lambda x: self.refreshCacheSignal.emit([data.data(Qt.UserRole + 2)[0] for data in select_rows]))
         menu.closedSignal.connect(menu.deleteLater)
         menu.exec(a0.globalPos(), aniType=MenuAnimationType.DROP_DOWN)
 

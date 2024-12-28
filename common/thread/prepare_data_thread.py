@@ -1,24 +1,21 @@
 # -*- coding: utf-8 -*-
-# @Time: 2023/12/31
+# @Time: 2024/12/21
 # @Author: Administrator
-# @File: thread.py
-import os
+# @File: prepare_data_thread.py
 import re
 from copy import deepcopy
 from pathlib import Path
-from typing import List, Union
+from typing import Union, List
 
-import requests
-import urllib3
 import vdf
-from PyQt5.QtCore import QThread, pyqtSignal, QRunnable
+from PyQt5.QtCore import QThread, pyqtSignal
 
 from common import logger
-from common.config import l4d2Config, vpkConfig
+from common.conf import DATA, MAP_KEY, ModType
+from common.config import vpkConfig
+from common.handle_addon_info import HandleAddonInfo
 from common.module.modules import TableModel
 from common.read_vpk import read_addons_txt, remove_slash
-from common.conf import DATA, MAP_KEY, IS_DEV, ModType, VERSION
-from packaging import version
 
 
 class PrePareDataThread(QThread):
@@ -29,6 +26,8 @@ class PrePareDataThread(QThread):
         super().__init__()
         self.mode = mode
         self.folder_path = folder_path
+        self.refresh_file = False
+        self.handelAddonInfo = HandleAddonInfo()
 
     def run(self):
         for index, data in enumerate(self.read_data()):
@@ -36,24 +35,35 @@ class PrePareDataThread(QThread):
             file_name = file_path.stem
             self.progressSignal.emit(file_name)
             self.addRowSignal.emit(data)
+        self.refresh_file = False
 
     def read_data(self):
         file_data = self.folder_path.iterdir()
         for file_path in file_data:
             if file_path.is_file() and file_path.suffix == '.vpk':
-                res_data = read_addons_txt(file_path, True)
+                if self.refresh_file:
+                    res_data = read_addons_txt(file_path, False, True)
+                else:
+                    res_data = read_addons_txt(file_path, True)
                 yield_data = {
                     'filePath': file_path
                 }
-                if res_data.get('cache'):
+                if res_data.get('cache') and not self.refresh_file:
                     yield_data.update(res_data)
                     yield yield_data
                     continue
                 res = res_data.pop('type')
                 if res:
-                    handle_data = self.vdf_handle_data(res_data.get('content'), file_path)
-                    res_data.update(handle_data)
-                    res_data = self.check_type(res_data.pop('file_list'), res_data, file_path)
+                    handle_data = self.handelAddonInfo.run(res_data.get('content'), file_path)
+                    res_data['file_info'] = handle_data
+                    if not self.refresh_file:
+                        res_data = self.check_type(res_data.pop('file_list'), res_data, file_path)
+                        if res_data.get('father_type') == '其他':
+                            for key in MAP_KEY:
+                                value = res_data.get('file_info', {}).get(key)
+                                if value and value == '1':
+                                    res_data['father_type'] = '地图'
+                                    break
                 elif res is False:
                     logger.error(file_path)
                     continue
@@ -62,71 +72,22 @@ class PrePareDataThread(QThread):
                 else:
                     pass
                 yield_data.update(res_data)
-                if yield_data.get('father_type') == '其他':
-                    # 类型为other时,先根据地图的两个字段来判断地图,
-                    #              不是再根据文件名称和文件标题来判断一下类型
-                    # 地图 根据addons字段内容来
-                    for key in MAP_KEY:
-                        value = yield_data.get(key)
-                        if value and value == '1':
-                            yield_data['father_type'] = '地图'
-                            break
+                # if yield_data.get('father_type') == '其他' and not self.refresh_file:
+                #     # 类型为other时,先根据地图的两个字段来判断地图,
+                #     #              不是再根据文件名称和文件标题来判断一下类型
+                #     # 地图 根据addons字段内容来
+                #     for key in MAP_KEY:
+                #         value = yield_data.get('file_info', {}).get(key)
+                #         if value and value == '1':
+                #             yield_data['father_type'] = '地图'
+                #             break
                 data: dict = yield_data.copy()
                 del data['filePath']
                 data['cache'] = True
+                if res is None:
+                    data['cache'] = False
                 vpkConfig.update_config(file_path.stem, data)
                 yield yield_data
-
-    def vdf_handle_data(self, text, file_path):
-        try:
-            res = vdf.loads(text)
-            key = None
-            for i in res.keys():
-                if i.lower() == 'addoninfo':
-                    key = i
-                    break
-            if key is None:
-                raise SyntaxError(f'不存在addoninfo字段，字段有{res.keys()}')
-            res = res.get(key)
-            res = {key.lower(): value for key, value in res.items()}
-        except SyntaxError as e:
-            logger.warning(f'文件 {file_path} 解析失败，开始手动解析, 错误信息{e}')
-            res = self.hand_movement_data(text)
-        except Exception as e:
-            logger.error(f'文件{file_path} ===》出现其他错误：{e}')
-            return {}
-        return res
-
-    def hand_movement_data(self, text):
-        res = text.splitlines()
-        res = list(filter(None, res))
-        data = deepcopy(DATA)
-        find_key = ''
-        yield_data = {}
-        for i in res:
-            if find_key in data:
-                data.remove(find_key)
-            i = i.strip().lstrip('\t')
-            temp = re.split(r'\s+', i, maxsplit=1)
-            if i == '{' or i == '"AddonInfo"' or i == '}' or i == '':
-                continue
-            if temp[-1] == "''" or temp[-1] == '""':
-                continue
-            if len(temp) == 1:
-                continue
-            key, value = temp[0].lower(), temp[1]
-            for j in data:
-                if j in key:
-                    if 'addondescription_fr' in key:
-                        continue
-                    key = self.strip_quotes(key)
-                    if key in DATA:
-                        value = remove_slash(value)
-                        yield_data[key] = self.strip_quotes(value)
-                    find_key = key
-                    break
-        del data, find_key
-        return yield_data
 
     def check_type(self, vpk_path_list, return_data, path: Path):
         # 是否需要跳过
@@ -143,7 +104,8 @@ class PrePareDataThread(QThread):
                 return_data['child_type'] = ''
                 had_type = True
         for key in MAP_KEY:
-            value = return_data.get(key)
+            # value = return_data.get(key)
+            value = return_data.get('file_info', {}).get(key)
             if value and value == '1':
                 return_data['father_type'] = '地图'
                 return_data['child_type'] = ''
@@ -261,10 +223,10 @@ class PrePareDataThread(QThread):
             :param file_path: 结构数据 即 文件路径 要么是列表要么是文本
             :param need_path: 需要匹配的文件路径
             :param regex: 是否是正则 True 则正则匹配路径 否则判断是否以路径开头
-            :return:
+            :return: None表示没有设置需要的正则路径
             """
             if not need_path:
-                return False
+                return None
             for need in need_path:
                 if isinstance(file_path, list):
                     for file in file_path:
@@ -281,9 +243,10 @@ class PrePareDataThread(QThread):
                         return True
             return False
 
-        def check_type(data_list, file_suffix, regex: List[str] = None):
+        def check_type(data_list, file_suffix):
             if not data_list:
                 return False
+            regex_key = file_suffix + '_path_regex'
             for data in data_list:
                 # data 文件列表
                 for k, v in goods.items():
@@ -295,13 +258,11 @@ class PrePareDataThread(QThread):
                         # r'^(?:materials/)?models(?:/[vw]_models)?.*$'
                         continue
 
-                    if regex:
-                        if not check_path(data, regex, True):
-                            continue
-
                     # 只有顶级分类
                     if v.get('no_child'):
                         v_data = v.get(file_suffix, [])
+                        if check_path(data, v.get(regex_key), True) is False:
+                            continue
                         if check_mdl_vmt_vtf(data, v_data):
                             return return_info('', k)
                         continue
@@ -310,19 +271,21 @@ class PrePareDataThread(QThread):
                         value_mdl: list = value.get(file_suffix, [])
                         if not value_mdl:
                             continue
+                        if check_path(data, value.get(regex_key), True) is False:
+                            continue
                         if check_mdl_vmt_vtf(data, value_mdl):
                             return return_info(key, k)
 
         # 检查mdl文件
-        res = check_type(file_path_dict.get('mdl', []), 'mdl', file_path_dict.get('mdl_path_regex'))
+        res = check_type(file_path_dict.get('mdl', []), 'mdl')
         if res:
             return res
         # 检查vmt
-        res = check_type(file_path_dict.get('vmt', []), 'vmt', file_path_dict.get('vmt_path_regex'))
+        res = check_type(file_path_dict.get('vmt', []), 'vmt')
         if res:
             return res
         # 检查vtf文件
-        res = check_type(file_path_dict.get('vtf', []), 'vtf', file_path_dict.get('vtf_path_regex'))
+        res = check_type(file_path_dict.get('vtf', []), 'vtf')
         if res:
             return res
         # 目录
@@ -330,7 +293,7 @@ class PrePareDataThread(QThread):
         for father, child in goods.items():
             child: dict
             if child.get('no_child'):
-                if check_path(filepath_list, child.get('path'), child.get('regex', False)):
+                if check_path(filepath_list, child.get('path', []), child.get('regex', False)):
                     return return_info('', father)
                 continue
             for chile_key, chile_value in child.items():
@@ -381,72 +344,3 @@ class PrePareDataThread(QThread):
             for i in infected.keys():
                 if folder_list[0] == infected[i]['folder']:
                     return {'child_type': i, 'father_type': ModType.INFECTED.value}
-
-    @staticmethod
-    def strip_quotes(data: str):
-        return data.strip().strip("\"'")
-
-
-class OpenGCFScape(QRunnable):
-    def __init__(self):
-        super().__init__()
-        self.exe = l4d2Config.gcfspace_path.__str__()
-        self.vpk_file = None
-
-    def run(self):
-        cmd = f'{self.exe} "{self.vpk_file}"'
-        os.popen(cmd)
-        self.vpk_file = None
-
-    def set_vpk_file(self, vpk_file):
-        self.vpk_file = vpk_file
-
-
-class CheckVersion(QThread):
-    resultSignal = pyqtSignal(dict)
-
-    def run(self):
-        res = self.sendRequest()
-        self.resultSignal.emit(res)
-
-    @staticmethod
-    def sendRequest():
-        url = 'https://fdklgbh.github.io/L4D2-Mod-Manager/update_version.json'
-        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-        try:
-            res = requests.get(url, verify=False, timeout=3)
-        except Exception:
-            return {
-                'status': False,
-                'msg': '请求失败或者超时,请检查网络状态!'
-            }
-        if res.status_code != 200:
-            return {
-                'status': False,
-                'msg': res.status_code
-            }
-        else:
-            logger.info(f'返回数据 ===> {res.json()}')
-            return_data = {
-                'status': True
-            }
-            json_data = res.json()
-            is_dev = IS_DEV
-            local_version = version.parse(VERSION.split(' ')[0])
-            remote_version = version.parse(json_data['version'])
-            update = False
-            if local_version < remote_version:
-                update = True
-                return_data['url'] = json_data['package']
-                return_data['version'] = json_data['version']
-            elif local_version == remote_version:
-                if is_dev:
-                    update = True
-                    return_data['url'] = json_data['package']
-                    return_data['version'] = json_data['version']
-            return_data['update'] = update
-            logger.info('return_data %s', return_data)
-            return return_data
-
-
-__all__ = ['PrePareDataThread', 'OpenGCFScape', 'CheckVersion']

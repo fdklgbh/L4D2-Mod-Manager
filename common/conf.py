@@ -10,7 +10,7 @@ WINDOWS_TITLE = 'L4D2 Mod管理器'
 
 IS_DEV = False
 
-VERSION = '1.1.2'
+VERSION = '1.1.3'
 if IS_DEV:
     VERSION += ' dev'
 
@@ -20,7 +20,7 @@ YEAR = 2024
 
 DATA = ['addontitle', 'addonauthor', 'addondescription', 'addonversion', 'addoncontent_campaign', 'addonsteamappid',
         'addontagline', 'addonauthorsteamid', 'addonsteamgroupname', 'addonurl0',
-        'addoncontent_survivaladdoncontent_versusaddoncontent_scavenge', 'addoncontent_prefab',
+        'addoncontent_survival', 'addoncontent_versus', 'addoncontent_scavenge', 'addoncontent_prefab',
         'addoncontent_spray', 'addoncontent_backgroundmovie', 'content_weapon', 'content_weaponmodel',
         'addondescription_locale', 'addoncontent_map', 'addoncontent_skin', 'addoncontent_weapon',
         'addoncontent_bossinfected', 'addoncontent_commoninfected', 'addoncontent_survivor', 'addoncontent_sound',
@@ -107,10 +107,19 @@ class ModType(Enum):
 
 # 二级目录
 # 人物 特感以外,还有额外可配置项
-# mdl mdl_path_regex
-# vtf vtf_path_regex
-# vmt vmt_path_regex
-
+# mdl -> mdl_path_regex List[str]
+# vtf -> vtf_path_regex List[str]
+# vmt -> vmt_path_regex List[str]
+# path -> regex bool
+"""
+优先匹配mdl vtf vmt文件
+其中 三个文件有对应的path路径正则匹配
+    mdl -> mdl_path_regex List[str]
+    vtf -> vtf_path_regex List[str]
+    vmt -> vmt_path_regex List[str]
+再匹配路径 path List[str]
+    其中,可选择是否是正则匹配 regex
+"""
 CHILE_MENUS = {
     # 人物 根据mdl文件检查, 完成
     "幸存者": {
@@ -573,10 +582,180 @@ CHILE_MENUS = {
         "no_child": True,
         'path': ['models/xdreanims']
     },
+    "载具": {
+        "直升机": {
+            "vmt": ["helicopter_movingblades", "helicopter_news_adj", "helicopter_news2", "searchlight_small_01",
+                    "helicopter_glass", "helicopter_army2", "helicopter_army", "chopper_generic",
+                    "helicopter_bladeramp",
+                    "helicopter_c2m5", "helicopter_c2m5_2", "helicopter_news_downed", "helicopter_news_downed_02",
+                    "helicopter_rescue", "helicopter_rescue_smashed", "helicopter_rescue_windows"],
+            "vtf": ["helicopter_news_adj", "searchlight_small_01", "searchlight_small_01_256", "helicopter_glass",
+                    "helicopter_rescue_windows", "helicopter_bladeramp", "helicopter_concert", "helicopter_concert2",
+                    "helicopter_concert2_ref", "helicopter_movingblades", "helicopter_news_downed",
+                    "helicopter_news_downed_02", "helicopter_rescue", "helicopter_rescue_smashed"],
+            "mdl": ["c2m5_helicopter", "c2m5_helicopter_small", "helicopter_rescue_smashed", "helicopter_news_downed",
+                    "helicopter_rescue"],
+        },
+        "F18": {
+            "vmt": ["thrust_tiled", "f18_cmap"],
+            "vtf": ["thrust_tiled", "f18_cmap", "f18_normal"],
+            "mdl": ["f18", "f18_sb", "f18_agm65maverick", "f18_placeholder"],
+            'mdl_path_regex': ['^models/(?:f18|missiles)']
+        },
+        "油罐车": {
+            "vtf": ["airport_fuel_truck_ref", "airport_fuel_truck", "tanker_wrecked_envmask", "tanker_wrecked"],
+            "vtf_path_regex": ["^materials/models/props_vehicles"],
+            "vmt": ["airport_fuel_truck", "tanker_wrecked"],
+            "vmt_path_regex": ["^materials/models/props_vehicles"],
+            "mdl": ["airport_fuel_truck", "tanker001a"],
+            "mdl_path_regex": ["^models/props_vehicles"]
+        },
+        "救护车": {
+            "mdl": ["ambulance"],
+            "mdl_path_regex": ["^models/props_vehicles"],
+            "vtf": ["ambulance_ref", "ambulance"],
+            "vtf_path_regex": ["^materials/models/props_vehicles"],
+            "vmt": ["ambulance"],
+            "vmt_path_regex": ["^materials/models/props_vehicles"]
+        },
+        "军用卡车": {
+            "mdl": ["army_truck"],
+            "mdl_path_regex": ["^models/props_vehicles"],
+            "vtf": ["army_truck", "army_truck_ref"],
+            "vtf_path_regex": ["^materials/models/props_vehicles"],
+            "vmt": ["army_truck"],
+            "vmt_path_regex": ["^materials/models/props_vehicles"]
+        },
+        "船": {
+            "mdl": ["boat_rescue_tug_sunshine", "boat_rescue_tug"],
+            "mdl_path_regex": ["^models/props_vehicles"],
+            "vmt": ["boat_rescue_tug", "boat_rescue_tug_sunshine", "boat_rescue_tug_windows"],
+            "vmt_path_regex": ["^materials/models/props_vehicles"],
+            "vtf": ["boat_rescue_tug", "boat_rescue_tug_windows"],
+            "vtf_path_regex": ["^materials/models/props_vehicles"]
+        },
+        "公共汽车": {
+            "mdl": ["bus01_2", "bridge_busses"],
+            "mdl_path_regex": ["^models/(?:props_vehicles|c5_bridge_destruction)"],
+            "vtf": ["bus01_b_ref", "bus01_a", "bus01_a_2", "bus01_a_ref", "bus01_b", "bus01_b_2"],
+            "vtf_path_regex": ["^materials/models/props_vehicles"],
+            "vmt": ["bus01_a", "bus01_a_2", "bus01_b", "bus01_b_2"],
+            "vmt_path_regex": ["^materials/models/props_vehicles"]
+        },
+        '轿车': {
+            "mdl": ["carparts_wheel01a_static", "cara_69sedan_glass", "cara_82hatchback", "cara_82hatchback_glass",
+                    "cara_82hatchback_wrecked", "cara_82hatchback_wrecked_glass", "cara_84sedan", "cara_84sedan_glass",
+                    "cara_95sedan", "cara_95sedan_glass", "cara_95sedan_glass_alarm", "cara_95sedan_wrecked",
+                    "cara_95sedan_wrecked_glass", "carparts_axel01a_static", "carparts_door01a_static",
+                    "carparts_tire01a_static", "zapastl", "zapastl_static"],
+            "mdl_path_regex": ["^models/props_vehicles"],
+            "vtf": ["4carz1024_glass_alarm_illum_mask", "4carz1024", "4carz1024_envmask", "4carz1024_glass",
+                    "zapor_replacement"],
+            "vtf_path_regex": ["^materials/models/props_vehicles"],
+            "vmt": ["4carz1024", "4carz1024_glass", "cara_95sedan_glass_alarm", "zapor_replacement"],
+            "vmt_path_regex": ["^materials/models/props_vehicles"]
+        },
+        "拖车": {
+            "mdl": ["ceda_trailer_interior_trim", "ceda_door_rotating", "ceda_door_rotating_dm01_01",
+                    "ceda_door_rotating_dm01_02", "ceda_door_rotating_dm01_03", "ceda_door_rotating_gib",
+                    "ceda_trailer_closed", "ceda_trailer_entrance_door", "ceda_trailer_exit_door",
+                    "ceda_trailer_exterior"],
+            "mdl_path_regex": ["^models/props_vehicles"],
+            "vtf": ["ceda_trailer_skin", "ceda_trailer"],
+            "vtf_path_regex": ["^materials/models/props_vehicles"],
+            "vmt": ["ceda_trailer", "ceda_trailer_skin"],
+            "vmt_path_regex": ["^materials/models/props_vehicles"]
+        },
+        "教堂巴士": {
+            "mdl": ["church_bus01"],
+            "mdl_path_regex": ["^models/props_vehicles"],
+            "vtf": ["churchbus01_b", "churchbus01_a"],
+            "vtf_path_regex": ["^materials/models/props_vehicles"],
+            "vmt": ["churchbus01_a", "churchbus01_b"],
+            "vmt_path_regex": ["^materials/models/props_vehicles"]
+        },
+        '挂车': {
+            "mdl": ["flatnose_truck_wrecked", "flatnose_truck", "flatnose_truck_glass", "longnose_truck_glass",
+                    "longnose_truck", "semi_trailer_wrecked", "semi_trailer", "semi_trailer_freestanding"],
+            "mdl_path_regex": ["^models/props_vehicles"],
+            "vtf": ["flatnose_truck_glass", "flatnose_truck", "semi_trailer_ref", "semi_trailer"],
+            "vtf_path_regex": ["^materials/models/props_vehicles"],
+            "vmt": ["flatnose_truck", "flatnose_truck_glass", "semi_trailer"],
+            "vmt_path_regex": ["^materials/models/props_vehicles"]
+        },
+        "悍马": {
+            "mdl": ["hmmwv_supply_glass", "hmmwv", "hmmwv_glass", "hmmwv_supply"],
+            "mdl_path_regex": ["^models/props_vehicles"],
+            "vmt": ["hmmwv", "hmmwv_glass", "hmmwv_interior", "humvee"],
+            "vmt_path_regex": ["^materials/models/props_vehicles"],
+            "vtf": ["hmmwv", "hmmwv_glass", "hmmwv_interior", "humvee"],
+            "vtf_path_regex": ["^materials/models/props_vehicles"]
+        },
+        "皮卡/SUV": {
+            "mdl": ["pickup_truck_2004_glass", "pickup_truck_78", "pickup_truck_78_glass", "pickup_truck_2004",
+                    "suv_2001", "suv_2001_glass", "utility_truck_windows", "utility_truck"],
+            "mdl_path_regex": ["^models/props_vehicles"],
+            "vtf": ["pickup_trucks_ref", "pickup_trucks", "pickup_trucks_glass", "utility_truck_ref", "utility_truck"],
+            "vtf_path_regex": ["^materials/models/props_vehicles"],
+            "vmt": ["pickup_trucks", "pickup_trucks_glass", "utility_truck"],
+            "vmt_path_regex": ["^materials/models/props_vehicles"]
+        },
+        "警车": {
+            "mdl": ["police_car_rural_trunkopen_glass", "police_car_city", "police_car_city_glass", "police_car_rural"],
+            "mdl_path_regex": ["^models/props_vehicles"],
+            "vtf": ["police_cab_rural", "police_cab_city", "police_cab_city_glass", "police_cab_ref"],
+            "vtf_path_regex": ["^materials/models/props_vehicles"],
+            "vmt": ["police_cab_city", "police_cab_city_glass", "police_cab_rural"],
+            "vmt_path_regex": ["^materials/models/props_vehicles"]
+        },
+        "赛车": {
+            "mdl": ["racecar_stage_floor", "racecar", "racecar_damaged", "racecar_damaged_glass",
+                    "racecar_damaged_glass_outro", "racecar_damaged_outro", "racecar_fillercap", "racecar_glass",
+                    "racecar_stage"],
+            "mdl_path_regex": ["^models/props_vehicles"],
+            "vtf": ["racecar_stage_floor", "racecar", "racecar_damaged",
+                    "racecar_damaged_glass", "racecar_glass", "racecar_stage"],
+            "vtf_path_regex": ["^materials/models/props_vehicles"],
+            "vmt": ["racecar", "racecar_damaged",
+                    "racecar_damaged_glass", "racecar_glass", "racecar_stage", "racecar_stage_floor"],
+            "vmt_path_regex": ["^materials/models/props_vehicles"]
+        },
+        "出租车": {
+            "mdl": ["taxi_city", "taxi_city_glass", "taxi_rural"],
+            "mdl_path_regex": ["^models/props_vehicles"]
+        },
+        "拖拉机": {
+            "mdl": ["tractor01", "tractor", "tractor_lever"],
+            "mdl_path_regex": ["^models/props_vehicles"],
+            "vtf": ["tractor01_ref", "tractor", "tractor01"],
+            "vtf_path_regex": ["^materials/models/props_vehicles"],
+            "vmt": ["tractor", "tractor01"],
+            "vmt_path_regex": ["^materials/models/props_vehicles"],
+        },
+        '火车': {
+            "mdl": ["train_box", "train_box_open", "train_boxwreck", "train_flatcar", "train_ladder", "trains_lever"],
+            "mdl_path_regex": ["^models/props_vehicles"],
+            "vtf": ["train_lever", "train_box", "train_box_spec", "train_flatcar", "train_flatcar_spec",
+                    "train_ladder"],
+            "vtf_path_regex": ["^materials/models/props_vehicles"],
+            "vmt": ["train_box", "train_flatcar", "train_ladder", "train_lever"],
+            "vmt_path_regex": ["^materials/models/props_vehicles"]
+        },
+        "面包车": {
+            "mdl": ["van_glass", "van"],
+            "mdl_path_regex": ["^models/props_vehicles"],
+            "vtf": ["van1_ref", "van1"],
+            "vtf_path_regex": ["^materials/models/props_vehicles"],
+            "vmt": ["van1"],
+            "vmt_path_regex": ["^materials/models/props_vehicles"],
+        },
+        "其他": {}
+    }
 }
+
 # 一级目录
 FATHER_MENUS = [
-    '幸存者', '特感', '武器', '近战', '医疗品', '投掷', 'UI', '杂项', '弹药', '材质特效', '动作', '地图', '其他'
+    '幸存者', '特感', '武器', '近战', '医疗品', '投掷', 'UI', '杂项', '载具', '弹药', '材质特效', '动作', '地图', '其他'
 ]
 
 CustomData = {}
@@ -587,3 +766,5 @@ CachePath = WORKSPACE / 'Cache'
 CachePath.mkdir(parents=True, exist_ok=True)
 LogPath = WORKSPACE / 'log'
 LogPath.mkdir(parents=True, exist_ok=True)
+TmpPath = WORKSPACE / 'tmp'
+TmpPath.mkdir(parents=True, exist_ok=True)

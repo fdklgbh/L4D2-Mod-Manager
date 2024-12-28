@@ -31,6 +31,11 @@ release中的文件
 ![img.png](readme_pic/mod页面右键菜单.png)
 ![img.png](readme_pic/设置页.png)
 
+## 1.1.3
+**优化**
+1. 标题重命名如果有vpk会写入到mod文件的addoninfo中(游戏目录下没有vpk不受影响)
+2. 新增载具大分类
+
 ## 1.1.2
 **修复bug**
 1. 修复文件被占用提示文件不存在错误

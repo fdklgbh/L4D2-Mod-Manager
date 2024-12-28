@@ -19,6 +19,10 @@ class SignalBus(QObject):
 
     loggerSignal = pyqtSignal(str)
 
+    refreshChangedSignal = pyqtSignal(bool)
+    reWriteLogSignal = pyqtSignal(str)
+    reWriteResultSignal = pyqtSignal(WindowsPath, str, str)
+
 
 signalBus = SignalBus()
 

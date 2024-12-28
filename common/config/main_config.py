@@ -24,6 +24,14 @@ class L4d2Config:
         return self._path(setting_cfg.disable_mod_path)
 
     @property
+    def l4d2_vpk_path(self):
+        return Path(self.l4d2_path) / 'bin' / 'vpk.exe'
+
+    @property
+    def vpk_application_is_exsits(self):
+        return self.l4d2_vpk_path.exists()
+
+    @property
     def auto_update(self):
         return setting_cfg.auto_update.value
 
