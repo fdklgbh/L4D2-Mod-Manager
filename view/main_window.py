@@ -23,6 +23,7 @@ from qfluentwidgets import (FluentIcon as FIF, MessageBoxBase, SubtitleLabel, Li
                             MessageBox)
 
 from .log_interface import LogInterface
+from .mod_switch_interface import ModSwitchInterface
 from .modules_interface_splitter import ModulesInterfaceSplitter
 from .setting_interface import SettingInterface
 from .update_info_interface import UpdateInfoInterface
@@ -93,6 +94,7 @@ class MainWindow(CFluentWindow, ExceptionHook):
         self.modules_interface_splitter = ModulesInterfaceSplitter(
             [l4d2Config.addons_path, l4d2Config.workshop_path, l4d2Config.disable_mod_path], self)
         self.settings_interface = SettingInterface(self)
+        self.mod_switch_interface = ModSwitchInterface(self)
         self.initNavigation()
         StyleSheet.MAIN_WINDOW.apply(self)
         self.connectSignalToSlot()
@@ -114,6 +116,7 @@ class MainWindow(CFluentWindow, ExceptionHook):
     def initNavigation(self):
         self.addSubInterface(self.show_update_interface, FIF.HOME, VERSION + self.tr('更新日志'))
         self.addSubInterface(self.modules_interface_splitter, MyIcon.M, self.tr('Mod'))
+        self.addSubInterface(self.mod_switch_interface, MyIcon.switch, self.tr('一键切换'))
         self.addSubInterface(self.log_interface, FIF.FILTER, self.tr('日志'), NavigationItemPosition.BOTTOM)
         self.addSubInterface(self.settings_interface, FIF.SETTING, self.tr('设置'), NavigationItemPosition.BOTTOM)
 

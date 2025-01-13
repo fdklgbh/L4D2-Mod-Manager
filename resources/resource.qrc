@@ -8,5 +8,9 @@
     <file alias="gcf">icon/gcfspace.ico</file>
     <file alias="l4d2">icon/left4dead2.ico</file>
     <file alias="refresh">icon/refresh.svg</file>
+    <file alias="switch">pic/MiSwitch.svg</file>
+    <file alias="add">pic/add.svg</file>
+    <file alias="edit">pic/edit.svg</file>
+    <file alias="trash">pic/trash.svg</file>
   </qresource>
 </RCC>
