@@ -5,11 +5,13 @@
 from pathlib import Path
 
 from PyQt5.QtCore import QThreadPool
-from qfluentwidgets import MessageBoxBase, IndeterminateProgressBar, PlainTextEdit, SubtitleLabel, BodyLabel
+from PyQt5.QtWidgets import QHBoxLayout, QComboBox
+from qfluentwidgets import MessageBoxBase, IndeterminateProgressBar, PlainTextEdit, SubtitleLabel, BodyLabel, ComboBox
 
 from common import logger
 from common.Bus import signalBus
-from common.config import vpkConfig
+from common.conf import ModType
+from common.config import vpkConfig, l4d2Config
 from common.thread.rewrite_addoninfo_thread import ReWriteAddonInfoThread
 from common.widget.custom_tree_widget import CustomTreeWidget
 
@@ -123,3 +125,35 @@ class ReWriteMessageBox(MessageBoxBase):
         self.yesButton.show()
         self.inProgressBar.pause()
         self.inProgressBar.hide()
+
+
+class ChoiceTypeMessageBox(MessageBoxBase):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        # self.titleLabel = SubtitleLabel('打开 URL')
+        # self.urlLineEdit = LineEdit()
+        layout = QHBoxLayout()
+        self.comboBox = ComboBox()
+        text_list = ['全部'] + ModType.father_type_keys()
+        text_list.remove('地图')
+        self.comboBox.addItems(text_list)
+        self.subtitle = SubtitleLabel()
+        self.subtitle.setText('选择后续的分类: ')
+        layout.addWidget(self.subtitle)
+        layout.addWidget(self.comboBox)
+
+        # self.urlLineEdit.setPlaceholderText('输入文件、流或者播放列表的 URL')
+        # self.urlLineEdit.setClearButtonEnabled(True)
+
+        # 将组件添加到布局中
+        # self.viewLayout.addWidget(self.titleLabel)
+        # self.viewLayout.addWidget(self.urlLineEdit)
+        self.viewLayout.addLayout(layout)
+        # 设置对话框的最小宽度
+        self.widget.setMinimumWidth(350)
+
+    # def showMessage(window):
+    #     w = CustomMessageBox(window)
+    #     if w.exec():
+    #         print(w.urlLineEdit.text())

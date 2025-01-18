@@ -2,6 +2,7 @@
   <qresource prefix="qss">
     <file alias="setting_interface">qss/setting_interface.qss</file>
     <file alias="main_window">qss/main_window.qss</file>
+    <file alias="listWidget">qss/listWidget.qss</file>
   </qresource>
   <qresource prefix="icons">
     <file alias="m">pic/m.svg</file>

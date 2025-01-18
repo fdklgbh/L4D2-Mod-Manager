@@ -63,3 +63,6 @@ class VPKConfig:
 
 
 __all__ = ['VPKConfig']
+
+if __name__ == '__main__':
+    print(VPKConfig().get_file_config('lime护士替换bill'))

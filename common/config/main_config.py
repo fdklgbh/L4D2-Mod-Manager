@@ -4,7 +4,7 @@
 # @File: main_config.py
 
 from pathlib import Path
-
+import vdf
 from common.config.setting_config import setting_cfg
 
 
@@ -28,7 +28,7 @@ class L4d2Config:
         return Path(self.l4d2_path) / 'bin' / 'vpk.exe'
 
     @property
-    def vpk_application_is_exsits(self):
+    def vpk_application_is_exists(self):
         return self.l4d2_vpk_path.exists()
 
     @property
@@ -88,5 +88,39 @@ class L4d2Config:
             path = Path(path).resolve()
         return self.disable_mod_path == path
 
+    @property
+    def addonlist_file(self):
+        return self.l4d2_path / 'left4dead2' / 'addonlist.txt'
+
+    def read_addonlist(self, used=True):
+        """
+        读取addonlist文件
+        :param used:
+        :return:
+        """
+        if not (self.addonlist_file.exists() and self.addonlist_file.exists()):
+            return None
+        try:
+            with open(self.addonlist_file, encoding='gbk') as f:
+                data = vdf.load(f)
+        except UnicodeError:
+            with open(self.addonlist_file, encoding='utf8') as f:
+                data = vdf.load(f)
+        data: dict = data.get('AddonList', {})
+        result = []
+        for key, value in data.items():
+            key: str
+            if not key.endswith('.vpk'):
+                continue
+            key = key.replace('.vpk', '')
+            if used and value == '1':
+                result.append(key)
+            elif used is None:
+                result.append(key)
+        return result
+
 
 __all__ = ['L4d2Config']
+
+if __name__ == '__main__':
+    print(L4d2Config().read_addonlist())

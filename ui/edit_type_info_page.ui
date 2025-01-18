@@ -1,0 +1,583 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1385</width>
+    <height>1141</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_2">
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="3,2,0,4,1">
+     <item>
+      <widget class="LineEdit" name="saveNameEdit">
+       <property name="maximumSize">
+        <size>
+         <width>300</width>
+         <height>33</height>
+        </size>
+       </property>
+       <property name="inputMask">
+        <string/>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="placeholderText">
+        <string>保存名称</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="DropDownPushButton" name="typeBox">
+       <property name="maximumSize">
+        <size>
+         <width>150</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>全部</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="CheckBox" name="CheckBox">
+       <property name="text">
+        <string>分类筛选两侧</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="SearchLineEdit" name="searchLineEdit">
+       <property name="maximumSize">
+        <size>
+         <width>400</width>
+         <height>33</height>
+        </size>
+       </property>
+       <property name="placeholderText">
+        <string>搜索</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <item>
+      <widget class="QStackedWidget" name="stackedWidget">
+       <property name="currentIndex">
+        <number>1</number>
+       </property>
+       <widget class="QWidget" name="page_2">
+        <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="3,4,3">
+         <item>
+          <spacer name="horizontalSpacer_5">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>396</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_3">
+           <item>
+            <spacer name="verticalSpacer_5">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="6">
+             <item>
+              <widget class="ProgressBar" name="ProgressBar">
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>10</height>
+                </size>
+               </property>
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="2,7">
+             <item>
+              <widget class="SubtitleLabel" name="SubtitleLabel">
+               <property name="text">
+                <string>正在加载:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="SubtitleLabel" name="loadingModText">
+               <property name="text">
+                <string>加载中...</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_6">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_6">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>396</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="page_3">
+        <layout class="QHBoxLayout" name="horizontalLayout_4">
+         <item>
+          <widget class="ListWidget" name="disabledWdiget">
+           <property name="minimumSize">
+            <size>
+             <width>50</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string/>
+           </property>
+           <property name="statusTip">
+            <string/>
+           </property>
+           <property name="selectionMode">
+            <enum>QAbstractItemView::ExtendedSelection</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout" stretch="3,1,0,1,0,1,3">
+           <item>
+            <spacer name="verticalSpacer_4">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="PushButton" name="enabledBtn">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>启用</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="PushButton" name="disabledBtn">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>禁用</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_2">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="PushButton" name="disableAllBtn">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>全部禁用</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_3">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="ListWidget" name="enabledWidget">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="selectionMode">
+            <enum>QAbstractItemView::ExtendedSelection</enum>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="8,1,1">
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="PrimaryPushButton" name="saveBtn">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>保存</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="PushButton" name="closeBtn">
+       <property name="text">
+        <string>关闭</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CheckBox</class>
+   <extends>QCheckBox</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>PushButton</class>
+   <extends>QPushButton</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>PrimaryPushButton</class>
+   <extends>PushButton</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>DropDownPushButton</class>
+   <extends>PushButton</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>SubtitleLabel</class>
+   <extends>QLabel</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>ProgressBar</class>
+   <extends>QProgressBar</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>LineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>SearchLineEdit</class>
+   <extends>LineEdit</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>ListWidget</class>
+   <extends>QListWidget</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>searchLineEdit</sender>
+   <signal>textChanged(QString)</signal>
+   <receiver>Form</receiver>
+   <slot>searchChange()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>839</x>
+     <y>23</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>880</x>
+     <y>4</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>searchLineEdit</sender>
+   <signal>clearSignal()</signal>
+   <receiver>Form</receiver>
+   <slot>searchChange()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>871</x>
+     <y>18</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1004</x>
+     <y>0</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>searchLineEdit</sender>
+   <signal>searchSignal(QString)</signal>
+   <receiver>Form</receiver>
+   <slot>searchChange()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>871</x>
+     <y>26</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1120</x>
+     <y>6</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>enabledBtn</sender>
+   <signal>clicked()</signal>
+   <receiver>Form</receiver>
+   <slot>enableMod()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>733</x>
+     <y>497</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1252</x>
+     <y>450</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>disableAllBtn</sender>
+   <signal>clicked()</signal>
+   <receiver>Form</receiver>
+   <slot>disableAllMod()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>733</x>
+     <y>667</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>643</x>
+     <y>955</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>disabledBtn</sender>
+   <signal>clicked()</signal>
+   <receiver>Form</receiver>
+   <slot>disableMod()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>733</x>
+     <y>582</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1252</x>
+     <y>374</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>disabledWdiget</sender>
+   <signal>doubleClicked(QModelIndex)</signal>
+   <receiver>Form</receiver>
+   <slot>copyFileTitle()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>493</x>
+     <y>995</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>673</x>
+     <y>1096</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>enabledWidget</sender>
+   <signal>doubleClicked(QModelIndex)</signal>
+   <receiver>Form</receiver>
+   <slot>copyFileTitle()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>878</x>
+     <y>1001</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>818</x>
+     <y>1091</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>saveBtn</sender>
+   <signal>clicked()</signal>
+   <receiver>Form</receiver>
+   <slot>savePage()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1182</x>
+     <y>1117</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1072</x>
+     <y>1092</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>closeBtn</sender>
+   <signal>clicked()</signal>
+   <receiver>Form</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1260</x>
+     <y>1119</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1087</x>
+     <y>1137</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>saveNameEdit</sender>
+   <signal>textChanged(QString)</signal>
+   <receiver>Form</receiver>
+   <slot>fileNameChanged()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>27</x>
+     <y>28</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>6</x>
+     <y>49</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>searchChange()</slot>
+  <slot>disableAllMod()</slot>
+  <slot>disableMod()</slot>
+  <slot>enableMod()</slot>
+  <slot>typeChange()</slot>
+  <slot>copyFileTitle()</slot>
+  <slot>savePage()</slot>
+  <slot>fileNameChanged()</slot>
+ </slots>
+</ui>

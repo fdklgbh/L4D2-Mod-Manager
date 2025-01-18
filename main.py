@@ -5,6 +5,7 @@
 import sys
 import traceback
 from pathlib import Path
+
 sys.path.append(str(Path(__file__).parent.absolute()))
 from PyQt5.QtCore import Qt, QLocale
 from PyQt5.QtWidgets import QApplication
@@ -13,6 +14,7 @@ from resources import resource_rc
 import cgitb
 from common import logger
 from view.main_window import MainWindow
+
 cgitb.enable(format='txt')
 
 QApplication.setHighDpiScaleFactorRoundingPolicy(

@@ -10,6 +10,7 @@ from qfluentwidgets import StyleSheetBase, Theme
 class StyleSheet(StyleSheetBase, Enum):
     SETTING_INTERFACE = "setting_interface"
     MAIN_WINDOW = "main_window"
+    LIST_WIDGET = 'listWidget'
 
     def path(self, theme=Theme.AUTO):
         return f':/qss/{self.value}'

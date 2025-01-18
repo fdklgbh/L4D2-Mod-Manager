@@ -6,7 +6,6 @@ from qfluentwidgets import ConfigItem, BoolValidator, qconfig, QConfig
 
 from common.conf import WORKSPACE
 from common.validator import GamePathValidator, FolderValidator, GCFApplicationPathValidator
-from qfluentPackage.common.CQConfig import CustomConfig
 
 
 class Config(QConfig):

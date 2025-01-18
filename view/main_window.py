@@ -15,6 +15,7 @@ from common.ExceptionHook import ExceptionHook
 from common.check_version import show_version_dialog
 from common.conf import WINDOWS_TITLE, VERSION
 from common.config import l4d2Config
+from common.database import db
 from common.myIcon import MyIcon
 from common.style_sheet import StyleSheet
 from common.thread import CheckVersion
@@ -111,6 +112,7 @@ class MainWindow(CFluentWindow, ExceptionHook):
     def closeEvent(self, a0):
         if a0:
             super().closeEvent(a0)
+        db.disconnect()
         os._exit(0)
 
     def initNavigation(self):

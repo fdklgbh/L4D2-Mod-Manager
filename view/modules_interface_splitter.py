@@ -373,10 +373,6 @@ class ModuleStacked(QWidget, Ui_Frame):
                     else:
                         pic_path.rename(target_pic)
             except PermissionError as e:
-                # todo 游戏占用vpk后移动提示是否覆盖,覆盖提示不存在
-                #  D 241126 19:28:21 menu:626] [WinError 5]
-                #  拒绝访问。: 'F:\\求生之路2\\禁用mod\\xxx.vpk' -> 'F:\\求生之路2\\addons\\xxx.vpk'
-
                 if '另一个程序正在使用此文件，进程无法访问。' in str(e):
                     logger.warning('当前文件被占用')
                     InfoBar.error(
