@@ -100,6 +100,12 @@ class MainWindow(CFluentWindow, ExceptionHook):
         StyleSheet.MAIN_WINDOW.apply(self)
         self.connectSignalToSlot()
 
+    def switchToByObjectName(self, objectName):
+        for i in range(self.stackedWidget.count()):
+            widget = self.stackedWidget.widget(i)
+            if objectName == widget.objectName():
+                self.switchTo(widget)
+
     def showEvent(self, event):
         if hasattr(self, 'check_version_thread'):
             if l4d2Config.auto_update:
@@ -131,6 +137,7 @@ class MainWindow(CFluentWindow, ExceptionHook):
 
     def connectSignalToSlot(self):
         self.exceptionSignal.connect(self.exception)
+        signalBus.switchToByObjectNameSignal.connect(self.switchToByObjectName)
 
     def exception(self, msg):
         w = MessageBox('错误', msg, parent=self)

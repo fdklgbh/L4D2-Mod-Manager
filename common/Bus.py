@@ -12,16 +12,18 @@ class SignalBus(QObject):
     windowSizeChanged = pyqtSignal(QResizeEvent)
     # 移动文件
     modulePathChanged = pyqtSignal(WindowsPath, list, dict)
-
-    fileTypeChanged = pyqtSignal(list, str, str)
+    #                       data, fatherType, childType, oldFatherType, oldChildType
+    fileTypeChanged = pyqtSignal(list, str, str, str, str)
 
     pressKey = pyqtSignal(QKeyEvent)
 
     loggerSignal = pyqtSignal(str)
-
+    #                       fileName newName
+    vpkNameChanged = pyqtSignal(str, str)
     refreshChangedSignal = pyqtSignal(bool)
     reWriteLogSignal = pyqtSignal(str)
     reWriteResultSignal = pyqtSignal(WindowsPath, str, str)
+    switchToByObjectNameSignal = pyqtSignal(str)  # ObjectName名称
 
 
 signalBus = SignalBus()

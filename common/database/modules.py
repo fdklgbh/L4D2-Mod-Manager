@@ -45,20 +45,28 @@ class VPKInfo(Base):
     fatherType = Column(String, comment='一级分类', default='全部')
     childType = Column(String, comment='二级分类', default='')
     customTitle = Column(String, comment='mod自定义名称', default='')
-    addonInfo = Column(JSON, comment='addonInfo文件解析内容', default={})
+    addonInfo = Column(JSON, comment='原始addonInfo文件解析内容', default={})
     addonInfoContent = Column(String, comment='addonInfo原始内容', default='')
-    customContent = Column(String, comment='addonInfo修改后的内容', default='')
+    customAddonInfo = Column(JSON, comment='addonInfo解析,修改内容', default={})
+    customAddonInfoContent = Column(String, comment='addonInfo修改后的内容', default='')
     classificationInfo = relationship("ClassificationInfo", back_populates="vpkInfo")
 
     def __init__(self, fileName: str, fatherType: str, childType: str, addonInfo: dict = None, customTitle='',
-                 addonInfoContent: str = '', customContent: str = ''):
+                 addonInfoContent: str = '', customAddonInfoContent: str = '', customAddonInfo=''):
+        if not addonInfo:
+            addonInfo = {}
+        if not customAddonInfo:
+            customAddonInfo = addonInfo
+        if not customTitle:
+            customTitle = customAddonInfo.get('addontitle', '')
         self.fileName = fileName
         self.fatherType = fatherType or '其他'
         self.childType = childType or ''
         self.customTitle = customTitle or ''
-        self.addonInfo = addonInfo or {}
+        self.addonInfo = addonInfo
+        self.customAddonInfo = customAddonInfo
         self.addonInfoContent = addonInfoContent or ''
-        self.customContent = customContent or ''
+        self.customAddonInfoContent = customAddonInfoContent or addonInfoContent
 
 
 __all__ = ['Base', 'Classification', 'ClassificationInfo', 'VPKInfo']

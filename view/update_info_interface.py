@@ -12,8 +12,8 @@ from ui.update_page import Ui_Form
 class UpdateInfoInterface(ScrollArea, Ui_Form):
     def __init__(self, parent):
         ScrollArea.__init__(self, parent)
-        self.setObjectName('UpdateInfoInterface')
         self.setupUi(self)
+        self.setObjectName('UpdateInfoInterface')
         text = f"""
 # 求生之路2 模组管理器
 ## {VERSION} 更新日志

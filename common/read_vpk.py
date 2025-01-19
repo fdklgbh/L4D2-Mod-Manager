@@ -80,6 +80,7 @@ def read_addons_txt(path: Path, return_file_list=False, refresh_file=False):
         if config and config.get('cache'):
             if config.get('customTitle'):
                 logger.info(f'mod {path.stem} 存在自定义标题:{config["customTitle"]}')
+            # 加载缓存
             return config
     else:
         config.pop('file_info')
@@ -97,6 +98,7 @@ def read_addons_txt(path: Path, return_file_list=False, refresh_file=False):
 
     if not isinstance(pak1, VPK):
         return_data["type"] = pak1
+        # 打开失败 不是vpk,打开过程出现错误
         return return_data
     try:
         with pak1.get_file('addoninfo.txt') as f:
@@ -118,6 +120,7 @@ def read_addons_txt(path: Path, return_file_list=False, refresh_file=False):
             return_data["type"] = False
             return return_data
         return_data['file_list'] = vpk_path_list
+    # 无缓存,打开的时候解析
     return return_data.copy()
 
 

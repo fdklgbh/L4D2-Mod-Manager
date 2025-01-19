@@ -4,6 +4,8 @@
 # @File: main_config.py
 
 from pathlib import Path
+from typing import Union
+
 import vdf
 from common.config.setting_config import setting_cfg
 
@@ -92,22 +94,18 @@ class L4d2Config:
     def addonlist_file(self):
         return self.l4d2_path / 'left4dead2' / 'addonlist.txt'
 
-    def read_addonlist(self, used=True):
+    def read_addonlist(self, used: Union[None, bool] = None):
         """
         读取addonlist文件
-        :param used:
+        :param used: True 返回启用的, False 返回未启用, None返回所有数据
         :return:
         """
-        if not (self.addonlist_file.exists() and self.addonlist_file.exists()):
-            return None
-        try:
-            with open(self.addonlist_file, encoding='gbk') as f:
-                data = vdf.load(f)
-        except UnicodeError:
-            with open(self.addonlist_file, encoding='utf8') as f:
-                data = vdf.load(f)
+        with open(self.addonlist_file, encoding='gbk') as f:
+            data = vdf.load(f)
         data: dict = data.get('AddonList', {})
         result = []
+        if used is None:
+            return data
         for key, value in data.items():
             key: str
             if not key.endswith('.vpk'):
@@ -115,12 +113,20 @@ class L4d2Config:
             key = key.replace('.vpk', '')
             if used and value == '1':
                 result.append(key)
-            elif used is None:
+            elif used is False:
                 result.append(key)
         return result
+
+    def write_addonlist(self, data: list):
+        with open(self.addonlist_file, 'w', encoding='gbk') as f:
+            data = {'AddonList': data}
+            vdf.dump(data, f, True, False)
 
 
 __all__ = ['L4d2Config']
 
 if __name__ == '__main__':
-    print(L4d2Config().read_addonlist())
+    cfg = L4d2Config()
+    res = cfg.read_addonlist()
+    res['2865107042.vpk'] = '0'
+    cfg.write_addonlist(res)

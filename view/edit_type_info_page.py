@@ -4,7 +4,10 @@
 # @File: edit_type_info_page.py
 import sys
 from PyQt5.QtCore import Qt, QModelIndex, pyqtSignal
+from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtWidgets import QWidget, QApplication, QListWidgetItem
+
+from common.Bus import signalBus
 from common.conf import ModType
 from common.copy_data import copy
 from common.item import Item
@@ -13,11 +16,10 @@ from ui.edit_type_info_page import Ui_Form
 from qfluentwidgets import ListWidget, Dialog, RoundMenu, Action
 
 
-# todo 修改分类的时候,需要同步修改,需要判断是否删除
+# todo
 #   新增mod刷新后,数据存入数据库
 #   刷新缓存(内容变更)
-#   修改标题,写入文件
-#   保存
+#   保存修改排序(页面 数据表 1.2.2?)
 
 class editTypeInfoPage(QWidget, Ui_Form, Item):
     saveDataSignal = pyqtSignal(dict)
@@ -170,6 +172,14 @@ class editTypeInfoPage(QWidget, Ui_Form, Item):
         self.disabledWdiget.itemSelectionChanged.connect(self.disabledModSelected)
         self.enabledWidget.itemSelectionChanged.connect(self.enabledModSelected)
 
+    def keyPressEvent(self, a0: QKeyEvent):
+        if self.isVisible():
+            if a0.modifiers() == Qt.ControlModifier and a0.key() == Qt.Key_F:
+                self.searchLineEdit.setFocus()
+            elif a0.key() == Qt.Key_Escape:
+                self.setFocus()
+        super().keyPressEvent(a0)
+
     def setProgressBar(self, value: int):
         self.ProgressBar.setValue(value)
 
@@ -249,11 +259,13 @@ class editTypeInfoPage(QWidget, Ui_Form, Item):
                 item.setHidden(True)
 
     def closeEvent(self, a0):
-        def showAlert(content):
+        def showAlert(content='内容有变化,是否关闭'):
             w = Dialog('注意', content, parent=self)
             w.windowTitleLabel.hide()
+            w.yesButton.setText('继续编辑')
+            w.cancelButton.setText('关闭')
             result = w.exec_()
-            if not result:
+            if result:
                 a0.ignore()
             else:
                 self.saveDataSignal.emit({
@@ -261,11 +273,25 @@ class editTypeInfoPage(QWidget, Ui_Form, Item):
                 })
             return result
 
-        # print('关闭')
-        # if self.title:
-        #     if self.title != self.saveNameEdit.text():
-        #         if not showAlert('内容有变化,是否保存'):
-        #             return
+        if self._savePage is False:
+            if self.title:
+                if self.title != self.saveNameEdit.text():
+                    if showAlert():
+                        return
+            if allItem := self.getWidgetAllItem(self.enabledWidget):
+                if not allItem:
+                    print('555')
+                    if showAlert():
+                        return
+                items_file_name = [item.data(Qt.UserRole) for item in allItem]
+                items_file_name.sort()
+                enabled = list(self.enabledMod.keys())
+                enabled.sort()
+                if items_file_name != enabled:
+                    print('777')
+                    if showAlert():
+                        print('888')
+                        return
         # res = showAlert('xxxxx')
         # if not res:
         #     return

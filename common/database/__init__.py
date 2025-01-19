@@ -5,8 +5,7 @@
 from typing import Type, Union
 
 from common.conf import WORKSPACE
-from sqlalchemy import create_engine
-from sqlalchemy import exc
+from sqlalchemy import exc, create_engine
 from sqlalchemy.orm import sessionmaker, close_all_sessions
 from common.database.modules import *
 
@@ -75,7 +74,7 @@ class SqlAlchemyOption:
                 'fatherType': vpkInfo.fatherType,
                 'childType': vpkInfo.childType,
                 'addonInfo': vpkInfo.addonInfo or {},
-                'addonInfoContent': vpkInfo.customContent or vpkInfo.addonInfoContent
+                'addonInfoContent': vpkInfo.customAddonInfoContent or vpkInfo.addonInfoContent
             }
         return dict(sorted(data.items()))
 
@@ -144,6 +143,48 @@ class SqlAlchemyOption:
             return {}
         return self._vpkInfoToDict(vpkInfo)
 
+    def getAddonInfoType(self, fileName):
+        vpkInfo = self._session.query(VPKInfo).filter_by(fileName=fileName).first()
+        if vpkInfo is None:
+            return {}
+        return {'fatherType': vpkInfo.fatherType, 'childType': vpkInfo.childType, 'id': vpkInfo.id}
+
+    def vpkInfoChangeType(self, fileName, fatherType, childType, oldFatherType, oldChildType) -> list[int]:
+        if not (vpkInfo := self._getVpkInfoByFileName(fileName)):
+            return []
+        vpkInfo.fatherType = fatherType
+        vpkInfo.childType = childType
+        classificationInfo: list[ClassificationInfo] = vpkInfo.classificationInfo
+        remove_id = self._checkClassification(classificationInfo, fatherType)
+        self.commit()
+        return remove_id
+
+    def _checkClassification(self, infos: list[ClassificationInfo], fatherType):
+        remove_classification_id = []
+        if not infos:
+            return remove_classification_id
+        for info in infos:
+            if (db_classification_type := info.classification.type) == '全部':
+                continue
+            if db_classification_type == fatherType:
+                continue
+            classification: Classification = info.classification
+            if len(classification.classificationInfo) > 1:
+                self._session.delete(info)
+            else:
+                remove_classification_id.append(classification.id)
+                self._session.delete(classification)
+        return remove_classification_id
+
+    def vpkInfoChangeChildType(self, fileName, childType):
+        if not (vpkInfo := self._getVpkInfoByFileName(fileName)):
+            return
+        vpkInfo.childType = childType
+        self.commit()
+
+    def _getVpkInfoByFileName(self, fileName) -> Union[None, VPKInfo]:
+        return self._session.query(VPKInfo).filter_by(fileName=fileName).first()
+
     def get_type_info(self, fatherType, childType):
         if fatherType == '全部':
             filter_kw = {'childType': childType}
@@ -163,7 +204,7 @@ class SqlAlchemyOption:
             'childType': vpkInfo.childType,
             'title': vpkInfo.customTitle or vpkInfo.addonInfo.get('addontitle', ''),
             'addonInfo': vpkInfo.addonInfo,
-            'content': vpkInfo.customContent or vpkInfo.addonInfoContent
+            'content': vpkInfo.customAddonInfoContent or vpkInfo.addonInfoContent
         }
 
     def changeClassificationName(self, typeId, name, commit=True):
@@ -171,6 +212,17 @@ class SqlAlchemyOption:
         res.name = name
         if commit:
             self._session.commit()
+
+    def setCustomTitle(self, fileName, title, commit=True):
+        res = self._getVpkInfoByFileName(fileName)
+        if res:
+            if title:
+                res.customTitle = title
+            else:
+                res.customTitle = res.customAddonInfo.get('addontitle', '')
+            if commit:
+                self.commit()
+            return res.customAddonInfo.get('addontitle', '')
 
 
 db = SqlAlchemyOption()
@@ -180,7 +232,16 @@ __all__ = ['db']
 if __name__ == '__main__':
     # id_ = db.addType('asddasd')
     # print(db.findSwitchVpkInfo(1))
+    # res = db.session.query(VPKInfo).filter_by(id=5).first()
+    # for info in res.classificationInfo:
+    #     info: ClassificationInfo
+    #     print(info.typeId)
+    #     print(info.classification.name)
+    #     tmp: Classification = info.classification
+    #     print(tmp.classificationInfo)
+    #     print('xxxxx')
 
+    # db.commit()
     # sql.addInfo(id_, ['按设计大奖', '啊看是否'])
     # sql.addInfo(1, [f'{i}-按实际花费' for i in range(10000)])
     # sql.deleteType(1)

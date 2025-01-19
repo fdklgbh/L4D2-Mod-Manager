@@ -45,7 +45,7 @@ class ChangeTypeMessageBox(MessageBoxBase):
         father_type = self.new_father_type
         logger.debug('yesButton_clicked %s %s', child_type, father_type)
         for data in self.data_info:
-            signalBus.fileTypeChanged.emit(data, child_type, father_type)
+            signalBus.fileTypeChanged.emit(data, father_type, child_type, self.father_type, self.child_type)
 
     def check(self, child_type: str, father_type: str, no_child: bool):
         """

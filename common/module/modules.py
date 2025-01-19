@@ -12,6 +12,7 @@ from common import logger
 from common.Bus import signalBus
 from common.config import vpkConfig, l4d2Config
 from common.conf import NEED_DATA, ModType
+from common.database import db
 from common.messagebox import ReWriteMessageBox
 from common.read_vpk import open_vpk
 
@@ -125,12 +126,14 @@ class TableModel(QAbstractTableModel):
             return self._search_result[row][-1]
         return None
 
-    def changeCustomData(self, data_info, child_type: str, father_type: str):
+    def changeCustomData(self, data_info, fatherType, childType, oldFatherType, oldChildType):
         """
-        文件类型修改
+        单个文件类型修改
+        :param oldChildType:
+        :param oldFatherType:
         :param data_info:
-        :param child_type:
-        :param father_type:
+        :param childType:
+        :param fatherType:
         :return:
         """
         title = data_info[0]
@@ -140,15 +143,15 @@ class TableModel(QAbstractTableModel):
         logger.debug(f'old_custom: {old_custom}')
         logger.debug(f'search_type: {self.search_type}, father_type: {self.father_type}')
         self.customData[title] = {
-            'child_type': child_type,
-            'father_type': father_type
+            'child_type': childType,
+            'father_type': fatherType
         }
         logger.debug(f'new customData: {self.customData[title]}')
         # 一级分类
-        if father_type != old_custom['father_type']:
+        if fatherType != old_custom['father_type']:
             old_father_type: list = self.get_type_data(father_type=old_custom["father_type"])
             old_father_type.remove(data_info)
-            new_father_type: list = self.get_type_data(father_type=father_type)
+            new_father_type: list = self.get_type_data(father_type=fatherType)
             new_father_type.append(data_info)
             new_father_type.sort(key=lambda x: x[0])
         # 二级分类
@@ -156,9 +159,9 @@ class TableModel(QAbstractTableModel):
             # 删除二级分类下数据
             old_child_type: list = self.get_type_data(old_custom["child_type"], old_custom["father_type"])
             old_child_type.remove(data_info)
-        if child_type:
+        if childType:
             # 添加数据到新的二级分类下
-            new_child_type: list = self.get_type_data(child_type, father_type)
+            new_child_type: list = self.get_type_data(childType, fatherType)
             new_child_type.append(data_info)
             new_child_type.sort(key=lambda x: x[0])
         if not self.search_type and not self.father_type:
@@ -166,8 +169,8 @@ class TableModel(QAbstractTableModel):
             vpkConfig.update_config(title, self.customData[title])
             return
         # 有筛选分类
-        if self.father_type == father_type:
-            if self.search_type == child_type or not self.search_type:
+        if self.father_type == fatherType:
+            if self.search_type == childType or not self.search_type:
                 vpkConfig.update_config(title, self.customData[title])
                 return
 
@@ -213,6 +216,8 @@ class TableModel(QAbstractTableModel):
         def change_customTitle(change_data=''):
             self._search_result[row][-1] = change_data
             vpkConfig.update_config(title, {"customTitle": change_data})
+            original_title = db.setCustomTitle(title, change_data)
+            signalBus.vpkNameChanged.emit(title, change_data or original_title)
 
         def emit():
             self.dataChanged.emit(index, index, [Qt.DisplayRole])
@@ -252,7 +257,7 @@ class TableModel(QAbstractTableModel):
                 return False
             data = self._search_result[row]
             title = data[0]
-            customTitle = compare = data[-1]
+            customTitle = data[-1]
             originalTitle = data[column]
             if not value:
                 if customTitle:

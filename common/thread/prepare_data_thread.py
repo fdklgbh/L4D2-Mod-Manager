@@ -65,7 +65,7 @@ class PrePareDataThread(QThread):
                                     res_data['father_type'] = '地图'
                                     break
                 elif res is False:
-                    logger.error(file_path)
+                    logger.error(f"read_data ===> {file_path}")
                     continue
                 elif res is None:
                     pass

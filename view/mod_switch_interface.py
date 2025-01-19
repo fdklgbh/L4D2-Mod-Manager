@@ -10,7 +10,7 @@ from PyQt5.QtCore import QPoint, Qt, QThread, QModelIndex
 from PyQt5.QtWidgets import QWidget, QListWidgetItem
 
 from common import logger
-from common.conf import ModType
+from common.Bus import signalBus
 from common.config import l4d2Config, vpkConfig
 from common.copy_data import copy
 from common.database import db
@@ -23,7 +23,7 @@ from qfluentwidgets import RoundMenu, Action, MenuAnimationType, FluentIcon
 from view.edit_type_info_page import editTypeInfoPage
 
 
-class Tem(QThread):
+class Temp(QThread):
     def __init__(self, parent, func):
         super().__init__(parent)
         self._func = func
@@ -38,9 +38,8 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
         super().__init__(parent=parent)
         self.setupUi(self)
         self.connectSignals()
-        thread = Tem(self, self.add_all_types)
+        Temp(self, self.add_all_types).start()
         # thread.finished.connect(lambda: self.switch_type_info.setCurrentRow(0))
-        thread.start()
 
     def add_all_types(self):
         res = db.getAllSwitchInfo()
@@ -77,11 +76,14 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
                 else:
                     data.append(vpkInfoIndex)
         status, info = self.add_type_detail_info('默认', '全部', data)
-        if isinstance(info, int):
-            self.addType('默认', info, '全部')
-        else:
+        if not isinstance(info, int):
             logger.warn('插入数据失败')
             logger.exception(info)
+        # todo 后续版本切换缓存从数据库读取 删掉
+        for file in l4d2Config.disable_mod_path.glob('*.vpk'):
+            if not file.is_file():
+                continue
+            self.get_cache_info(file.stem)
 
     def get_cache_info(self, filename):
         result = db.getAddonInfo(filename)
@@ -90,7 +92,8 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
             if not res:
                 return -1, '其他'
             result = db.addVpkInfo(filename, res.get('father_type'), res.get('child_type'), res.get('file_info'),
-                                   res.get('content'), res.get('customTitle'))
+                                   res.get('content'),
+                                   res.get('customTitle', res.get('file_info', {}).get('addontitle')))
         return result.get('id'), result.get('fatherType', '其他')
 
     def add_type_detail_info(self, name, type_, data: list[int], selected=False):
@@ -135,20 +138,48 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
         #     self.switch_type_show.addItem(item)
 
     def connectSignals(self):
+        signalBus.fileTypeChanged.connect(self.typeChanged)
+        signalBus.vpkNameChanged.connect(self.vpkNameChanged)
         self.switch_type_info.customContextMenuRequested.connect(self.infoContextMenuEvent)
         self.switch_type_info.currentItemChanged.connect(self.currentItemChanged)
         self.switch_type_show.doubleClicked.connect(self.copy)
+
+    def vpkNameChanged(self, fileName, newTitle):
+        for index in range(self.switch_type_show.count()):
+            item = self.switch_type_show.item(index)
+            title = self.get_item_fileName(item)
+            if fileName != title:
+                continue
+            self.set_item_title(item, newTitle)
+            break
+
+    def typeChanged(self, data: list[str], fatherType, childType, oldFatherType, oldChildType):
+        fileName = data[0]
+
+        if fatherType == oldFatherType and oldFatherType != '':
+            db.vpkInfoChangeChildType(fileName, childType)
+            return
+        if not (res := db.getAddonInfoType(fileName)):
+            return
+        if fatherType == res.get('fatherType'):
+            return
+        result = db.vpkInfoChangeType(fileName, fatherType, childType, oldFatherType, oldChildType)
+        if result:
+            count = self.switch_type_info.count()
+            for index in range(count - 1, -1, -1):
+                item = self.switch_type_info.item(index)
+                id_ = item.data(Qt.UserRole)
+                if id_ in result:
+                    self.switch_type_info.takeItem(index)
 
     def copy(self, item: QModelIndex):
         fileTitle = item.data(Qt.UserRole)
         copy(self.window(), fileTitle)
 
     def currentItemChanged(self, now: QListWidgetItem | None, before: QListWidgetItem | None):
-        print('now', now, now.text() if now else '')
         if now:
             self.switch_type_show.clear()
             indexId = now.data(Qt.UserRole)
-            print('indexId', indexId)
             result = db.findSwitchVpkInfo(indexId)
             self.addShow(result)
 

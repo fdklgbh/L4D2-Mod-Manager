@@ -10,7 +10,7 @@ WINDOWS_TITLE = 'L4D2 Mod管理器'
 
 IS_DEV = True
 
-VERSION = '1.2.0'
+VERSION = '1.2.1'
 if IS_DEV:
     VERSION += ' dev'
 
