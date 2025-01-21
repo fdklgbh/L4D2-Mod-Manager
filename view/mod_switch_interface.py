@@ -4,8 +4,11 @@
 # @File: mod_switch_interface.py
 from __future__ import annotations
 
+import time
+from pathlib import Path
 from time import sleep
 
+import psutil
 from PyQt5.QtCore import QPoint, Qt, QThread, QModelIndex
 from PyQt5.QtWidgets import QWidget, QListWidgetItem
 
@@ -15,8 +18,10 @@ from common.config import l4d2Config, vpkConfig
 from common.copy_data import copy
 from common.database import db
 from common.item import Item
-from common.messagebox import ChoiceTypeMessageBox
+from common.messagebox import ChoiceTypeMessageBox, LoadingMessageBox
 from common.myIcon import MyIcon
+from common.widget.dialog import *
+from common.thread import MoveSwitchModThread
 from ui.mod_switch import Ui_ModSwitchInterface
 from qfluentwidgets import RoundMenu, Action, MenuAnimationType, FluentIcon
 
@@ -38,6 +43,8 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
         super().__init__(parent=parent)
         self.setupUi(self)
         self.connectSignals()
+        self.thread: MoveSwitchModThread = None
+        self._pauseMove = False
         Temp(self, self.add_all_types).start()
         # thread.finished.connect(lambda: self.switch_type_info.setCurrentRow(0))
 
@@ -52,38 +59,39 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
         self.add_default_type()
         self.switch_type_info.setCurrentRow(0)
 
-    def get_now_used_file(self):
-        file_list = []
-        for i in [l4d2Config.addons_path, l4d2Config.workshop_path]:
-            for file in i.glob('*.vpk'):
-                if not file.is_file():
-                    continue
-                file_list.append(file.stem)
-        return file_list
-
     def add_default_type(self):
         data = []
-        for i in [l4d2Config.addons_path, l4d2Config.workshop_path]:
-            for file in i.glob('*.vpk'):
-                if not file.is_file():
-                    continue
+        for i in l4d2Config.read_addonlist(True):
+            file = l4d2Config.addons_path / i
+            logger.info(f'加载启用的mod文件:{file}')
+            if not file.exists() or not file.is_file():
+                continue
+            if file.suffix != '.vpk':
+                continue
+            max_retry = 10
+            while max_retry >= 0:
+                max_retry -= 1
                 vpkInfoIndex, father_type = self.get_cache_info(file.stem)
                 if father_type == '地图':
-                    continue
+                    break
                 if vpkInfoIndex == -1:
-                    logger.warn(f'出现无缓存文件, {file.stem}')
-                    pass
+                    logger.warn(f'出现无缓存文件, {file.stem}, 等待0.2秒')
+                    time.sleep(0.2)
                 else:
                     data.append(vpkInfoIndex)
+                    break
+                if max_retry < 0:
+                    logger.warn(f'加载启用的mod文件失败:{file}')
+        logger.debug(f'加载mod数量:{len(data)}')
         status, info = self.add_type_detail_info('默认', '全部', data)
         if not isinstance(info, int):
             logger.warn('插入数据失败')
             logger.exception(info)
+        logger.info('默认mod加载完毕')
         # todo 后续版本切换缓存从数据库读取 删掉
-        for file in l4d2Config.disable_mod_path.glob('*.vpk'):
-            if not file.is_file():
-                continue
+        for file in self.getAllVpkFile():
             self.get_cache_info(file.stem)
+        print('结束')
 
     def get_cache_info(self, filename):
         result = db.getAddonInfo(filename)
@@ -99,6 +107,7 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
     def add_type_detail_info(self, name, type_, data: list[int], selected=False):
         """
         添加切换类型
+        :param startNumber:
         :param selected:
         :param name:
         :param type_:
@@ -108,7 +117,7 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
         try:
             id_ = db.addType(name, type_, commit=False)
             print('add_type_detail_info', id_)
-            db.addClassificationInfo(id_, data)
+            db.addClassificationInfo(id_, data, 1)
             db.commit()
             item = self.addType(name, id_, type_)
             if selected is True:
@@ -229,12 +238,13 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
         before_set = set(before)
         need_add = after_set.difference(before_set)
         need_remove = before_set.difference(after_set)
-        print(need_add)
-        print(need_remove)
+        logger.info(f'需要添加的vpkInfo.id:{need_add}')
+        logger.info(f'需要删除的vpkInfo.id:{need_remove}')
         if need_remove:
             db.deleteClassificationInfo(typeId, list(need_remove), commit=False)
         if need_add:
-            db.addClassificationInfo(typeId, need_add, commit=False)
+            start = db.getClassificationInfoMaxNumber(typeId) + 1
+            db.addClassificationInfo(typeId, need_add, start, commit=False)
         db.commit()
         for i in range(self.switch_type_info.count()):
             item = self.switch_type_info.item(i)
@@ -268,6 +278,77 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
         self.w.setWindowTitle(windowTitle)
         self.w.show()
 
+    @staticmethod
+    def find_process_by_name(name='left4dead2.exe'):
+        for proc in psutil.process_iter(['pid', 'name']):
+            if proc:
+                if name == proc.name():
+                    return True
+
     def menueChangeType(self, item: QListWidgetItem):
-        print('切换分类', item.text(), item.data(Qt.UserRole), item.data(Qt.UserRole + 1))
-        # todo 移动文件
+
+        def pause():
+            w.loadingStatusChangedSignal.emit(True)
+
+        def resume():
+            w.loadingStatusChangedSignal.emit(False)
+
+        def fileNotFind():
+            pass
+
+        def moveFailed(option, info):
+            pause()
+            if customMessageBox(option, info, self.window(), '重试', '退出'):
+                self.thread.restore()
+                resume()
+                return
+            quitSwitchModThread()
+
+        def moveFileNotExists(option, fileName):
+            pause()
+            if customMessageBox(option, f'移动文件时 {fileName} 不存在', self.window(), '跳过', '退出'):
+                self.thread.restore()
+                return
+            quitSwitchModThread()
+
+        def quitSwitchModThread():
+            if customMessageBox('退出切换', '退出切换不会回滚之前的操作,确定退出吗', self.window(), '继续', '退出'):
+                resume()
+                self.thread.restore()
+            else:
+                self.thread.stop()
+
+        id_ = item.data(Qt.UserRole)
+        type_ = item.data(Qt.UserRole + 1)
+        self.thread = MoveSwitchModThread(type_, id_)
+        logger.info(f'切换分类: {item.text()}, id: {id_}, 分类: {type_}')
+        if not customMessageBox(f'切换mod为{item.text()}?', '请确认游戏已关闭, mod文件未被占用, 避免切换过程中出现错误',
+                                self.window(), cancelBtn='退出'):
+            self.thread = None
+            return
+        # todo 待验证
+        if self.find_process_by_name():
+            customDialog('警告', '请先关闭游戏', self.window(), '退出', cancelBtn=False)
+            self.thread = None
+            return
+        self.thread.moveFileNotExistsSignal.connect(moveFileNotExists)
+        self.thread.moveFailedSignal.connect(moveFailed)
+        self.thread.fileNotFindSignal.connect(fileNotFind)
+
+        w = LoadingMessageBox()
+        self.thread.optionSignal.connect(w.optionChangedSignal.emit)
+        self.thread.optionFileSignal.connect(w.optionFileChangedSignal.emit)
+        w.buttonGroup.hide()
+        w.exec()
+
+    @staticmethod
+    def getAllVpkFile(folder: Path = None):
+        if folder is None:
+            folder = [l4d2Config.addons_path, l4d2Config.workshop_path, l4d2Config.disable_mod_path]
+        else:
+            folder = [folder]
+        for i in folder:
+            for file in i.glob('*.vpk'):
+                if not file.is_file():
+                    continue
+                yield file

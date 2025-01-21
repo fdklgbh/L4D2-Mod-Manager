@@ -3,19 +3,28 @@
 # @Author: Administrator
 # @File: __init__.py.py
 from typing import Type, Union
-
-from common.conf import WORKSPACE
-from sqlalchemy import exc, create_engine
-from sqlalchemy.orm import sessionmaker, close_all_sessions
+from logging.handlers import RotatingFileHandler
+from common.conf import WORKSPACE, LogPath
+from sqlalchemy import exc, create_engine, desc
+from sqlalchemy.orm import sessionmaker, close_all_sessions, scoped_session
 from common.database.modules import *
 
 
 class SqlAlchemyOption:
     def __init__(self):
         path = WORKSPACE / 'config' / 'test.db'
-        self._engine = create_engine(f'sqlite:///{path}?charset=utf8', echo=False)
+        logPath = LogPath / 'SQLAlchemy.log'
+        echo = False
+        self._engine = create_engine(f'sqlite:///{path}?charset=utf8', echo=echo, logging_name='SQLAlchemy',
+                                     pool_size=20, max_overflow=40, pool_timeout=30, pool_recycle=1800,
+                                     connect_args={"check_same_thread": False})
+        if echo:
+            handler = RotatingFileHandler(logPath, maxBytes=5 * 1024 * 1024, backupCount=3, encoding='utf8')
+            self._engine.logger.logger.addHandler(handler)
         Base.metadata.create_all(self._engine)
-        self._session = sessionmaker(bind=self._engine)()
+        SessionFactory = sessionmaker(bind=self._engine)
+        # Session = scoped_session(SessionFactory)
+        self._session = scoped_session(SessionFactory)
 
     def addType(self, name: str, type_='全部', commit=True):
         """
@@ -34,18 +43,34 @@ class SqlAlchemyOption:
         # self._add_commit(classification)
         return classification.id
 
-    def addClassificationInfo(self, type_id: int, vpkInfoIds: list[int], commit=False):
+    def getClassificationInfoMaxNumber(self, typeId: int):
+        """
+        获取classificationInfo表typeId对应的最大序号
+        :param typeId:
+        :return:
+        """
+        return self._session.query(ClassificationInfo).filter_by(typeId=typeId).order_by(
+            desc(ClassificationInfo.serialNumber)).first().serialNumber
+
+    def addClassificationInfo(self, type_id: int, vpkInfoIds: list[int], startNumber, commit=False):
         """
         对应切换信息的id 以及对应的vpk id
         :param commit:
         :param type_id:
         :param vpkInfoIds:
+        :param startNumber
         :return:
         """
         # for vpkInfoId in vpkInfoIds:
         #     info = ClassificationInfo(typeId=type_id, vpkInfoId=vpkInfoId)
         #     self._session.add(info)
-        infos = [ClassificationInfo(typeId=type_id, vpkInfoId=vpkInfoId) for vpkInfoId in vpkInfoIds]
+        infos = []
+        for vpkInfoId in vpkInfoIds:
+            # 使用当前的 startNumber 作为 serialNumber
+            info = ClassificationInfo(typeId=type_id, vpkInfoId=vpkInfoId, serialNumber=startNumber)
+            infos.append(info)
+            # 更新 startNumber
+            startNumber += 1
         self._session.add_all(infos)
         if commit:
             self.commit()
@@ -77,6 +102,10 @@ class SqlAlchemyOption:
                 'addonInfoContent': vpkInfo.customAddonInfoContent or vpkInfo.addonInfoContent
             }
         return dict(sorted(data.items()))
+
+    def findSpecificFilesInfo(self, fileNames: list[str]) -> list:
+        existing_files = self._session.query(VPKInfo.fileName).filter(VPKInfo.fileName.in_(fileNames)).all()
+        return list({file[0] for file in existing_files})
 
     def addVpkInfo(self, fileName, fatherType, childType, addonInfo: dict = None, addonInfoContent='', customTitle=''):
         """
@@ -213,6 +242,28 @@ class SqlAlchemyOption:
         if commit:
             self._session.commit()
 
+    def getTypeAllFileName(self, fatherType: str):
+        """
+        查找大分类的所有文件
+        :param fatherType: 分类名称
+        :return:
+        """
+        if fatherType == '全部':
+            res = self._session.query(VPKInfo).all()
+        else:
+            res = self._session.query(VPKInfo).filter_by(fatherType=fatherType).all()
+        return [file.fileName for file in res]
+
+    def getTypeEnableFileNameNumber(self, typeId: int) -> dict:
+        """
+        查找将要启用mod文件 文件名以及排序
+        :param typeId:
+        :return:
+        """
+        res = self._session.query(ClassificationInfo).filter_by(typeId=typeId).order_by(
+            ClassificationInfo.serialNumber).all()
+        return {info.vpkInfo.fileName: info.serialNumber for info in res}
+
     def setCustomTitle(self, fileName, title, commit=True):
         res = self._getVpkInfoByFileName(fileName)
         if res:
@@ -247,4 +298,7 @@ if __name__ == '__main__':
     # sql.deleteType(1)
     # res = db.getAllSwitchInfo()
     # print(res)
+    # all_data = db.getTypeAllFileName('近战')
+    enable_data: dict = db.getTypeEnableFileNameNumber(1)
+    print(enable_data)
     db.disconnect()

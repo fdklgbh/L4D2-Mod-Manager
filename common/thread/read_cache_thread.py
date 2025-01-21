@@ -47,7 +47,7 @@ class ReadCacheThread(QThread):
             if not result:
                 res = vpkConfig.get_file_config(name)
                 if not res:
-                    self.doneOnceSignal.emit({})
+                    self.doneOnceSignal.emit({"fail": name})
                     continue
                 result = db.addVpkInfo(name, res.get('father_type'), res.get('child_type'), res.get('file_info'),
                                        res.get('content'), res.get('customTitle'))

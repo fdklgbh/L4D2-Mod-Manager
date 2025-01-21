@@ -4,9 +4,10 @@
 # @File: messagebox.py
 from pathlib import Path
 
-from PyQt5.QtCore import QThreadPool
+from PyQt5.QtCore import QThreadPool, pyqtSignal
 from PyQt5.QtWidgets import QHBoxLayout, QComboBox
-from qfluentwidgets import MessageBoxBase, IndeterminateProgressBar, PlainTextEdit, SubtitleLabel, BodyLabel, ComboBox
+from qfluentwidgets import MessageBoxBase, IndeterminateProgressBar, PlainTextEdit, SubtitleLabel, BodyLabel, ComboBox, \
+    IndeterminateProgressRing
 
 from common import logger
 from common.Bus import signalBus
@@ -153,7 +154,26 @@ class ChoiceTypeMessageBox(MessageBoxBase):
         # 设置对话框的最小宽度
         self.widget.setMinimumWidth(350)
 
-    # def showMessage(window):
-    #     w = CustomMessageBox(window)
-    #     if w.exec():
-    #         print(w.urlLineEdit.text())
+
+class LoadingMessageBox(MessageBoxBase):
+    optionChangedSignal = pyqtSignal(str)
+    optionFileChangedSignal = pyqtSignal(str)
+    loadingStatusChangedSignal = pyqtSignal(bool)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        layout = QHBoxLayout()
+        self.loading = IndeterminateProgressRing()
+        self.option = SubtitleLabel()
+        self.option.setText('准备开始切换')
+        self.optionFile = BodyLabel()
+        self.optionFile.setText('正在处理文件...')
+        layout.addWidget(self.loading)
+        layout.addWidget(self.option)
+        layout.addWidget(self.optionFile)
+        self.viewLayout.addLayout(layout)
+        self.widget.setMinimumWidth(350)
+
+        self.optionChangedSignal.connect(lambda x: self.option.setText(x))
+        self.optionFileChangedSignal.connect(lambda x: self.optionFile.setText(f'正在处理文件: {x}'))
+        self.loadingStatusChangedSignal.connect(lambda x: self.loading.stop() if x else self.loading.start())

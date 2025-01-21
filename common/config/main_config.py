@@ -110,7 +110,6 @@ class L4d2Config:
             key: str
             if not key.endswith('.vpk'):
                 continue
-            key = key.replace('.vpk', '')
             if used and value == '1':
                 result.append(key)
             elif used is False:

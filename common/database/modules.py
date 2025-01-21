@@ -30,12 +30,15 @@ class ClassificationInfo(Base):
     vpkInfoId = Column('vpkInfoId', Integer, ForeignKey('vpkInfo.id'))
     classification = relationship("Classification", back_populates="classificationInfo", viewonly=True)
     vpkInfo = relationship("VPKInfo", back_populates="classificationInfo", viewonly=True)
+    serialNumber = Column(Integer, comment='排序', nullable=False)
 
-    def __init__(self, typeId: int, vpkInfoId):
+    def __init__(self, typeId: int, vpkInfoId, serialNumber: int):
         self.typeId = typeId
         self.vpkInfoId = vpkInfoId
+        self.serialNumber = serialNumber
 
 
+# 数据表数据不可删除
 class VPKInfo(Base):
     __tablename__ = "vpkInfo"
     __table_args__ = {'comment': "vpk信息"}
@@ -50,9 +53,12 @@ class VPKInfo(Base):
     customAddonInfo = Column(JSON, comment='addonInfo解析,修改内容', default={})
     customAddonInfoContent = Column(String, comment='addonInfo修改后的内容', default='')
     classificationInfo = relationship("ClassificationInfo", back_populates="vpkInfo")
+    url = Column(String, comment='mod获取链接', default='')
+    modComment = Column(String, comment='mod信息备注', default='')
 
     def __init__(self, fileName: str, fatherType: str, childType: str, addonInfo: dict = None, customTitle='',
-                 addonInfoContent: str = '', customAddonInfoContent: str = '', customAddonInfo=''):
+                 addonInfoContent: str = '', customAddonInfoContent: str = '', customAddonInfo='', url: str = '',
+                 modComment: str = ''):
         if not addonInfo:
             addonInfo = {}
         if not customAddonInfo:
@@ -67,6 +73,8 @@ class VPKInfo(Base):
         self.customAddonInfo = customAddonInfo
         self.addonInfoContent = addonInfoContent or ''
         self.customAddonInfoContent = customAddonInfoContent or addonInfoContent
+        self.url = url
+        self.modComment = modComment
 
 
 __all__ = ['Base', 'Classification', 'ClassificationInfo', 'VPKInfo']

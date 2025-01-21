@@ -6,19 +6,15 @@ import sys
 from PyQt5.QtCore import Qt, QModelIndex, pyqtSignal
 from PyQt5.QtGui import QKeyEvent
 from PyQt5.QtWidgets import QWidget, QApplication, QListWidgetItem
-
-from common.Bus import signalBus
 from common.conf import ModType
 from common.copy_data import copy
 from common.item import Item
 from common.thread.read_cache_thread import ReadCacheThread
 from ui.edit_type_info_page import Ui_Form
-from qfluentwidgets import ListWidget, Dialog, RoundMenu, Action
+from qfluentwidgets import ListWidget, Dialog, RoundMenu, Action, InfoBar, InfoBarPosition
 
 
-# todo
-#   新增mod刷新后,数据存入数据库
-#   刷新缓存(内容变更)
+# todo 修改刷新缓存,重新加载文件后缓存更新,解析新vpk后存储到数据库
 #   保存修改排序(页面 数据表 1.2.2?)
 
 class editTypeInfoPage(QWidget, Ui_Form, Item):
@@ -193,9 +189,15 @@ class editTypeInfoPage(QWidget, Ui_Form, Item):
         self.stackedWidget.setCurrentWidget(self.page_3)
 
     def updateProgress(self, data: dict):
-        if not data:
-            # todo 弹出退出弹窗
-            print('xxxxxxxxxxxxxxxxx')
+        if name := data.get('fail'):
+            InfoBar.warning(
+                title='',
+                content=f'{name}没有解析缓存,可能不是mod文件',
+                orient=Qt.Horizontal,
+                isClosable=False,
+                position=InfoBarPosition.TOP_RIGHT,
+                parent=self.window()
+            )
             return
         name = data['fileName']
         self.loadingModText.setText(name)
@@ -292,9 +294,6 @@ class editTypeInfoPage(QWidget, Ui_Form, Item):
                     if showAlert():
                         print('888')
                         return
-        # res = showAlert('xxxxx')
-        # if not res:
-        #     return
         self.readThread.stop = True
         self.readThread.quit()
         self.readThread.wait()

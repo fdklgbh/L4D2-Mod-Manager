@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import QSplitter
 from qfluentwidgets import TableView, RoundMenu, MenuAnimationType, Action, InfoBar, InfoBarPosition
 
 from common import logger
-from common.config import l4d2Config
+from common.config import l4d2Config, vpkConfig
 from common.messagebox import ChangeTypeMessageBox
 from common.module.modules import TableModel
 from qfluentwidgets import FluentIcon as FIF
@@ -117,11 +117,15 @@ class CustomTableView(TableView):
                 f'https://steamcommunity.com/sharedfiles/filedetails/?id={filename}')))
         if IS_DEV:
             from common.crypto import md5
+            import json
             dev_action = Action(text='导出文件结构到dev文件下')
             menu.addAction(dev_action)
             dev_action.triggered.connect(lambda x: self.dev_action(parent_folder_path, select_rows))
             title = item.data(Qt.UserRole + 2)[0]
             print(title, md5(title))
+            dev_show_cache = Action(text='查看缓存')
+            menu.addAction(dev_show_cache)
+            dev_show_cache.triggered.connect(lambda x: print(json.dumps(vpkConfig.get_file_config(title), ensure_ascii=False, indent=4)))
 
         # 信号
         open_file.triggered.connect(lambda x: self.openFolderSignal.emit(filename))
