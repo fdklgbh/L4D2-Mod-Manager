@@ -100,8 +100,11 @@ class L4d2Config:
         :param used: True 返回启用的, False 返回未启用, None返回所有数据
         :return:
         """
-        with open(self.addonlist_file, encoding='gbk') as f:
-            data = vdf.load(f)
+        try:
+            result = self.addonlist_file.read_text('gbk')
+        except UnicodeDecodeError:
+            result = self.addonlist_file.read_text('utf8')
+        data = vdf.loads(result)
         data: dict = data.get('AddonList', {})
         result = []
         if used is None:
@@ -127,5 +130,6 @@ __all__ = ['L4d2Config']
 if __name__ == '__main__':
     cfg = L4d2Config()
     res = cfg.read_addonlist()
-    res['2865107042.vpk'] = '0'
-    cfg.write_addonlist(res)
+    # res['2865107042.vpk'] = '0'
+    # cfg.write_addonlist(res)
+    print(res)

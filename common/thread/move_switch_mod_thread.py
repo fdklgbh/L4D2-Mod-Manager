@@ -8,6 +8,7 @@ from pathlib import Path
 from PyQt5.QtCore import QThread, pyqtSignal
 
 from common import logger
+from common.Bus import signalBus
 from common.check_file_used import is_used
 from common.config import l4d2Config
 from common.database import db
@@ -26,6 +27,7 @@ class MoveSwitchModThread(QThread):
     moveFileNotExistsSignal = pyqtSignal(str, str)
     # 移动失败 重试/退出
     moveFailedSignal = pyqtSignal(str, str)
+    refreshSignal = pyqtSignal(set, set, set)
 
     def __init__(self, type_: str, typeId: int):
         super().__init__()
@@ -45,6 +47,7 @@ class MoveSwitchModThread(QThread):
         # 不应该存在的mod
         exclude_data = all_data_set - enable_file
         option = '正在检查已存在的同类型mod...'
+        logger.info(option)
         self.optionSignal.emit(option)
         for file in self.getAllVpkFile(l4d2Config.addons_path):
             addons_file.add(file.stem)
@@ -58,15 +61,17 @@ class MoveSwitchModThread(QThread):
         logger.info(f'workshop文件夹需要禁用的mod文件名称: {exclude_workshop_data}')
         # 排除addons workshop中存在的
         need_enabled_file = enable_file - addons_file - workshop_file
+        logger.info(f'需要启用的mod: {need_enabled_file}')
         not_find_file = []
         if need_enabled_file:
             for file in need_enabled_file:
                 if (l4d2Config.disable_mod_path / f'{file}.vpk').exists():
                     continue
                 not_find_file.append(file)
-        self.fileNotFindSignal.emit(option, not_find_file)
-        if self._pauseOrStop():
-            return
+        if not_find_file:
+            self.fileNotFindSignal.emit(option, not_find_file)
+            if self._pauseOrStop():
+                return
         option = '正在禁用mod文件'
         logger.info(option)
         self.optionSignal.emit(option)
@@ -91,8 +96,10 @@ class MoveSwitchModThread(QThread):
                 if picPath.exists():
                     self._move_file(picPath, targetPicPath)
         option = '正在启用mod文件'
+        logger.info(option)
         self.optionSignal.emit(option)
         for file in need_enabled_file:
+            print('file即将移动', file)
             filePath = l4d2Config.disable_mod_path / f'{file}.vpk'
             picPath = l4d2Config.disable_mod_path / f'{file}.jpg'
             targetFilePath = l4d2Config.addons_path / f'{file}.vpk'
@@ -101,34 +108,41 @@ class MoveSwitchModThread(QThread):
                 self.moveFileNotExistsSignal.emit(option, file)
                 if self._pauseOrStop():
                     return
-                self.optionFileSignal.emit(file)
-                while True:
-                    if self._move_file(filePath, targetFilePath):
-                        break
-                    self.moveFailedSignal.emit(option, f'{file}文件移动失败,可能被占用')
-                    if self._pauseOrStop():
-                        return
-                if picPath.exists():
-                    self._move_file(picPath, targetPicPath)
+            self.optionFileSignal.emit(file)
+            while True:
+                if self._move_file(filePath, targetFilePath):
+                    break
+                self.moveFailedSignal.emit(option, f'{file}文件移动失败,可能被占用')
+                if self._pauseOrStop():
+                    return
+            if picPath.exists():
+                self._move_file(picPath, targetPicPath)
 
-        res: dict = l4d2Config.read_addonlist()
-        for data in [exclude_addons_data, exclude_workshop_data, need_enabled_file]:
-            for name in data:
-                res.pop(f'{name}.vpk', '')
-        for file in enable_data:
-            fullName = f'{file}.vpk'
-            if not (l4d2Config.addons_path / fullName).exists():
-                continue
-            res[file] = '1'
-        l4d2Config.write_addonlist(data)
+        if exclude_addons_data or exclude_workshop_data or need_enabled_file:
+            print('需要重写addonlist')
+            fileData: dict = l4d2Config.read_addonlist()
+            for data in [exclude_addons_data, exclude_workshop_data, need_enabled_file]:
+                for name in data:
+                    fileData.pop(f'{name}.vpk', '')
+            for file in enable_data:
+                fullName = f'{file}.vpk'
+                if not (l4d2Config.addons_path / fullName).exists():
+                    continue
+                fileData[file] = '1'
+            l4d2Config.write_addonlist(fileData)
+        signalBus.refreshChangedSignal.emit(exclude_addons_data, exclude_workshop_data, need_enabled_file)
 
     @staticmethod
     def _move_file(file: Path, target: Path):
         if is_used(file):
             return False
         try:
-            file.rename(target)
-            logger.info(f'开始移动{file.name}文件')
+            try:
+                file.rename(target)
+                logger.info(f'开始移动 {file.name} 文件')
+            except FileExistsError:
+                file.replace(target)
+                logger.info(f'已存在 {file.name} 文件, 替换')
         except PermissionError as e:
             logger.error(f'移动文件过程中出现错误')
             logger.exception(e)

@@ -14,8 +14,7 @@ from ui.edit_type_info_page import Ui_Form
 from qfluentwidgets import ListWidget, Dialog, RoundMenu, Action, InfoBar, InfoBarPosition
 
 
-# todo 修改刷新缓存,重新加载文件后缓存更新,解析新vpk后存储到数据库
-#   保存修改排序(页面 数据表 1.2.2?)
+# todo 保存修改排序(页面 数据表 1.2.2?)
 
 class editTypeInfoPage(QWidget, Ui_Form, Item):
     saveDataSignal = pyqtSignal(dict)
@@ -54,9 +53,10 @@ class editTypeInfoPage(QWidget, Ui_Form, Item):
     def menu(self):
         menu = RoundMenu()
         if self.modType != '全部':
+            # 特定分类
             child = ModType.child_keys(self.modType)
             if child:
-                menu.addActions([Action(i) for i in ["全部"] + ModType.child_keys(self.modType)])
+                menu.addActions([Action(i) for i in ["全部"] + child])
                 self.typeBox.setMenu(menu)
                 menu.triggered.connect(self.typeChange)
             else:
@@ -240,7 +240,7 @@ class editTypeInfoPage(QWidget, Ui_Form, Item):
             if (child_type := action.text()) == '全部':
                 child_type = ''
 
-        self.typeBox.setText(father_type if father_type else child_type)
+        self.typeBox.setText(child_type if child_type else father_type)
         self._set_show(self.disabledWdiget, father_type, child_type)
         if self.CheckBox.isChecked():
             self.disabledBtn.setEnabled(False)

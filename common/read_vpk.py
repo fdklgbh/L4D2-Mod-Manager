@@ -4,12 +4,10 @@
 # @File: read_vpk.py
 import struct
 from pathlib import Path
-from re import findall
-from typing import List
 
 import chardet
 
-from common.conf import ModType, DATA
+from common.conf import DATA
 from common import vpk_change as vpk, logger
 from common.config import vpkConfig
 from common.vpk_change import VPK
@@ -32,6 +30,7 @@ def open_vpk(path: Path):
         logger.error(f'{path}文件打开过程中出现错误, 错误信息:{e}')
         return None
     return pak1
+
 
 def _decode_file(content: bytes):
     """
@@ -59,6 +58,7 @@ def _decode_file(content: bytes):
             logger.warning(f'解码失败:{path}')
             return False
     return result
+
 
 def read_addons_txt(path: Path, return_file_list=False, refresh_file=False):
     config = vpkConfig.get_file_config(path.stem)
@@ -148,14 +148,3 @@ def remove_slash(data):
         elif count == 1:
             data = data.split('//')[0]
     return data
-
-
-if __name__ == '__main__':
-    import vdf
-    import json
-
-    path = Path(r'F:\求生之路2\addons\2378181958.vpk')
-    res = read_addons_txt(path, refresh_file=True)
-    print(json.dumps(res, ensure_ascii=False, indent=4))
-    res = vdf.loads(res['content'])
-    print(json.dumps(res, ensure_ascii=False, indent=4))

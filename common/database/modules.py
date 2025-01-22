@@ -68,7 +68,7 @@ class VPKInfo(Base):
         self.fileName = fileName
         self.fatherType = fatherType or '其他'
         self.childType = childType or ''
-        self.customTitle = customTitle or ''
+        self.customTitle = customTitle
         self.addonInfo = addonInfo
         self.customAddonInfo = customAddonInfo
         self.addonInfoContent = addonInfoContent or ''

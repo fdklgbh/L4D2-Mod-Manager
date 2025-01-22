@@ -33,7 +33,6 @@ def _buttonStatus(yesBtn, cancelBtn, w):
             w.buttonLayout.insertStretch(0, 1)
     if cancelBtn is False and yesBtn is False:
         w.buttonGroup.hide()
-    w.buttonGroup.hide()
 
 
 def customMessageBox(title, message, parent, yesBtn: Union[bool, str] = '确定', cancelBtn: Union[bool, str] = '取消',

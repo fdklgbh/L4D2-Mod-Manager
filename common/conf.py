@@ -446,6 +446,7 @@ CHILE_MENUS = {
         },
         "天空盒": {},
         "点唱机": {
+            "mdl": ['jukebox01', 'jukebox01_body', 'jukebox01_menu'],
             "vtf": ["jukebox_menu_selection5", "jukebox", "jukebox_envmap", "jukebox_menu_glow1", "jukebox_menu_glow2",
                     "jukebox_menu_selection1", "jukebox_menu_selection2", "jukebox_menu_selection3",
                     "jukebox_menu_selection4"],

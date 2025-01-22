@@ -5,7 +5,7 @@
 from pathlib import Path
 
 from PyQt5.QtCore import QThreadPool, pyqtSignal
-from PyQt5.QtWidgets import QHBoxLayout, QComboBox
+from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout
 from qfluentwidgets import MessageBoxBase, IndeterminateProgressBar, PlainTextEdit, SubtitleLabel, BodyLabel, ComboBox, \
     IndeterminateProgressRing
 
@@ -129,6 +129,9 @@ class ReWriteMessageBox(MessageBoxBase):
 
 
 class ChoiceTypeMessageBox(MessageBoxBase):
+    """
+    添加切换mod前,先选择分类
+    """
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -143,7 +146,8 @@ class ChoiceTypeMessageBox(MessageBoxBase):
         self.subtitle.setText('选择后续的分类: ')
         layout.addWidget(self.subtitle)
         layout.addWidget(self.comboBox)
-
+        self.yesButton.setText('确定')
+        self.cancelButton.setText('取消')
         # self.urlLineEdit.setPlaceholderText('输入文件、流或者播放列表的 URL')
         # self.urlLineEdit.setClearButtonEnabled(True)
 
@@ -162,7 +166,7 @@ class LoadingMessageBox(MessageBoxBase):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        layout = QHBoxLayout()
+        layout = QVBoxLayout()
         self.loading = IndeterminateProgressRing()
         self.option = SubtitleLabel()
         self.option.setText('准备开始切换')
@@ -173,6 +177,7 @@ class LoadingMessageBox(MessageBoxBase):
         layout.addWidget(self.optionFile)
         self.viewLayout.addLayout(layout)
         self.widget.setMinimumWidth(350)
+        self.buttonGroup.hide()
 
         self.optionChangedSignal.connect(lambda x: self.option.setText(x))
         self.optionFileChangedSignal.connect(lambda x: self.optionFile.setText(f'正在处理文件: {x}'))

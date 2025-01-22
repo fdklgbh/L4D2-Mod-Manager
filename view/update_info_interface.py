@@ -18,9 +18,15 @@ class UpdateInfoInterface(ScrollArea, Ui_Form):
 # 求生之路2 模组管理器
 ## {VERSION} 更新日志
 
+**新增**
+
+1. 一键切换预设mod(不会替换地图)
+
 **优化**
-1. 标题重命名如果有vpk会写入到mod文件的addoninfo中(游戏目录下没有vpk不受影响)
-2. 新增载具大分类
+
+1. 检查更新的请求地址更换
+2. 缓存切换为数据库(逐渐切换,目前先读取缓存文件写入数据库,后续直接读取数据库,即可不再需要缓存文件)
+3. 点唱机分类添加mdl限制
 
 ## 关于
 1. github打不开
@@ -37,7 +43,7 @@ class UpdateInfoInterface(ScrollArea, Ui_Form):
     可以在设置中检查更新,或者设置启动后自动检查更新
 5. mod多选 ctrl按下再选中 也可以按住shift选中第一个选中的到再次点击的mod
 6. 标题列右键可以进入编辑 自定义标题(不会写入到vpk文件中) 也可以选中标题列内容后使用F2快捷键
-
+7. 刷新按钮右键可刷新缓存
 """
         self.update_info.setMarkdown(text)
         self.update_info.anchorClicked.connect(QDesktopServices.openUrl)

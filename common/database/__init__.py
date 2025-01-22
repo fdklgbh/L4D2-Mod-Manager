@@ -2,6 +2,7 @@
 # @Time: 2025/1/14
 # @Author: Administrator
 # @File: __init__.py.py
+import logging
 from typing import Type, Union
 from logging.handlers import RotatingFileHandler
 from common.conf import WORKSPACE, LogPath
@@ -12,15 +13,19 @@ from common.database.modules import *
 
 class SqlAlchemyOption:
     def __init__(self):
-        path = WORKSPACE / 'config' / 'test.db'
+        path = WORKSPACE / 'config' / 'L4d2ModManager.db'
         logPath = LogPath / 'SQLAlchemy.log'
-        echo = False
+        echo = True
         self._engine = create_engine(f'sqlite:///{path}?charset=utf8', echo=echo, logging_name='SQLAlchemy',
                                      pool_size=20, max_overflow=40, pool_timeout=30, pool_recycle=1800,
                                      connect_args={"check_same_thread": False})
         if echo:
+            # todo 日志
             handler = RotatingFileHandler(logPath, maxBytes=5 * 1024 * 1024, backupCount=3, encoding='utf8')
+            formatter = logging.Formatter("%(asctime)s %(levelname)s %(name)s %(message)s")
+            handler.setFormatter(formatter)
             self._engine.logger.logger.addHandler(handler)
+
         Base.metadata.create_all(self._engine)
         SessionFactory = sessionmaker(bind=self._engine)
         # Session = scoped_session(SessionFactory)
@@ -127,6 +132,19 @@ class SqlAlchemyOption:
             return self._vpkInfoToDict(self._session.query(VPKInfo).filter_by(fileName=fileName).first())
         return self._vpkInfoToDict(vpkInfo)
 
+    def updateVpkInfo(self, fileName, title, content, addonInfo):
+        if not addonInfo:
+            addonInfo = {}
+        result = self._session.query(VPKInfo).filter_by(fileName=fileName).first()
+        result.customTitle = title or addonInfo.get('addontitle')
+        if not result.addonInfo:
+            result.addonInfo = addonInfo
+        if not result.addonInfoContent:
+            result.addonInfoContent = content
+        result.customAddonInfo = addonInfo
+        result.customAddonInfoContent = content
+        self.commit()
+
     def updateVpkInfoCustomTitle(self, fileName, customTitle):
         """
         设置自定义标题
@@ -194,7 +212,8 @@ class SqlAlchemyOption:
             return remove_classification_id
         for info in infos:
             if (db_classification_type := info.classification.type) == '全部':
-                continue
+                if fatherType != '地图':
+                    continue
             if db_classification_type == fatherType:
                 continue
             classification: Classification = info.classification
@@ -249,7 +268,7 @@ class SqlAlchemyOption:
         :return:
         """
         if fatherType == '全部':
-            res = self._session.query(VPKInfo).all()
+            res = self._session.query(VPKInfo).filter(VPKInfo.fatherType != '地图').all()
         else:
             res = self._session.query(VPKInfo).filter_by(fatherType=fatherType).all()
         return [file.fileName for file in res]
@@ -281,6 +300,8 @@ db = SqlAlchemyOption()
 __all__ = ['db']
 
 if __name__ == '__main__':
+    import json
+
     # id_ = db.addType('asddasd')
     # print(db.findSwitchVpkInfo(1))
     # res = db.session.query(VPKInfo).filter_by(id=5).first()
@@ -299,6 +320,6 @@ if __name__ == '__main__':
     # res = db.getAllSwitchInfo()
     # print(res)
     # all_data = db.getTypeAllFileName('近战')
-    enable_data: dict = db.getTypeEnableFileNameNumber(1)
-    print(enable_data)
+    enable_data = db.getAddonInfo('2411461841')
+    print(json.dumps(enable_data, ensure_ascii=False, indent=4))
     db.disconnect()

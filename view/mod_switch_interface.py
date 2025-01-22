@@ -9,7 +9,7 @@ from pathlib import Path
 from time import sleep
 
 import psutil
-from PyQt5.QtCore import QPoint, Qt, QThread, QModelIndex
+from PyQt5.QtCore import QPoint, Qt, QThread, QModelIndex, QTimer
 from PyQt5.QtWidgets import QWidget, QListWidgetItem
 
 from common import logger
@@ -27,6 +27,9 @@ from qfluentwidgets import RoundMenu, Action, MenuAnimationType, FluentIcon
 
 from view.edit_type_info_page import editTypeInfoPage
 
+temp = []
+temp_map = []
+
 
 class Temp(QThread):
     def __init__(self, parent, func):
@@ -43,7 +46,6 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
         super().__init__(parent=parent)
         self.setupUi(self)
         self.connectSignals()
-        self.thread: MoveSwitchModThread = None
         self._pauseMove = False
         Temp(self, self.add_all_types).start()
         # thread.finished.connect(lambda: self.switch_type_info.setCurrentRow(0))
@@ -73,6 +75,7 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
                 max_retry -= 1
                 vpkInfoIndex, father_type = self.get_cache_info(file.stem)
                 if father_type == '地图':
+                    temp_map.append(i.replace('.vpk', ''))
                     break
                 if vpkInfoIndex == -1:
                     logger.warn(f'出现无缓存文件, {file.stem}, 等待0.2秒')
@@ -88,12 +91,9 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
             logger.warn('插入数据失败')
             logger.exception(info)
         logger.info('默认mod加载完毕')
-        # todo 后续版本切换缓存从数据库读取 删掉
-        for file in self.getAllVpkFile():
-            self.get_cache_info(file.stem)
-        print('结束')
 
     def get_cache_info(self, filename):
+        temp.append(filename)
         result = db.getAddonInfo(filename)
         if not result:
             res = vpkConfig.get_file_config(filename)
@@ -288,18 +288,24 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
     def menueChangeType(self, item: QListWidgetItem):
 
         def pause():
-            w.loadingStatusChangedSignal.emit(True)
+            load_window.loadingStatusChangedSignal.emit(True)
 
         def resume():
-            w.loadingStatusChangedSignal.emit(False)
+            load_window.loadingStatusChangedSignal.emit(False)
 
-        def fileNotFind():
-            pass
+        def fileNotFind(option, not_find_file: list):
+            pause()
+            print('未找到mod:', not_find_file)
+            if customMessageBox(option, '未找到', self.window(), '忽略', '退出'):
+                resume()
+                thread.restore()
+                return
+            quitSwitchModThread()
 
         def moveFailed(option, info):
             pause()
             if customMessageBox(option, info, self.window(), '重试', '退出'):
-                self.thread.restore()
+                thread.restore()
                 resume()
                 return
             quitSwitchModThread()
@@ -307,39 +313,45 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
         def moveFileNotExists(option, fileName):
             pause()
             if customMessageBox(option, f'移动文件时 {fileName} 不存在', self.window(), '跳过', '退出'):
-                self.thread.restore()
+                thread.restore()
+                resume()
                 return
             quitSwitchModThread()
 
         def quitSwitchModThread():
             if customMessageBox('退出切换', '退出切换不会回滚之前的操作,确定退出吗', self.window(), '继续', '退出'):
                 resume()
-                self.thread.restore()
+                thread.restore()
             else:
-                self.thread.stop()
+                thread.stop()
+                load_window.yesButton.click()
+
+        def finished():
+            print('结束')
+            load_window.yesButton.click()
+            load_window.close()
+            QTimer.singleShot(1, load_window.close)
+            print('退出')
 
         id_ = item.data(Qt.UserRole)
         type_ = item.data(Qt.UserRole + 1)
-        self.thread = MoveSwitchModThread(type_, id_)
+        thread = MoveSwitchModThread(type_, id_)
         logger.info(f'切换分类: {item.text()}, id: {id_}, 分类: {type_}')
         if not customMessageBox(f'切换mod为{item.text()}?', '请确认游戏已关闭, mod文件未被占用, 避免切换过程中出现错误',
                                 self.window(), cancelBtn='退出'):
-            self.thread = None
             return
-        # todo 待验证
         if self.find_process_by_name():
             customDialog('警告', '请先关闭游戏', self.window(), '退出', cancelBtn=False)
-            self.thread = None
             return
-        self.thread.moveFileNotExistsSignal.connect(moveFileNotExists)
-        self.thread.moveFailedSignal.connect(moveFailed)
-        self.thread.fileNotFindSignal.connect(fileNotFind)
-
-        w = LoadingMessageBox()
-        self.thread.optionSignal.connect(w.optionChangedSignal.emit)
-        self.thread.optionFileSignal.connect(w.optionFileChangedSignal.emit)
-        w.buttonGroup.hide()
-        w.exec()
+        thread.moveFileNotExistsSignal.connect(moveFileNotExists)
+        thread.moveFailedSignal.connect(moveFailed)
+        thread.fileNotFindSignal.connect(fileNotFind)
+        load_window = LoadingMessageBox(self.window())
+        thread.optionSignal.connect(load_window.optionChangedSignal.emit)
+        thread.optionFileSignal.connect(load_window.optionFileChangedSignal.emit)
+        thread.finished.connect(finished)
+        thread.start()
+        load_window.exec()
 
     @staticmethod
     def getAllVpkFile(folder: Path = None):

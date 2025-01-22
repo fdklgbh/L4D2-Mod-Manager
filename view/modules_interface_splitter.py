@@ -16,6 +16,7 @@ from common import logger
 from common.Bus import signalBus
 from common.check_file_used import is_used
 from common.config import l4d2Config, vpkConfig
+from common.database import db
 from common.handle_addon_info import HandleAddonInfo
 from common.module.modules import TableModel
 from common.read_vpk import read_addons_txt, get_vpk_addon_image_data
@@ -253,6 +254,13 @@ class ModuleStacked(QWidget, Ui_Frame):
         self.tableView.refreshCacheSignal.connect(self.refreshCache)
         self.refresh_btn.setContextMenuPolicy(Qt.CustomContextMenu)
         self.refresh_btn.customContextMenuRequested.connect(self.refresh_btn_menu)
+        signalBus.refreshChangedSignal.connect(self.moveSwitched)
+
+    def moveSwitched(self, addons: set, workshop: set, enabled: set):
+        print('moveSwitched')
+        if not addons and not workshop and not enabled:
+            return
+        self.refresh()
 
     def refresh_addonInfo(self, path: Path, filename: str, data) -> None:
         if self.folder_path == path:
@@ -282,6 +290,7 @@ class ModuleStacked(QWidget, Ui_Frame):
                     res['file_info'] = file_info
             if 'type' in res:
                 res.pop('type')
+            db.updateVpkInfo(filename, res.get('customTitle'), res.get('content'), res.get('file_info'))
             vpkConfig.change_file_config(filename, res)
             self.mode.refresh_row(res, filename)
 
