@@ -5,7 +5,7 @@
 import logging
 from typing import Type, Union
 from logging.handlers import RotatingFileHandler
-from common.conf import WORKSPACE, LogPath
+from common.conf import CONFIG, LogPath
 from sqlalchemy import exc, create_engine, desc
 from sqlalchemy.orm import sessionmaker, close_all_sessions, scoped_session
 from common.database.modules import *
@@ -13,14 +13,13 @@ from common.database.modules import *
 
 class SqlAlchemyOption:
     def __init__(self):
-        path = WORKSPACE / 'config' / 'L4d2ModManager.db'
+        path = CONFIG / 'L4d2ModManager.db'
         logPath = LogPath / 'SQLAlchemy.log'
         echo = True
         self._engine = create_engine(f'sqlite:///{path}?charset=utf8', echo=echo, logging_name='SQLAlchemy',
                                      pool_size=20, max_overflow=40, pool_timeout=30, pool_recycle=1800,
                                      connect_args={"check_same_thread": False})
         if echo:
-            # todo 日志
             handler = RotatingFileHandler(logPath, maxBytes=5 * 1024 * 1024, backupCount=3, encoding='utf8')
             formatter = logging.Formatter("%(asctime)s %(levelname)s %(name)s %(message)s")
             handler.setFormatter(formatter)
@@ -211,11 +210,11 @@ class SqlAlchemyOption:
         if not infos:
             return remove_classification_id
         for info in infos:
-            if (db_classification_type := info.classification.type) == '全部':
+            if (db_classification_type := info.classification.type) == fatherType:
+                continue
+            if db_classification_type == '全部':
                 if fatherType != '地图':
                     continue
-            if db_classification_type == fatherType:
-                continue
             classification: Classification = info.classification
             if len(classification.classificationInfo) > 1:
                 self._session.delete(info)

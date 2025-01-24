@@ -4,7 +4,7 @@
 # @File: setting_config.py
 from qfluentwidgets import ConfigItem, BoolValidator, qconfig, QConfig
 
-from common.conf import WORKSPACE
+from common.conf import CONFIG
 from common.validator import GamePathValidator, FolderValidator, GCFApplicationPathValidator
 
 
@@ -26,7 +26,7 @@ class Config(QConfig):
     )
 
 
-json_path = WORKSPACE / 'config' / 'l4d2_config.json'
+json_path = CONFIG / 'l4d2_config.json'
 
 setting_cfg = Config()
 qconfig.load(file=json_path, config=setting_cfg)

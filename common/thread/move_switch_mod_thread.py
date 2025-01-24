@@ -63,13 +63,18 @@ class MoveSwitchModThread(QThread):
         need_enabled_file = enable_file - addons_file - workshop_file
         logger.info(f'需要启用的mod: {need_enabled_file}')
         not_find_file = []
+        not_find_file_title = []
         if need_enabled_file:
             for file in need_enabled_file:
                 if (l4d2Config.disable_mod_path / f'{file}.vpk').exists():
                     continue
+                title = db.getAddonInfo(file).get('title', '未知标题')
                 not_find_file.append(file)
+                not_find_file_title.append(title)
         if not_find_file:
-            self.fileNotFindSignal.emit(option, not_find_file)
+            # [f"{x}-{y}" for x, y in zip(squares, cubes)]
+            emit_data = [f"{name} - {title}" for name, title in zip(not_find_file, not_find_file_title)]
+            self.fileNotFindSignal.emit(option, emit_data)
             if self._pauseOrStop():
                 return
         option = '正在禁用mod文件'
@@ -99,6 +104,8 @@ class MoveSwitchModThread(QThread):
         logger.info(option)
         self.optionSignal.emit(option)
         for file in need_enabled_file:
+            if file in not_find_file:
+                continue
             print('file即将移动', file)
             filePath = l4d2Config.disable_mod_path / f'{file}.vpk'
             picPath = l4d2Config.disable_mod_path / f'{file}.jpg'

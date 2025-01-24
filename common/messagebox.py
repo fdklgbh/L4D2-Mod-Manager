@@ -5,9 +5,9 @@
 from pathlib import Path
 
 from PyQt5.QtCore import QThreadPool, pyqtSignal
-from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout
+from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QSpacerItem, QSizePolicy
 from qfluentwidgets import MessageBoxBase, IndeterminateProgressBar, PlainTextEdit, SubtitleLabel, BodyLabel, ComboBox, \
-    IndeterminateProgressRing
+    IndeterminateProgressRing, ListWidget
 
 from common import logger
 from common.Bus import signalBus
@@ -132,6 +132,7 @@ class ChoiceTypeMessageBox(MessageBoxBase):
     """
     添加切换mod前,先选择分类
     """
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -172,7 +173,13 @@ class LoadingMessageBox(MessageBoxBase):
         self.option.setText('准备开始切换')
         self.optionFile = BodyLabel()
         self.optionFile.setText('正在处理文件...')
-        layout.addWidget(self.loading)
+
+        horizontalLayout = QHBoxLayout()
+        horizontalLayout.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Expanding, QSizePolicy.Minimum))  # 左侧空白
+        horizontalLayout.addWidget(self.loading)
+        horizontalLayout.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Expanding, QSizePolicy.Minimum))  # 右侧空白
+
+        layout.addLayout(horizontalLayout)
         layout.addWidget(self.option)
         layout.addWidget(self.optionFile)
         self.viewLayout.addLayout(layout)
@@ -182,3 +189,19 @@ class LoadingMessageBox(MessageBoxBase):
         self.optionChangedSignal.connect(lambda x: self.option.setText(x))
         self.optionFileChangedSignal.connect(lambda x: self.optionFile.setText(f'正在处理文件: {x}'))
         self.loadingStatusChangedSignal.connect(lambda x: self.loading.stop() if x else self.loading.start())
+
+
+class NotFoundFileMessageBox(MessageBoxBase):
+    def __init__(self, parent, title, notFoundFileList: list[str]):
+        super().__init__(parent)
+        layout = QVBoxLayout()
+        self.option = SubtitleLabel()
+        self.option.setText(title)
+        self.listWidget = ListWidget()
+        self.listWidget.addItems(notFoundFileList)
+
+        layout.addWidget(self.option)
+        layout.addWidget(self.listWidget)
+        self.viewLayout.addLayout(layout)
+        self.yesButton.setText('忽略')
+        self.cancelButton.setText('退出')

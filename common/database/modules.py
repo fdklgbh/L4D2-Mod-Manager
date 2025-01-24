@@ -12,7 +12,7 @@ class Classification(Base):
     __tablename__ = "classification"
 
     id = Column(Integer, primary_key=True)
-    name = Column(String, comment='类型名称', unique=True)
+    name = Column(String, comment='类型名称')
     type = Column(String, comment='mod分类,默认为全部', default='全部')
     classificationInfo = relationship("ClassificationInfo", back_populates="classification",
                                       cascade="all, delete-orphan")

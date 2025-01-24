@@ -4,11 +4,12 @@
 # @File: edit_type_info_page.py
 import sys
 from PyQt5.QtCore import Qt, QModelIndex, pyqtSignal
-from PyQt5.QtGui import QKeyEvent
+from PyQt5.QtGui import QKeyEvent, QIcon
 from PyQt5.QtWidgets import QWidget, QApplication, QListWidgetItem
 from common.conf import ModType
 from common.copy_data import copy
 from common.item import Item
+from common.myIcon import MyIcon
 from common.thread.read_cache_thread import ReadCacheThread
 from ui.edit_type_info_page import Ui_Form
 from qfluentwidgets import ListWidget, Dialog, RoundMenu, Action, InfoBar, InfoBarPosition
@@ -18,16 +19,18 @@ from qfluentwidgets import ListWidget, Dialog, RoundMenu, Action, InfoBar, InfoB
 
 class editTypeInfoPage(QWidget, Ui_Form, Item):
     saveDataSignal = pyqtSignal(dict)
+    closedSignal = pyqtSignal()
 
     def __init__(self, parent, modType='全部', title=None, enabledMod: dict = None, saveFunc=None, typeId=None):
         super().__init__(parent)
-        # super().__init__(self)
+        self.setWindowIcon(QIcon(MyIcon.L4D2.path()))
         self.enabledMod = enabledMod or {}
         self.saveFunc = saveFunc
         self.title = title or ''
         self.typeId = typeId
         self.modType = modType
         self.setupUi(self)
+        self.typeBox.setText(self.modType)
         self.menu()
         if self.enabledMod:
             self.disableAllBtn.setEnabled(True)
@@ -297,6 +300,7 @@ class editTypeInfoPage(QWidget, Ui_Form, Item):
         self.readThread.stop = True
         self.readThread.quit()
         self.readThread.wait()
+        self.closedSignal.emit()
         super().closeEvent(a0)
 
 

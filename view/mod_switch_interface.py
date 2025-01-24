@@ -18,12 +18,12 @@ from common.config import l4d2Config, vpkConfig
 from common.copy_data import copy
 from common.database import db
 from common.item import Item
-from common.messagebox import ChoiceTypeMessageBox, LoadingMessageBox
+from common.messagebox import ChoiceTypeMessageBox, LoadingMessageBox, NotFoundFileMessageBox
 from common.myIcon import MyIcon
 from common.widget.dialog import *
 from common.thread import MoveSwitchModThread
 from ui.mod_switch import Ui_ModSwitchInterface
-from qfluentwidgets import RoundMenu, Action, MenuAnimationType, FluentIcon
+from qfluentwidgets import RoundMenu, Action, MenuAnimationType, FluentIcon, InfoBarIcon, InfoBar, InfoBarPosition
 
 from view.edit_type_info_page import editTypeInfoPage
 
@@ -47,6 +47,7 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
         self.setupUi(self)
         self.connectSignals()
         self._pauseMove = False
+        self.switchWindows: editTypeInfoPage = None
         Temp(self, self.add_all_types).start()
         # thread.finished.connect(lambda: self.switch_type_info.setCurrentRow(0))
 
@@ -164,7 +165,7 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
 
     def typeChanged(self, data: list[str], fatherType, childType, oldFatherType, oldChildType):
         fileName = data[0]
-
+        print([fileName, fatherType, childType, oldFatherType, oldChildType])
         if fatherType == oldFatherType and oldFatherType != '':
             db.vpkInfoChangeChildType(fileName, childType)
             return
@@ -174,12 +175,17 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
             return
         result = db.vpkInfoChangeType(fileName, fatherType, childType, oldFatherType, oldChildType)
         if result:
+            print('result', db.vpkInfoChangeType)
             count = self.switch_type_info.count()
             for index in range(count - 1, -1, -1):
                 item = self.switch_type_info.item(index)
                 id_ = item.data(Qt.UserRole)
                 if id_ in result:
                     self.switch_type_info.takeItem(index)
+        print('刷新')
+        selected_row = self.switch_type_info.currentRow()
+        self.switch_type_info.setCurrentRow(-1)
+        self.switch_type_info.setCurrentRow(selected_row)
 
     def copy(self, item: QModelIndex):
         fileTitle = item.data(Qt.UserRole)
@@ -218,7 +224,7 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
             edit = Action(FluentIcon.EDIT, '修改')
             edit.triggered.connect(lambda x: self.menueEditType(item))
             menu.addAction(edit)
-            if self.switch_type_info.count() > 1:
+            if self.switch_type_info.count() > 1 and self.switchWindows is None:
                 trash = Action(FluentIcon.DELETE, '删除')
                 trash.triggered.connect(lambda x: self.menueRemoveType(item))
                 menu.addAction(trash)
@@ -249,7 +255,6 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
         for i in range(self.switch_type_info.count()):
             item = self.switch_type_info.item(i)
             if item.data(Qt.UserRole) == typeId:
-                print('xxxxxxxxxxx', i)
                 # item.setData(Qt.UserRole, indexId)
                 #         item.setData(Qt.UserRole + 1, type_)
                 #         item.setData(Qt.UserRole + 2, name)
@@ -273,10 +278,26 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
         self.startNewWindow('添加', self.add_type_detail_info, box.comboBox.text())
 
     def startNewWindow(self, windowTitle, saveFunc, modType='全部', title=None, enabledMod: dict = None, typeId=None):
-        self.w = editTypeInfoPage(None, modType, title, enabledMod, saveFunc, typeId)
-        self.w.setWindowModality(Qt.ApplicationModal)
-        self.w.setWindowTitle(windowTitle)
-        self.w.show()
+        if self.switchWindows:
+            w = InfoBar(
+                icon=InfoBarIcon.WARNING,
+                title='',
+                content='已存在待编辑窗口,请先关闭',
+                orient=Qt.Vertical,
+                isClosable=True,
+                position=InfoBarPosition.TOP_RIGHT,
+                duration=2000,
+                parent=self
+            )
+            w.show()
+            print(self.switchWindows)
+            return
+
+        self.switchWindows = editTypeInfoPage(None, modType, title, enabledMod, saveFunc, typeId)
+        # self.w.setWindowModality(Qt.ApplicationModal)
+        self.switchWindows.setWindowTitle(windowTitle)
+        self.switchWindows.closedSignal.connect(lambda: setattr(self, 'switchWindows', None))
+        self.switchWindows.show()
 
     @staticmethod
     def find_process_by_name(name='left4dead2.exe'):
@@ -296,7 +317,8 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
         def fileNotFind(option, not_find_file: list):
             pause()
             print('未找到mod:', not_find_file)
-            if customMessageBox(option, '未找到', self.window(), '忽略', '退出'):
+            w = NotFoundFileMessageBox(self.window(), option, not_find_file)
+            if w.exec():
                 resume()
                 thread.restore()
                 return

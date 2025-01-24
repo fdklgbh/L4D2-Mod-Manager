@@ -8,7 +8,7 @@ from pathlib import Path
 # from common.config.main_config import setting_cfg
 WINDOWS_TITLE = 'L4D2 Mod管理器'
 
-IS_DEV = True
+IS_DEV = False
 
 VERSION = '1.2.1'
 if IS_DEV:
@@ -762,7 +762,8 @@ FATHER_MENUS = [
 CustomData = {}
 
 WORKSPACE = Path(__file__).parent.parent
-
+CONFIG = WORKSPACE / 'config'
+CONFIG.mkdir(parents=True, exist_ok=True)
 CachePath = WORKSPACE / 'Cache'
 CachePath.mkdir(parents=True, exist_ok=True)
 LogPath = WORKSPACE / 'log'

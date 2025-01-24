@@ -23,7 +23,7 @@ class CheckVersion(QThread):
         url = 'https://www.ghproxy.cn/https://raw.githubusercontent.com/fdklgbh/L4D2-Mod-Manager/refs/heads/master/docs/update_version.json'
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         try:
-            res = requests.get(url, verify=False, timeout=3)
+            res = requests.get(url, verify=False, timeout=5)
         except Exception:
             return {
                 'status': False,
