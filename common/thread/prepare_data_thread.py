@@ -3,19 +3,18 @@
 # @Author: Administrator
 # @File: prepare_data_thread.py
 import re
-from copy import deepcopy
 from pathlib import Path
 from typing import Union, List
 
-import vdf
 from PyQt5.QtCore import QThread, pyqtSignal
 
 from common import logger
-from common.conf import DATA, MAP_KEY, ModType
+from common.conf import MAP_KEY, ModType
 from common.config import vpkConfig
+from common.database import db
 from common.handle_addon_info import HandleAddonInfo
 from common.module.modules import TableModel
-from common.read_vpk import read_addons_txt, remove_slash
+from common.read_vpk import read_addons_txt
 
 
 class PrePareDataThread(QThread):
@@ -30,13 +29,20 @@ class PrePareDataThread(QThread):
         self.handelAddonInfo = HandleAddonInfo()
 
     def run(self):
-        for index, data in enumerate(self.read_data()):
+        for index, data in enumerate(self.read_data):
             file_path = data.get('filePath')
             file_name = file_path.stem
+            if file_name == '2829092183':
+                print('xxxxx')
+                print(data)
+            if not bool(db.getAddonInfo(file_path.stem)):
+                db.addVpkInfo(file_path.stem, data.get('father_type', '其他'), data.get('child_type', ''),
+                              data['file_info'], data['content'], data.get('customTitle'))
             self.progressSignal.emit(file_name)
             self.addRowSignal.emit(data)
         self.refresh_file = False
 
+    @property
     def read_data(self):
         file_data = self.folder_path.iterdir()
         for file_path in file_data:
@@ -65,22 +71,13 @@ class PrePareDataThread(QThread):
                                     res_data['father_type'] = '地图'
                                     break
                 elif res is False:
-                    logger.error(file_path)
+                    logger.error(f"read_data ===> {file_path}")
                     continue
                 elif res is None:
                     pass
                 else:
                     pass
                 yield_data.update(res_data)
-                # if yield_data.get('father_type') == '其他' and not self.refresh_file:
-                #     # 类型为other时,先根据地图的两个字段来判断地图,
-                #     #              不是再根据文件名称和文件标题来判断一下类型
-                #     # 地图 根据addons字段内容来
-                #     for key in MAP_KEY:
-                #         value = yield_data.get('file_info', {}).get(key)
-                #         if value and value == '1':
-                #             yield_data['father_type'] = '地图'
-                #             break
                 data: dict = yield_data.copy()
                 del data['filePath']
                 data['cache'] = True

@@ -4,12 +4,15 @@
 # @File: messagebox.py
 from pathlib import Path
 
-from PyQt5.QtCore import QThreadPool
-from qfluentwidgets import MessageBoxBase, IndeterminateProgressBar, PlainTextEdit, SubtitleLabel, BodyLabel
+from PyQt5.QtCore import QThreadPool, pyqtSignal
+from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QSpacerItem, QSizePolicy
+from qfluentwidgets import MessageBoxBase, IndeterminateProgressBar, PlainTextEdit, SubtitleLabel, BodyLabel, ComboBox, \
+    IndeterminateProgressRing, ListWidget
 
 from common import logger
 from common.Bus import signalBus
-from common.config import vpkConfig
+from common.conf import ModType
+from common.config import vpkConfig, l4d2Config
 from common.thread.rewrite_addoninfo_thread import ReWriteAddonInfoThread
 from common.widget.custom_tree_widget import CustomTreeWidget
 
@@ -43,7 +46,7 @@ class ChangeTypeMessageBox(MessageBoxBase):
         father_type = self.new_father_type
         logger.debug('yesButton_clicked %s %s', child_type, father_type)
         for data in self.data_info:
-            signalBus.fileTypeChanged.emit(data, child_type, father_type)
+            signalBus.fileTypeChanged.emit(data, father_type, child_type, self.father_type, self.child_type)
 
     def check(self, child_type: str, father_type: str, no_child: bool):
         """
@@ -123,3 +126,82 @@ class ReWriteMessageBox(MessageBoxBase):
         self.yesButton.show()
         self.inProgressBar.pause()
         self.inProgressBar.hide()
+
+
+class ChoiceTypeMessageBox(MessageBoxBase):
+    """
+    添加切换mod前,先选择分类
+    """
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        # self.titleLabel = SubtitleLabel('打开 URL')
+        # self.urlLineEdit = LineEdit()
+        layout = QHBoxLayout()
+        self.comboBox = ComboBox()
+        text_list = ['全部'] + ModType.father_type_keys()
+        text_list.remove('地图')
+        self.comboBox.addItems(text_list)
+        self.subtitle = SubtitleLabel()
+        self.subtitle.setText('选择后续的分类: ')
+        layout.addWidget(self.subtitle)
+        layout.addWidget(self.comboBox)
+        self.yesButton.setText('确定')
+        self.cancelButton.setText('取消')
+        # self.urlLineEdit.setPlaceholderText('输入文件、流或者播放列表的 URL')
+        # self.urlLineEdit.setClearButtonEnabled(True)
+
+        # 将组件添加到布局中
+        # self.viewLayout.addWidget(self.titleLabel)
+        # self.viewLayout.addWidget(self.urlLineEdit)
+        self.viewLayout.addLayout(layout)
+        # 设置对话框的最小宽度
+        self.widget.setMinimumWidth(350)
+
+
+class LoadingMessageBox(MessageBoxBase):
+    optionChangedSignal = pyqtSignal(str)
+    optionFileChangedSignal = pyqtSignal(str)
+    loadingStatusChangedSignal = pyqtSignal(bool)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        layout = QVBoxLayout()
+        self.loading = IndeterminateProgressRing()
+        self.option = SubtitleLabel()
+        self.option.setText('准备开始切换')
+        self.optionFile = BodyLabel()
+        self.optionFile.setText('正在处理文件...')
+
+        horizontalLayout = QHBoxLayout()
+        horizontalLayout.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Expanding, QSizePolicy.Minimum))  # 左侧空白
+        horizontalLayout.addWidget(self.loading)
+        horizontalLayout.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Expanding, QSizePolicy.Minimum))  # 右侧空白
+
+        layout.addLayout(horizontalLayout)
+        layout.addWidget(self.option)
+        layout.addWidget(self.optionFile)
+        self.viewLayout.addLayout(layout)
+        self.widget.setMinimumWidth(350)
+        self.buttonGroup.hide()
+
+        self.optionChangedSignal.connect(lambda x: self.option.setText(x))
+        self.optionFileChangedSignal.connect(lambda x: self.optionFile.setText(f'正在处理文件: {x}'))
+        self.loadingStatusChangedSignal.connect(lambda x: self.loading.stop() if x else self.loading.start())
+
+
+class NotFoundFileMessageBox(MessageBoxBase):
+    def __init__(self, parent, title, notFoundFileList: list[str]):
+        super().__init__(parent)
+        layout = QVBoxLayout()
+        self.option = SubtitleLabel()
+        self.option.setText(title)
+        self.listWidget = ListWidget()
+        self.listWidget.addItems(notFoundFileList)
+
+        layout.addWidget(self.option)
+        layout.addWidget(self.listWidget)
+        self.viewLayout.addLayout(layout)
+        self.yesButton.setText('忽略')
+        self.cancelButton.setText('退出')

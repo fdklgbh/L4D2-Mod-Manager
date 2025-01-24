@@ -10,7 +10,7 @@ WINDOWS_TITLE = 'L4D2 Mod管理器'
 
 IS_DEV = False
 
-VERSION = '1.1.3'
+VERSION = '1.2.1'
 if IS_DEV:
     VERSION += ' dev'
 
@@ -446,6 +446,7 @@ CHILE_MENUS = {
         },
         "天空盒": {},
         "点唱机": {
+            "mdl": ['jukebox01', 'jukebox01_body', 'jukebox01_menu'],
             "vtf": ["jukebox_menu_selection5", "jukebox", "jukebox_envmap", "jukebox_menu_glow1", "jukebox_menu_glow2",
                     "jukebox_menu_selection1", "jukebox_menu_selection2", "jukebox_menu_selection3",
                     "jukebox_menu_selection4"],
@@ -761,7 +762,8 @@ FATHER_MENUS = [
 CustomData = {}
 
 WORKSPACE = Path(__file__).parent.parent
-
+CONFIG = WORKSPACE / 'config'
+CONFIG.mkdir(parents=True, exist_ok=True)
 CachePath = WORKSPACE / 'Cache'
 CachePath.mkdir(parents=True, exist_ok=True)
 LogPath = WORKSPACE / 'log'

@@ -4,12 +4,10 @@
 # @File: read_vpk.py
 import struct
 from pathlib import Path
-from re import findall
-from typing import List
 
 import chardet
 
-from common.conf import ModType, DATA
+from common.conf import DATA
 from common import vpk_change as vpk, logger
 from common.config import vpkConfig
 from common.vpk_change import VPK
@@ -32,6 +30,7 @@ def open_vpk(path: Path):
         logger.error(f'{path}文件打开过程中出现错误, 错误信息:{e}')
         return None
     return pak1
+
 
 def _decode_file(content: bytes):
     """
@@ -60,6 +59,7 @@ def _decode_file(content: bytes):
             return False
     return result
 
+
 def read_addons_txt(path: Path, return_file_list=False, refresh_file=False):
     config = vpkConfig.get_file_config(path.stem)
     if config:
@@ -80,6 +80,7 @@ def read_addons_txt(path: Path, return_file_list=False, refresh_file=False):
         if config and config.get('cache'):
             if config.get('customTitle'):
                 logger.info(f'mod {path.stem} 存在自定义标题:{config["customTitle"]}')
+            # 加载缓存
             return config
     else:
         config.pop('file_info')
@@ -97,6 +98,7 @@ def read_addons_txt(path: Path, return_file_list=False, refresh_file=False):
 
     if not isinstance(pak1, VPK):
         return_data["type"] = pak1
+        # 打开失败 不是vpk,打开过程出现错误
         return return_data
     try:
         with pak1.get_file('addoninfo.txt') as f:
@@ -118,6 +120,7 @@ def read_addons_txt(path: Path, return_file_list=False, refresh_file=False):
             return_data["type"] = False
             return return_data
         return_data['file_list'] = vpk_path_list
+    # 无缓存,打开的时候解析
     return return_data.copy()
 
 
@@ -145,14 +148,3 @@ def remove_slash(data):
         elif count == 1:
             data = data.split('//')[0]
     return data
-
-
-if __name__ == '__main__':
-    import vdf
-    import json
-
-    path = Path(r'F:\求生之路2\addons\2378181958.vpk')
-    res = read_addons_txt(path, refresh_file=True)
-    print(json.dumps(res, ensure_ascii=False, indent=4))
-    res = vdf.loads(res['content'])
-    print(json.dumps(res, ensure_ascii=False, indent=4))
