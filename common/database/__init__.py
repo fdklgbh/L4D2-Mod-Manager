@@ -6,7 +6,7 @@ import logging
 from typing import Type, Union
 from logging.handlers import RotatingFileHandler
 from common.conf import CONFIG, LogPath
-from sqlalchemy import exc, create_engine, desc
+from sqlalchemy import exc, create_engine, desc, text
 from sqlalchemy.orm import sessionmaker, close_all_sessions, scoped_session
 from common.database.modules import *
 
@@ -15,7 +15,7 @@ class SqlAlchemyOption:
     def __init__(self):
         path = CONFIG / 'L4d2ModManager.db'
         logPath = LogPath / 'SQLAlchemy.log'
-        echo = True
+        echo = False
         self._engine = create_engine(f'sqlite:///{path}?charset=utf8', echo=echo, logging_name='SQLAlchemy',
                                      pool_size=20, max_overflow=40, pool_timeout=30, pool_recycle=1800,
                                      connect_args={"check_same_thread": False})
@@ -24,11 +24,23 @@ class SqlAlchemyOption:
             formatter = logging.Formatter("%(asctime)s %(levelname)s %(name)s %(message)s")
             handler.setFormatter(formatter)
             self._engine.logger.logger.addHandler(handler)
-
+        self.update_db()
         Base.metadata.create_all(self._engine)
         SessionFactory = sessionmaker(bind=self._engine)
         # Session = scoped_session(SessionFactory)
         self._session = scoped_session(SessionFactory)
+
+    def update_db(self):
+        with self._engine.connect() as connection:
+            # classificationInfo 表添加 enable 字段 范围为0, 1,默认为1
+            result = connection.execute(text("PRAGMA table_info(classificationInfo);")).fetchall()
+            column_names = [column[1] for column in result]
+            if 'enable' not in column_names:
+                # 如果没有 'enable' 列，则添加该列
+                sql = """
+                ALTER TABLE classificationInfo ADD COLUMN enable INTEGER NOT NULL DEFAULT 1 CHECK (enable IN (0, 1));
+                """
+                connection.execute(text(sql))
 
     def addType(self, name: str, type_='全部', commit=True):
         """

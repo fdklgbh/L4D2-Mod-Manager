@@ -2,7 +2,7 @@
 # @Time: 2025/1/14
 # @Author: Administrator
 # @File: modules.py
-from sqlalchemy import Column, Integer, String, ForeignKey, JSON
+from sqlalchemy import Column, Integer, String, ForeignKey, JSON, CheckConstraint
 from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
@@ -31,11 +31,17 @@ class ClassificationInfo(Base):
     classification = relationship("Classification", back_populates="classificationInfo", viewonly=True)
     vpkInfo = relationship("VPKInfo", back_populates="classificationInfo", viewonly=True)
     serialNumber = Column(Integer, comment='排序', nullable=False)
+    enable = Column(Integer, comment='是否启用', default=1, nullable=False)
 
-    def __init__(self, typeId: int, vpkInfoId, serialNumber: int):
+    __table_args__ = (
+        CheckConstraint('enable IN (0, 1)', name='check_enable_value'),
+    )
+
+    def __init__(self, typeId: int, vpkInfoId, serialNumber: int, enable=1):
         self.typeId = typeId
         self.vpkInfoId = vpkInfoId
         self.serialNumber = serialNumber
+        self.enable = enable
 
 
 # 数据表数据不可删除

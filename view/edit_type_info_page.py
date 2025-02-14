@@ -16,6 +16,7 @@ from qfluentwidgets import ListWidget, Dialog, RoundMenu, Action, InfoBar, InfoB
 
 
 # todo 保存修改排序(页面 数据表 1.2.2?)
+# todo 搜索 cv复制粘贴 处理 导入当前addons文件作为预设
 
 class editTypeInfoPage(QWidget, Ui_Form, Item):
     saveDataSignal = pyqtSignal(dict)

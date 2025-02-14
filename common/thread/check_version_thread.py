@@ -29,10 +29,19 @@ class CheckVersion(QThread):
                 'status': False,
                 'msg': '请求失败或者超时,请检查网络状态!'
             }
+        else:
+            try:
+                logger.info(f'请求返回信息:{res.text}')
+            except Exception as e:
+                logger.warn(f'输出日志失败:{e}')
         if res.status_code != 200:
+            try:
+                logger.warning(f'返回数据 ===> {res.text}')
+            except Exception as e:
+                logger.error(f'返回数据文本输出错误,{e}')
             return {
                 'status': False,
-                'msg': res.status_code
+                'msg': '响应码: ' + str(res.status_code) + ',具体信息看日志'
             }
         else:
             logger.info(f'返回数据 ===> {res.json()}')
