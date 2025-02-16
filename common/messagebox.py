@@ -131,13 +131,12 @@ class ReWriteMessageBox(MessageBoxBase):
 class ChoiceTypeMessageBox(MessageBoxBase):
     """
     添加切换mod前,先选择分类
+    todo 添加的时候,选择是否勾选读取addons workshop中的mod文件(可能会读取addonlist中启用或者禁用)
     """
 
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        # self.titleLabel = SubtitleLabel('打开 URL')
-        # self.urlLineEdit = LineEdit()
         layout = QHBoxLayout()
         self.comboBox = ComboBox()
         text_list = ['全部'] + ModType.father_type_keys()
@@ -149,14 +148,7 @@ class ChoiceTypeMessageBox(MessageBoxBase):
         layout.addWidget(self.comboBox)
         self.yesButton.setText('确定')
         self.cancelButton.setText('取消')
-        # self.urlLineEdit.setPlaceholderText('输入文件、流或者播放列表的 URL')
-        # self.urlLineEdit.setClearButtonEnabled(True)
-
-        # 将组件添加到布局中
-        # self.viewLayout.addWidget(self.titleLabel)
-        # self.viewLayout.addWidget(self.urlLineEdit)
         self.viewLayout.addLayout(layout)
-        # 设置对话框的最小宽度
         self.widget.setMinimumWidth(350)
 
 

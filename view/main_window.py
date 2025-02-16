@@ -38,7 +38,7 @@ class CustomMessageBox(MessageBoxBase):
         self.titleLabel = SubtitleLabel('设置配置路径', self)
         self.l4d2_path = LineEdit(self)
 
-        self.l4d2_path.setPlaceholderText('游戏路径')
+        self.l4d2_path.setPlaceholderText('游戏根目录')
         self.l4d2_path.setClearButtonEnabled(True)
         if l4d2_path:
             self.l4d2_path.setText(l4d2_path)

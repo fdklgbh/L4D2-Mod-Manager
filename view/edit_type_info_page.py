@@ -3,7 +3,7 @@
 # @Author: Administrator
 # @File: edit_type_info_page.py
 import sys
-from PyQt5.QtCore import Qt, QModelIndex, pyqtSignal
+from PyQt5.QtCore import Qt, QModelIndex, pyqtSignal, QVariant
 from PyQt5.QtGui import QKeyEvent, QIcon
 from PyQt5.QtWidgets import QWidget, QApplication, QListWidgetItem
 from common.conf import ModType
@@ -16,7 +16,9 @@ from qfluentwidgets import ListWidget, Dialog, RoundMenu, Action, InfoBar, InfoB
 
 
 # todo 保存修改排序(页面 数据表 1.2.2?)
-# todo 搜索 cv复制粘贴 处理 导入当前addons文件作为预设
+# todo 导入当前addons workshop文件作为预设
+# todo 增加的enabled字段 配合表格中启用项目(默认为启用)
+# todo 加载过程中,页面禁止操作
 
 class editTypeInfoPage(QWidget, Ui_Form, Item):
     saveDataSignal = pyqtSignal(dict)
@@ -53,8 +55,12 @@ class editTypeInfoPage(QWidget, Ui_Form, Item):
         self.readThread.start()
         self.itemIds = []
         for item in self.setItems(self.enabledMod):
+            item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
+            # todo checked
+            item.setCheckState(Qt.Checked)
             self.enabledWidget.addItem(item)
             self.itemIds.append(self.get_item_id(item))
+        self.setEnabled(False)
 
     def menu(self):
         menu = RoundMenu()
@@ -112,8 +118,14 @@ class editTypeInfoPage(QWidget, Ui_Form, Item):
         data.sort()
         index_list = [(data.index(item), items[index]) for index, item in enumerate(add_data)]
         index_list.sort(key=lambda x: x[0])
+        isEnabled = addItemWidget == self.enabledWidget
         for index, item in index_list[::-1]:
             addItemWidget.insertItem(index, item)
+            if isEnabled:
+                item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
+                item.setCheckState(Qt.Checked)
+            else:
+                item.setData(Qt.CheckStateRole, QVariant())
         if self.enabledWidget.count() > 0:
             self.disableAllBtn.setEnabled(True)
             self.checkSaveBtn()
@@ -200,6 +212,7 @@ class editTypeInfoPage(QWidget, Ui_Form, Item):
 
     def readThreadFinished(self):
         self.stackedWidget.setCurrentWidget(self.page_3)
+        self.setEnabled(True)
 
     def updateProgress(self, data: dict):
         if name := data.get('fail'):
