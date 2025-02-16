@@ -29,9 +29,9 @@ class Ui_Form(object):
         self.typeBox.setMaximumSize(QtCore.QSize(150, 16777215))
         self.typeBox.setObjectName("typeBox")
         self.horizontalLayout.addWidget(self.typeBox)
-        self.CheckBox = CheckBox(Form)
-        self.CheckBox.setObjectName("CheckBox")
-        self.horizontalLayout.addWidget(self.CheckBox)
+        self.syncType = CheckBox(Form)
+        self.syncType.setObjectName("syncType")
+        self.horizontalLayout.addWidget(self.syncType)
         self.searchLineEdit = SearchLineEdit(Form)
         self.searchLineEdit.setMaximumSize(QtCore.QSize(400, 33))
         self.searchLineEdit.setObjectName("searchLineEdit")
@@ -162,6 +162,7 @@ class Ui_Form(object):
         self.saveBtn.clicked.connect(Form.savePage) # type: ignore
         self.closeBtn.clicked.connect(Form.close) # type: ignore
         self.saveNameEdit.textChanged['QString'].connect(Form.fileNameChanged) # type: ignore
+        self.syncType.toggled['bool'].connect(Form.syncTypeBtnChanged) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(Form)
 
     def retranslateUi(self, Form):
@@ -169,7 +170,7 @@ class Ui_Form(object):
         Form.setWindowTitle(_translate("Form", "Form"))
         self.saveNameEdit.setPlaceholderText(_translate("Form", "保存名称"))
         self.typeBox.setText(_translate("Form", "全部"))
-        self.CheckBox.setText(_translate("Form", "分类筛选两侧"))
+        self.syncType.setText(_translate("Form", "分类筛选两侧"))
         self.searchLineEdit.setPlaceholderText(_translate("Form", "搜索"))
         self.SubtitleLabel.setText(_translate("Form", "正在加载:"))
         self.loadingModText.setText(_translate("Form", "加载中..."))

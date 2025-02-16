@@ -49,7 +49,7 @@
       </widget>
      </item>
      <item>
-      <widget class="CheckBox" name="CheckBox">
+      <widget class="CheckBox" name="syncType">
        <property name="text">
         <string>分类筛选两侧</string>
        </property>
@@ -448,8 +448,8 @@
    <slot>enableMod()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>733</x>
-     <y>497</y>
+     <x>640</x>
+     <y>431</y>
     </hint>
     <hint type="destinationlabel">
      <x>1252</x>
@@ -464,8 +464,8 @@
    <slot>disableAllMod()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>733</x>
-     <y>667</y>
+     <x>640</x>
+     <y>601</y>
     </hint>
     <hint type="destinationlabel">
      <x>643</x>
@@ -480,8 +480,8 @@
    <slot>disableMod()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>733</x>
-     <y>582</y>
+     <x>640</x>
+     <y>516</y>
     </hint>
     <hint type="destinationlabel">
      <x>1252</x>
@@ -496,8 +496,8 @@
    <slot>copyFileTitle()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>493</x>
-     <y>995</y>
+     <x>503</x>
+     <y>939</y>
     </hint>
     <hint type="destinationlabel">
      <x>673</x>
@@ -512,8 +512,8 @@
    <slot>copyFileTitle()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>878</x>
-     <y>1001</y>
+     <x>1180</x>
+     <y>939</y>
     </hint>
     <hint type="destinationlabel">
      <x>818</x>
@@ -528,8 +528,8 @@
    <slot>savePage()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1182</x>
-     <y>1117</y>
+     <x>1066</x>
+     <y>989</y>
     </hint>
     <hint type="destinationlabel">
      <x>1072</x>
@@ -544,8 +544,8 @@
    <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1260</x>
-     <y>1119</y>
+     <x>1189</x>
+     <y>989</y>
     </hint>
     <hint type="destinationlabel">
      <x>1087</x>
@@ -569,6 +569,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>syncType</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>Form</receiver>
+   <slot>syncTypeBtnChanged()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>563</x>
+     <y>30</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>577</x>
+     <y>7</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>searchChange()</slot>
@@ -579,5 +595,6 @@
   <slot>copyFileTitle()</slot>
   <slot>savePage()</slot>
   <slot>fileNameChanged()</slot>
+  <slot>syncTypeBtnChanged()</slot>
  </slots>
 </ui>
