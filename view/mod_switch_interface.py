@@ -107,8 +107,8 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
 
     def add_type_detail_info(self, name, type_, data: list[int], selected=False):
         """
+        todo data改为字典 {id: 0/1}
         添加切换类型
-        :param startNumber:
         :param selected:
         :param name:
         :param type_:
@@ -238,12 +238,21 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
 
     def edit_type_detail_info(self, name, after: list[int], before: list[int], typeId: int):
         #     (self.saveNameEdit.text(), self._getEnableData, self.itemIds, self.typeId)
+        """
+        todo after before 改为字典 {id: 0/1}
+        :param name:
+        :param after:
+        :param before:
+        :param typeId:
+        :return:
+        """
         if name:
             db.changeClassificationName(typeId, name)
         after_set = set(after)
         before_set = set(before)
         need_add = after_set.difference(before_set)
         need_remove = before_set.difference(after_set)
+        # 交叉的表示重复,或者有修改 todo
         logger.info(f'需要添加的vpkInfo.id:{need_add}')
         logger.info(f'需要删除的vpkInfo.id:{need_remove}')
         if need_remove:
@@ -293,7 +302,7 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
             print(self.switchWindows)
             return
 
-        self.switchWindows = editTypeInfoPage(None, modType, title, enabledMod, saveFunc, typeId)
+        self.switchWindows = editTypeInfoPage(modType, title, enabledMod, saveFunc, typeId)
         # self.w.setWindowModality(Qt.ApplicationModal)
         self.switchWindows.setWindowTitle(windowTitle)
         self.switchWindows.closedSignal.connect(lambda: setattr(self, 'switchWindows', None))

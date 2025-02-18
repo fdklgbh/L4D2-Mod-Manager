@@ -4,6 +4,7 @@
 # @File: item.py
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QListWidgetItem
+from typing import Literal
 
 __all__ = ['Item']
 
@@ -33,6 +34,10 @@ class Item:
     def get_item_child_type(item: QListWidgetItem) -> str:
         return item.data(Qt.UserRole + 3)
 
+    @staticmethod
+    def get_item_enable_status(item: QListWidgetItem) -> Literal[0, 1]:
+        return item.data(Qt.UserRole + 5)
+
     def setItems(self, data: dict):
         """
         {文件名称: {title: 解析标题, father_type: 一级分类, child_type: 二级分类}}
@@ -53,6 +58,7 @@ class Item:
         item.setData(Qt.UserRole + 2, fatherType)
         item.setData(Qt.UserRole + 3, childType)
         item.setData(Qt.UserRole + 4, data['id'])
+        item.setData(Qt.UserRole + 5, data.get('enabled', 1))
         return item
 
     @staticmethod
