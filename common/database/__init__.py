@@ -24,13 +24,13 @@ class SqlAlchemyOption:
             formatter = logging.Formatter("%(asctime)s %(levelname)s %(name)s %(message)s")
             handler.setFormatter(formatter)
             self._engine.logger.logger.addHandler(handler)
-        self.update_db()
+        self._update_db()
         Base.metadata.create_all(self._engine)
         SessionFactory = sessionmaker(bind=self._engine)
         # Session = scoped_session(SessionFactory)
         self._session = scoped_session(SessionFactory)
 
-    def update_db(self):
+    def _update_db(self):
         # todo 没有创建表的时候跳过
         with self._engine.connect() as connection:
             # classificationInfo 表添加 enable 字段 范围为0, 1,默认为1
@@ -69,7 +69,7 @@ class SqlAlchemyOption:
         return self._session.query(ClassificationInfo).filter_by(typeId=typeId).order_by(
             desc(ClassificationInfo.serialNumber)).first().serialNumber
 
-    def addClassificationInfo(self, type_id: int, vpkInfoIds: list[int], startNumber, commit=False):
+    def addClassificationInfo(self, type_id: int, vpkInfoIds: dict[int], startNumber, commit=False):
         """
         对应切换信息的id 以及对应的vpk id
         :param commit:
@@ -82,9 +82,9 @@ class SqlAlchemyOption:
         #     info = ClassificationInfo(typeId=type_id, vpkInfoId=vpkInfoId)
         #     self._session.add(info)
         infos = []
-        for vpkInfoId in vpkInfoIds:
+        for vpkInfoId, enable in vpkInfoIds.items():
             # 使用当前的 startNumber 作为 serialNumber
-            info = ClassificationInfo(typeId=type_id, vpkInfoId=vpkInfoId, serialNumber=startNumber)
+            info = ClassificationInfo(typeId=type_id, vpkInfoId=vpkInfoId, serialNumber=startNumber, enable=enable)
             infos.append(info)
             # 更新 startNumber
             startNumber += 1
@@ -104,6 +104,16 @@ class SqlAlchemyOption:
         if commit:
             self._session.commit()
 
+    def updateClassificationInfo(self, type_id: int, vpkInfoIds: dict[int], commit=True):
+        print('更新 vpkInfoIds', vpkInfoIds)
+        for vpkInfoId, enable in vpkInfoIds.items():
+            self._session.query(ClassificationInfo).filter(
+                ClassificationInfo.typeId == type_id, ClassificationInfo.vpkInfoId == vpkInfoId,
+                ClassificationInfo.enable != enable).update({ClassificationInfo.enable: enable},
+                                                            synchronize_session=False)
+        if commit:
+            self.commit()
+
     def findSwitchVpkInfo(self, typeId: int):
         infos = self._session.query(ClassificationInfo).filter_by(typeId=typeId).all()
         data = {}
@@ -117,6 +127,7 @@ class SqlAlchemyOption:
                 'childType': vpkInfo.childType,
                 'addonInfo': vpkInfo.addonInfo or {},
                 'addonInfoContent': vpkInfo.customAddonInfoContent or vpkInfo.addonInfoContent,
+                'enable': info.enable
             }
         return dict(sorted(data.items()))
 

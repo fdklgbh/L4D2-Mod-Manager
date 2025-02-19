@@ -73,6 +73,7 @@ class MoveSwitchModThread(QThread):
                 not_find_file_title.append(title)
         if not_find_file:
             # [f"{x}-{y}" for x, y in zip(squares, cubes)]
+            option = '未找到的mod'
             emit_data = [f"{name} - {title}" for name, title in zip(not_find_file, not_find_file_title)]
             self.fileNotFindSignal.emit(option, emit_data)
             if self._pauseOrStop():

@@ -58,7 +58,7 @@ class Item:
         item.setData(Qt.UserRole + 2, fatherType)
         item.setData(Qt.UserRole + 3, childType)
         item.setData(Qt.UserRole + 4, data['id'])
-        item.setData(Qt.UserRole + 5, data.get('enabled', 1))
+        item.setData(Qt.UserRole + 5, data.get('enable', 1))
         return item
 
     @staticmethod

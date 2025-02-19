@@ -15,7 +15,7 @@ from ui.edit_type_info_page import Ui_Form
 from qfluentwidgets import ListWidget, Dialog, RoundMenu, Action, InfoBar, InfoBarPosition
 
 
-# todo 保存修改排序(页面 数据表 1.2.2?)
+# todo 保存修改排序(1.3.0 addonlist排序,(全部类mod排序))
 # todo 导入当前addons workshop文件作为预设
 # todo 增加的enabled字段 配合表格中启用项目(默认为启用)
 
@@ -52,7 +52,7 @@ class editTypeInfoPage(QWidget, Ui_Form, Item):
 
         # self.typeBox
         self.readThread.start()
-        self.itemIds = []
+        self.itemIds = {}
         for item in self.setItems(self.enabledMod):
             item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
             if item.data(Qt.UserRole + 5) == 1:
@@ -60,7 +60,7 @@ class editTypeInfoPage(QWidget, Ui_Form, Item):
             else:
                 item.setCheckState(Qt.Unchecked)
             self.enabledWidget.addItem(item)
-            self.itemIds.append(self.get_item_id(item))
+            self.itemIds[self.get_item_id(item)] = self.get_item_enable_status(item)
         self.setEnabled(False)
 
     def menu(self):
@@ -138,12 +138,14 @@ class editTypeInfoPage(QWidget, Ui_Form, Item):
         print('保存')
         self._savePage = True
         if self.typeId is None:
+            # 添加
             self.saveFunc(self.saveNameEdit.text(), self.modType, self._getEnableData, True)
         else:
             if self.saveNameEdit.text() == self.title:
                 name = None
             else:
                 name = self.saveNameEdit.text()
+            # 修改
             self.saveFunc(name, self._getEnableData, self.itemIds, self.typeId)
         self.close()
 

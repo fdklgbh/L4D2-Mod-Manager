@@ -45,6 +45,7 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
     def __init__(self, parent):
         super().__init__(parent=parent)
         self.setupUi(self)
+        self.setEnabled(False)
         self.connectSignals()
         self._pauseMove = False
         self.switchWindows: editTypeInfoPage = None
@@ -58,9 +59,11 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
                 self.addType(name, indexId, type_)
             print('加载完毕')
             self.switch_type_info.setCurrentRow(0)
+            self.setEnabled(True)
             return
         self.add_default_type()
         self.switch_type_info.setCurrentRow(0)
+        self.setEnabled(True)
 
     def add_default_type(self):
         data = []
@@ -105,9 +108,8 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
                                    res.get('customTitle', res.get('file_info', {}).get('addontitle')))
         return result.get('id'), result.get('fatherType', '其他')
 
-    def add_type_detail_info(self, name, type_, data: list[int], selected=False):
+    def add_type_detail_info(self, name, type_, data: dict[int], selected=False):
         """
-        todo data改为字典 {id: 0/1}
         添加切换类型
         :param selected:
         :param name:
@@ -117,7 +119,7 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
         """
         try:
             id_ = db.addType(name, type_, commit=False)
-            print('add_type_detail_info', id_)
+            print('add_type_detail_info', id_, 'data', data)
             db.addClassificationInfo(id_, data, 1)
             db.commit()
             item = self.addType(name, id_, type_)
@@ -212,6 +214,7 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
         menu = RoundMenu()
         if item:
             use = Action(MyIcon.switch, '切换')
+            # todo 切换开始前记录当前mod (1.2.x)
             use.triggered.connect(lambda x: self.menueChangeType(item))
             menu.addAction(use)
             refresh = Action(MyIcon.refresh, '刷新')
@@ -236,10 +239,9 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
         self.switch_type_info.takeItem(row)
         db.deleteType(item.data(Qt.UserRole))
 
-    def edit_type_detail_info(self, name, after: list[int], before: list[int], typeId: int):
+    def edit_type_detail_info(self, name, after: dict, before: dict, typeId: int):
         #     (self.saveNameEdit.text(), self._getEnableData, self.itemIds, self.typeId)
         """
-        todo after before 改为字典 {id: 0/1}
         :param name:
         :param after:
         :param before:
@@ -248,18 +250,22 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
         """
         if name:
             db.changeClassificationName(typeId, name)
-        after_set = set(after)
-        before_set = set(before)
+        after_set = set(list(after.keys()))
+        before_set = set(list(before.keys()))
         need_add = after_set.difference(before_set)
         need_remove = before_set.difference(after_set)
+        need_changed = before_set & after_set
         # 交叉的表示重复,或者有修改 todo
         logger.info(f'需要添加的vpkInfo.id:{need_add}')
         logger.info(f'需要删除的vpkInfo.id:{need_remove}')
+        logger.info(f'需要修改的vpkInfo.id:{need_changed}')
         if need_remove:
             db.deleteClassificationInfo(typeId, list(need_remove), commit=False)
         if need_add:
             start = db.getClassificationInfoMaxNumber(typeId) + 1
-            db.addClassificationInfo(typeId, need_add, start, commit=False)
+            db.addClassificationInfo(typeId, {i: after.get(i, 1) for i in need_add}, start, commit=False)
+        if need_changed:
+            db.updateClassificationInfo(typeId, {i: after.get(i, 1) for i in need_changed}, False)
         db.commit()
         for i in range(self.switch_type_info.count()):
             item = self.switch_type_info.item(i)
@@ -316,7 +322,7 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
                     return True
 
     def menueChangeType(self, item: QListWidgetItem):
-
+        # todo 切换mod类型的时候,写入addonlist 启用禁用
         def pause():
             load_window.loadingStatusChangedSignal.emit(True)
 
