@@ -31,7 +31,6 @@ class SqlAlchemyOption:
         self._session = scoped_session(SessionFactory)
 
     def _update_db(self):
-        # todo 没有创建表的时候跳过
         with self._engine.connect() as connection:
             # classificationInfo 表添加 enable 字段 范围为0, 1,默认为1
             result = connection.execute(text("PRAGMA table_info(classificationInfo);")).fetchall()

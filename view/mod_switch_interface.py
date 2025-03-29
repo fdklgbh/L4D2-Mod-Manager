@@ -215,7 +215,7 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
         if item:
             use = Action(MyIcon.switch, '切换')
             # todo 切换开始前记录当前mod (1.2.x)
-            use.triggered.connect(lambda x: self.menueChangeType(item))
+            use.triggered.connect(lambda x: self.menuChangeType(item))
             menu.addAction(use)
             refresh = Action(MyIcon.refresh, '刷新')
             refresh.triggered.connect(lambda x: self.refreshType(item))
@@ -255,7 +255,6 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
         need_add = after_set.difference(before_set)
         need_remove = before_set.difference(after_set)
         need_changed = before_set & after_set
-        # 交叉的表示重复,或者有修改 todo
         logger.info(f'需要添加的vpkInfo.id:{need_add}')
         logger.info(f'需要删除的vpkInfo.id:{need_remove}')
         logger.info(f'需要修改的vpkInfo.id:{need_changed}')
@@ -321,7 +320,7 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
                 if name == proc.name():
                     return True
 
-    def menueChangeType(self, item: QListWidgetItem):
+    def menuChangeType(self, item: QListWidgetItem):
         # todo 切换mod类型的时候,写入addonlist 启用禁用
         def pause():
             load_window.loadingStatusChangedSignal.emit(True)

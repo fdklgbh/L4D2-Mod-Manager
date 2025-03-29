@@ -17,7 +17,7 @@ from qfluentwidgets import ListWidget, Dialog, RoundMenu, Action, InfoBar, InfoB
 
 # todo 保存修改排序(1.3.0 addonlist排序,(全部类mod排序))
 # todo 导入当前addons workshop文件作为预设
-# todo 增加的enabled字段 配合表格中启用项目(默认为启用)
+# todo 增加 描述的修改/AddonInfo的修改
 
 class editTypeInfoPage(QWidget, Ui_Form, Item):
     saveDataSignal = pyqtSignal(dict)

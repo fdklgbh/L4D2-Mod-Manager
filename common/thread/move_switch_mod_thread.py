@@ -128,6 +128,7 @@ class MoveSwitchModThread(QThread):
 
         if exclude_addons_data or exclude_workshop_data or need_enabled_file:
             print('需要重写addonlist')
+            # todo 排序
             fileData: dict = l4d2Config.read_addonlist()
             for data in [exclude_addons_data, exclude_workshop_data, need_enabled_file]:
                 for name in data:
