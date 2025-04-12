@@ -157,7 +157,7 @@ class ModuleStacked(QWidget, Ui_Frame):
     def show_type_menu(self, *args):
         type_key = ModType.type_menu_info()
         self.mode.debug_search_result()
-        menu = RoundMenu(self)
+        menu = RoundMenu('', self)
         menu.addAction(Action(text=f'全部({self.mode.all_data_num})'))
         for i in type_key:
             if isinstance(i, dict):
@@ -416,6 +416,18 @@ class ModuleStacked(QWidget, Ui_Frame):
                 )
                 return
             else:
+                addon_list_info: dict = l4d2Config.read_addonlist()
+                file = data[0] + '.vpk'
+                if l4d2Config.addons_path == target_path:
+                    addon_list_info[file] = '1'
+                    if self.folder_path == l4d2Config.workshop_path:
+                        addon_list_info.pop(fr'workshop\{file}')
+                else:
+                    try:
+                        addon_list_info.pop(file)
+                    except KeyError:
+                        addon_list_info.pop(fr'workshop\{file}', '')
+                l4d2Config.write_addonlist(addon_list_info)
                 signalBus.modulePathChanged.emit(target_path, data, self.mode.customData[filename])
             self.mode.removeRow(row, filename)
             self.restartPage(clear_search_text=False if self.mode.rowCount() else True)

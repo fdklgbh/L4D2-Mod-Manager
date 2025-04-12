@@ -119,7 +119,7 @@ class L4d2Config:
                 result.append(key)
         return result
 
-    def write_addonlist(self, data: list):
+    def write_addonlist(self, data: dict):
         with open(self.addonlist_file, 'w', encoding='gbk') as f:
             data = {'AddonList': data}
             vdf.dump(data, f, True, False)

@@ -66,7 +66,7 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
         self.setEnabled(True)
 
     def add_default_type(self):
-        data = []
+        data = {}
         for i in l4d2Config.read_addonlist(True):
             file = l4d2Config.addons_path / i
             logger.info(f'加载启用的mod文件:{file}')
@@ -85,7 +85,7 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
                     logger.warn(f'出现无缓存文件, {file.stem}, 等待0.2秒')
                     time.sleep(0.2)
                 else:
-                    data.append(vpkInfoIndex)
+                    data[vpkInfoIndex] = 1
                     break
                 if max_retry < 0:
                     logger.warn(f'加载启用的mod文件失败:{file}')

@@ -127,17 +127,29 @@ class MoveSwitchModThread(QThread):
                 self._move_file(picPath, targetPicPath)
 
         if exclude_addons_data or exclude_workshop_data or need_enabled_file:
-            print('需要重写addonlist')
-            # todo 排序
             fileData: dict = l4d2Config.read_addonlist()
             for data in [exclude_addons_data, exclude_workshop_data, need_enabled_file]:
                 for name in data:
                     fileData.pop(f'{name}.vpk', '')
-            for file in enable_data:
-                fullName = f'{file}.vpk'
-                if not (l4d2Config.addons_path / fullName).exists():
-                    continue
-                fileData[file] = '1'
+            
+            if self._type == '全部':
+                new_file_data = {}
+                for file in enable_data:
+                    enable = enable_data[file]
+                    fullName = f"{file}.vpk"
+                    if (l4d2Config.addons_path / fullName).exists():
+                        new_file_data[fullName] = str(enable)
+                for key in fileData:
+                    if key not in new_file_data:
+                        new_file_data[key] = fileData[key]
+                fileData = new_file_data
+            else:
+                for file, enable in enable_data.items():
+                    fullName = f'{file}.vpk'
+                    if not (l4d2Config.addons_path / fullName).exists():
+                        continue
+                    fileData[fullName] = str(enable)
+
             l4d2Config.write_addonlist(fileData)
         signalBus.refreshChangedSignal.emit(exclude_addons_data, exclude_workshop_data, need_enabled_file)
 

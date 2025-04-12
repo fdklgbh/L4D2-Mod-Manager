@@ -17,7 +17,7 @@ class SqlAlchemyOption:
         logPath = LogPath / 'SQLAlchemy.log'
         echo = False
         self._engine = create_engine(f'sqlite:///{path}?charset=utf8', echo=echo, logging_name='SQLAlchemy',
-                                     pool_size=20, max_overflow=40, pool_timeout=30, pool_recycle=1800,
+                                     pool_size=50, max_overflow=100, pool_timeout=30, pool_recycle=1800,
                                      connect_args={"check_same_thread": False})
         if echo:
             handler = RotatingFileHandler(logPath, maxBytes=5 * 1024 * 1024, backupCount=3, encoding='utf8')
@@ -32,6 +32,11 @@ class SqlAlchemyOption:
 
     def _update_db(self):
         with self._engine.connect() as connection:
+            result = connection.execute(
+                text("SELECT name FROM sqlite_master WHERE type='table' AND name='classificationInfo';")).fetchone()
+            if not result:
+                # 如果表不存在，直接返回，不执行任何更新操作
+                return
             # classificationInfo 表添加 enable 字段 范围为0, 1,默认为1
             result = connection.execute(text("PRAGMA table_info(classificationInfo);")).fetchall()
             column_names = [column[1] for column in result]
@@ -300,10 +305,11 @@ class SqlAlchemyOption:
         查找将要启用mod文件 文件名以及排序
         :param typeId:
         :return:
+            {fileName: enable}
         """
         res = self._session.query(ClassificationInfo).filter_by(typeId=typeId).order_by(
             ClassificationInfo.serialNumber).all()
-        return {info.vpkInfo.fileName: info.serialNumber for info in res}
+        return {info.vpkInfo.fileName: info.enable for info in res}
 
     def setCustomTitle(self, fileName, title, commit=True):
         res = self._getVpkInfoByFileName(fileName)
