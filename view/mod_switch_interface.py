@@ -321,7 +321,6 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
                     return True
 
     def menuChangeType(self, item: QListWidgetItem):
-        # todo 切换mod类型的时候,写入addonlist 启用禁用
         def pause():
             load_window.loadingStatusChangedSignal.emit(True)
 

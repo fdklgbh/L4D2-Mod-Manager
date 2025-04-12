@@ -293,6 +293,9 @@ class TableModel(QAbstractTableModel):
                     change_customTitle(value)
                     emit()
                     return True
+                if originalTitle == value:
+                    logger.info(f'mod: {title} 标题和修改标题一致,不做修改')
+                    return False
                 logger.info(f'mod:{title} 自定义标题尝试存储到vpk中')
                 return write_to_vpk()
             # 现在是有自定义标题 有修改内容

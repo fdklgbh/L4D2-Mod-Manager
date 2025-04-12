@@ -32,7 +32,7 @@ class UpdateInfoInterface(ScrollArea, Ui_Form):
 
 ## 关于
 1. github打不开
-    可以翻墙或者下载[fastgithub](https://gitee.com/zhaifanhua/FastGithub/releases/download/2.1.4/fastgithub_win-x64.zip)
+    可以翻墙或者下载[Steamcommunity 302](https://www.dogfight360.com/blog/18682/) (fastgithub gitee删库)
 2. **地图**
 
     **部分地图拆分为多个part 部分part没有地图相关信息(没有maps/或者missions/开头的文件,且addoninfo中也没有代表地图的字段,或者有但值为0)**
