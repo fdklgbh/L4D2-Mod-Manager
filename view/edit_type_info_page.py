@@ -4,8 +4,8 @@
 # @File: edit_type_info_page.py
 import sys
 from PyQt5.QtCore import Qt, QModelIndex, pyqtSignal, QVariant
-from PyQt5.QtGui import QKeyEvent, QIcon
-from PyQt5.QtWidgets import QWidget, QApplication, QListWidgetItem
+from PyQt5.QtGui import QKeyEvent, QIcon, QDropEvent
+from PyQt5.QtWidgets import QWidget, QApplication, QListWidgetItem, QAbstractItemView
 from common.conf import ModType
 from common.copy_data import copy
 from common.item import Item
@@ -17,7 +17,6 @@ from qfluentwidgets import ListWidget, Dialog, RoundMenu, Action, InfoBar, InfoB
 
 # todo 保存修改排序(1.3.0 addonlist排序,(全部类mod排序))
 # todo 导入当前addons workshop文件作为预设
-# todo 增加 描述的修改/AddonInfo的修改
 
 class editTypeInfoPage(QWidget, Ui_Form, Item):
     saveDataSignal = pyqtSignal(dict)
@@ -34,6 +33,10 @@ class editTypeInfoPage(QWidget, Ui_Form, Item):
         self.filterFatherType = modType
         self.filterChildType = ''
         self.setupUi(self)
+        self.enabledWidget.setDragEnabled(True)
+        self.enabledWidget.setDropIndicatorShown(True)
+        self.enabledWidget.setDragDropMode(ListWidget.InternalMove)
+        # self.enabledWidget.setDragDropMode(QAbstractItemView.DragDrop)
         self.typeBox.setText(self.modType)
         self.menu()
         if self.enabledMod:
@@ -169,7 +172,10 @@ class editTypeInfoPage(QWidget, Ui_Form, Item):
             return
         items_file_name = []
         for item in self.getWidgetAllItem(self.enabledWidget):
-            items_file_name.append(self.get_item_fileName(item))
+            fileName = self.get_item_fileName(item)
+            if fileName in items_file_name:
+                continue
+            items_file_name.append(fileName)
             if self.get_item_fileName(item) in self.enabledMod and self.get_item_checkState(
                     item) != self.get_item_enable_status(item):
                 self.changeSaveBtn(True)
@@ -202,16 +208,33 @@ class editTypeInfoPage(QWidget, Ui_Form, Item):
         self.disabledWdiget.itemSelectionChanged.connect(self.disabledModSelected)
         self.enabledWidget.itemSelectionChanged.connect(self.enabledModSelected)
         self.enabledWidget.itemChanged.connect(self.itemChanged)
+        self.enabledWidget.dropChanged.connect(self.dropChanged)
+
+    def dropChanged(self):
+        if not self.enabledMod:
+            self.changeSaveBtn(True)
+        else:
+            print(list(self.enabledMod.keys()))
+            print([self.get_item_fileName(i) for i in self.getWidgetAllItem(self.enabledWidget)])
+            if list(self.enabledMod.keys()) != [self.get_item_fileName(i) for i in
+                                                self.getWidgetAllItem(self.enabledWidget)]:
+                self.changeSaveBtn(True)
+            else:
+                self.checkSaveBtn()
 
     def itemChanged(self, item: QListWidgetItem):
-        print('itemChanged')
         fileName = self.get_item_fileName(item)
+        if not fileName:
+            return
         if fileName not in self.enabledMod:
             return
         status = item.checkState()
         if status == 2:
             status = 1
-        if status != self.get_item_enable_status(item):
+        info = self.get_item_enable_status(item)
+        if info is None:
+            return
+        if status != info:
             self.changeSaveBtn(True)
             return
         self.checkSaveBtn()

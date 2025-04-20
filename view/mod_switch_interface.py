@@ -250,28 +250,13 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
         """
         if name:
             db.changeClassificationName(typeId, name)
-        after_set = set(list(after.keys()))
-        before_set = set(list(before.keys()))
-        need_add = after_set.difference(before_set)
-        need_remove = before_set.difference(after_set)
-        need_changed = before_set & after_set
-        logger.info(f'需要添加的vpkInfo.id:{need_add}')
-        logger.info(f'需要删除的vpkInfo.id:{need_remove}')
-        logger.info(f'需要修改的vpkInfo.id:{need_changed}')
-        if need_remove:
-            db.deleteClassificationInfo(typeId, list(need_remove), commit=False)
-        if need_add:
-            start = db.getClassificationInfoMaxNumber(typeId) + 1
-            db.addClassificationInfo(typeId, {i: after.get(i, 1) for i in need_add}, start, commit=False)
-        if need_changed:
-            db.updateClassificationInfo(typeId, {i: after.get(i, 1) for i in need_changed}, False)
-        db.commit()
+        print('after', after)
+        print('before', before)
+        db.deleteClassificationInfo(typeId, list(before.keys()), False)
+        db.addClassificationInfo(typeId, {i: after.get(i, 1) for i in after}, 0, True)
         for i in range(self.switch_type_info.count()):
             item = self.switch_type_info.item(i)
             if item.data(Qt.UserRole) == typeId:
-                # item.setData(Qt.UserRole, indexId)
-                #         item.setData(Qt.UserRole + 1, type_)
-                #         item.setData(Qt.UserRole + 2, name)
                 if name:
                     item.setData(Qt.UserRole + 2, name)
                     item.setText(f'{item.data(Qt.UserRole + 1)} - {item.data(Qt.UserRole + 2)}')
@@ -289,7 +274,11 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
         box = ChoiceTypeMessageBox(self.window())
         if not box.exec_():
             return
-        self.startNewWindow('添加', self.add_type_detail_info, box.comboBox.text())
+        loadType = box.getLoadType()
+        print(loadType)
+        fileNames: list = [i.split('\\')[-1].replace('.vpk', '') for i in l4d2Config.read_addonlist(True)]
+        res = db.findManyVpkInfo(fileNames, loadType)
+        self.startNewWindow('添加', self.add_type_detail_info, box.comboBox.text(), enabledMod=res)
 
     def startNewWindow(self, windowTitle, saveFunc, modType='全部', title=None, enabledMod: dict = None, typeId=None):
         if self.switchWindows:

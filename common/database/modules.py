@@ -82,5 +82,8 @@ class VPKInfo(Base):
         self.url = url
         self.modComment = modComment
 
+    def __repr__(self):
+        return self.fileName
+
 
 __all__ = ['Base', 'Classification', 'ClassificationInfo', 'VPKInfo']

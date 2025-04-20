@@ -8,7 +8,7 @@ from pathlib import Path
 # from common.config.main_config import setting_cfg
 WINDOWS_TITLE = 'L4D2 Mod管理器'
 
-IS_DEV = True
+IS_DEV = False
 
 VERSION = '1.2.2'
 if IS_DEV:

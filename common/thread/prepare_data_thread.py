@@ -32,9 +32,6 @@ class PrePareDataThread(QThread):
         for index, data in enumerate(self.read_data):
             file_path = data.get('filePath')
             file_name = file_path.stem
-            if file_name == '2829092183':
-                print('xxxxx')
-                print(data)
             if not bool(db.getAddonInfo(file_path.stem)):
                 db.addVpkInfo(file_path.stem, data.get('father_type', '其他'), data.get('child_type', ''),
                               data['file_info'], data['content'], data.get('customTitle'))

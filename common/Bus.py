@@ -22,6 +22,7 @@ class SignalBus(QObject):
     vpkNameChanged = pyqtSignal(str, str)
     refreshChangedSignal = pyqtSignal(set, set, set)
     reWriteLogSignal = pyqtSignal(str)
+    # 更新缓存的content
     reWriteResultSignal = pyqtSignal(WindowsPath, str, str)
     switchToByObjectNameSignal = pyqtSignal(str)  # ObjectName名称
 

@@ -5,7 +5,7 @@
 import logging
 from typing import Type, Union
 from logging.handlers import RotatingFileHandler
-from common.conf import CONFIG, LogPath
+from common.conf import CONFIG, LogPath, IS_DEV
 from sqlalchemy import exc, create_engine, desc, text
 from sqlalchemy.orm import sessionmaker, close_all_sessions, scoped_session
 from common.database.modules import *
@@ -15,7 +15,7 @@ class SqlAlchemyOption:
     def __init__(self):
         path = CONFIG / 'L4d2ModManager.db'
         logPath = LogPath / 'SQLAlchemy.log'
-        echo = False
+        echo = True if not IS_DEV else False
         self._engine = create_engine(f'sqlite:///{path}?charset=utf8', echo=echo, logging_name='SQLAlchemy',
                                      pool_size=50, max_overflow=100, pool_timeout=30, pool_recycle=1800,
                                      connect_args={"check_same_thread": False})
@@ -110,16 +110,17 @@ class SqlAlchemyOption:
 
     def updateClassificationInfo(self, type_id: int, vpkInfoIds: dict[int], commit=True):
         print('更新 vpkInfoIds', vpkInfoIds)
-        for vpkInfoId, enable in vpkInfoIds.items():
+        for index, (vpkInfoId, enable) in enumerate(vpkInfoIds.items()):
             self._session.query(ClassificationInfo).filter(
-                ClassificationInfo.typeId == type_id, ClassificationInfo.vpkInfoId == vpkInfoId,
-                ClassificationInfo.enable != enable).update({ClassificationInfo.enable: enable},
-                                                            synchronize_session=False)
+                ClassificationInfo.typeId == type_id, ClassificationInfo.vpkInfoId == vpkInfoId).update(
+                {ClassificationInfo.enable: enable, ClassificationInfo.serialNumber: index},
+                synchronize_session=False)
         if commit:
             self.commit()
 
     def findSwitchVpkInfo(self, typeId: int):
-        infos = self._session.query(ClassificationInfo).filter_by(typeId=typeId).all()
+        infos = self._session.query(ClassificationInfo).filter_by(typeId=typeId).order_by(
+            ClassificationInfo.serialNumber).all()
         data = {}
         for info in infos:
             vpkInfo: VPKInfo = info.vpkInfo
@@ -133,7 +134,32 @@ class SqlAlchemyOption:
                 'addonInfoContent': vpkInfo.customAddonInfoContent or vpkInfo.addonInfoContent,
                 'enable': info.enable
             }
-        return dict(sorted(data.items()))
+        return data
+
+    def findManyVpkInfo(self, fileNames: list, fatherType: str) -> dict:
+        query = self._session.query(VPKInfo).filter(VPKInfo.fileName.in_(fileNames))
+        if fatherType != '全部':
+            query = query.filter(VPKInfo.fatherType == fatherType)
+        elif fatherType == '全部':
+            query = query.filter(VPKInfo.fatherType != '地图')
+        else:
+            return {}
+        result = query.all()
+        file_to_index = {file: idx for idx, file in enumerate(fileNames)}
+        result.sort(key=lambda x: file_to_index.get(x.fileName, len(fileNames)))
+        data = {}
+        for vpkInfo in result:
+            data[vpkInfo.fileName] = {
+                'id': vpkInfo.id,
+                'title': vpkInfo.customTitle or vpkInfo.addonInfo.get('addontitle', '未知标题'),
+                'fatherType': vpkInfo.fatherType,
+                'childType': vpkInfo.childType,
+                'addonInfo': vpkInfo.addonInfo or {},
+                'addonInfoContent': vpkInfo.customAddonInfoContent or vpkInfo.addonInfoContent,
+                'enable': 1
+            }
+
+        return data
 
     def findSpecificFilesInfo(self, fileNames: list[str]) -> list:
         existing_files = self._session.query(VPKInfo.fileName).filter(VPKInfo.fileName.in_(fileNames)).all()
@@ -321,6 +347,15 @@ class SqlAlchemyOption:
             if commit:
                 self.commit()
             return res.customAddonInfo.get('addontitle', '')
+
+    def setCustomInfo(self, fileName, key, value, commit=True):
+        res = self._getVpkInfoByFileName(fileName)
+        if res:
+            res.customAddonInfo[key] = value
+            if commit:
+                self.commit()
+            return res.customAddonInfo.get(key)
+        print('xxxxxxxxxxxxxxxxxx')
 
 
 db = SqlAlchemyOption()

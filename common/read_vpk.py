@@ -55,7 +55,7 @@ def _decode_file(content: bytes):
                 encoding = 'ISO-8859-1'
                 result = content.decode(encoding)
         except UnicodeError:
-            logger.warning(f'解码失败:{path}')
+            logger.warning(f'解码失败')
             return False
     return result
 

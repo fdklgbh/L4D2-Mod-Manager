@@ -20,6 +20,7 @@ class CheckVersion(QThread):
 
     @staticmethod
     def sendRequest():
+        # todo 加速地址改为可配置,后续自动下载包
         url = 'https://www.ghproxy.cn/https://raw.githubusercontent.com/fdklgbh/L4D2-Mod-Manager/refs/heads/master/docs/update_version.json'
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         try:
