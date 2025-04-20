@@ -1,6 +1,13 @@
-pyqt5>=5.15.10
-qfluentpackage>=1.0.3
-vdf>=3.4
-chardet>=5.2.0
-PyQt-Fluent-Widgets >=1.4.3
-colorlog
+pyqt5~=5.15.11
+vdf~=3.4
+qfluentpackage~=1.0.3
+psutil~=7.0.0
+requests~=2.32.3
+urllib3~=2.3.0
+packaging~=24.2
+sqlalchemy~=2.0.40
+chardet~=5.2.0
+colorlog~=6.9.0
+py7zr~=0.22.0
+rarfile~=4.2
+PyQt-Fluent-Widgets ~=1.7.7

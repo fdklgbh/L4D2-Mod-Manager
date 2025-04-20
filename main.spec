@@ -5,7 +5,7 @@ block_cipher = None
 
 import os
 
-CONSOLE = os.environ.get('CONSOLE', 'true')
+CONSOLE = os.environ.get('CONSOLE', 'false')
 
 if CONSOLE == 'true':
     console_window = True
@@ -20,7 +20,7 @@ a = Analysis(['main.py'],
                     ("./common", "common"), ("./ui", "ui")],
              hiddenimports=["Crypto.Cipher.AES", "Crypto.Util.Padding","Crypto.Random", "logzero", "qfluentPackage", 'win32file',
                             "qfluentPackage.windows", "qfluentPackage.widget", "chardet", "vdf", "requests", "colorlog", 'cgitb',
-                            'sqlalchemy'],
+                            'sqlalchemy', 'packaging', 'psutil'],
              hookspath=[],
              hooksconfig={},
              runtime_hooks=[],
@@ -46,7 +46,8 @@ exe = EXE(pyz,
           entitlements_file=None,
           windowed=True,
           contents_directory='.',
-          version='verison_info.txt')
+          version='verison_info.txt',
+          icon='resources\icon\l4d2_256x256.ico')
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,

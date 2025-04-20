@@ -3,9 +3,9 @@
 # @Author: Administrator
 # @File: edit_type_info_page.py
 import sys
-from PyQt5.QtCore import Qt, QModelIndex, pyqtSignal
-from PyQt5.QtGui import QKeyEvent, QIcon
-from PyQt5.QtWidgets import QWidget, QApplication, QListWidgetItem
+from PyQt5.QtCore import Qt, QModelIndex, pyqtSignal, QVariant
+from PyQt5.QtGui import QKeyEvent, QIcon, QDropEvent
+from PyQt5.QtWidgets import QWidget, QApplication, QListWidgetItem, QAbstractItemView
 from common.conf import ModType
 from common.copy_data import copy
 from common.item import Item
@@ -15,21 +15,28 @@ from ui.edit_type_info_page import Ui_Form
 from qfluentwidgets import ListWidget, Dialog, RoundMenu, Action, InfoBar, InfoBarPosition
 
 
-# todo 保存修改排序(页面 数据表 1.2.2?)
+# todo 保存修改排序(1.3.0 addonlist排序,(全部类mod排序))
+# todo 导入当前addons workshop文件作为预设
 
 class editTypeInfoPage(QWidget, Ui_Form, Item):
     saveDataSignal = pyqtSignal(dict)
     closedSignal = pyqtSignal()
 
-    def __init__(self, parent, modType='全部', title=None, enabledMod: dict = None, saveFunc=None, typeId=None):
-        super().__init__(parent)
+    def __init__(self, modType='全部', title=None, enabledMod: dict = None, saveFunc=None, typeId=None):
+        super().__init__()
         self.setWindowIcon(QIcon(MyIcon.L4D2.path()))
         self.enabledMod = enabledMod or {}
         self.saveFunc = saveFunc
         self.title = title or ''
         self.typeId = typeId
         self.modType = modType
+        self.filterFatherType = modType
+        self.filterChildType = ''
         self.setupUi(self)
+        self.enabledWidget.setDragEnabled(True)
+        self.enabledWidget.setDropIndicatorShown(True)
+        self.enabledWidget.setDragDropMode(ListWidget.InternalMove)
+        # self.enabledWidget.setDragDropMode(QAbstractItemView.DragDrop)
         self.typeBox.setText(self.modType)
         self.menu()
         if self.enabledMod:
@@ -48,10 +55,16 @@ class editTypeInfoPage(QWidget, Ui_Form, Item):
 
         # self.typeBox
         self.readThread.start()
-        self.itemIds = []
+        self.itemIds = {}
         for item in self.setItems(self.enabledMod):
+            item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
+            if item.data(Qt.UserRole + 5) == 1:
+                item.setCheckState(Qt.Checked)
+            else:
+                item.setCheckState(Qt.Unchecked)
             self.enabledWidget.addItem(item)
-            self.itemIds.append(self.get_item_id(item))
+            self.itemIds[self.get_item_id(item)] = self.get_item_enable_status(item)
+        self.setEnabled(False)
 
     def menu(self):
         menu = RoundMenu()
@@ -67,8 +80,6 @@ class editTypeInfoPage(QWidget, Ui_Form, Item):
             return
         text_list = ['全部'] + ModType.father_type_keys()
         text_list.remove('地图')
-        # else:
-        #     ModType.type_menu_info()
         for father in text_list:
             child_keys = ModType.child_keys(father)
             if child_keys:
@@ -100,6 +111,7 @@ class editTypeInfoPage(QWidget, Ui_Form, Item):
         self.disabledWdiget.setCurrentIndex(QModelIndex())
 
     def moveWidgetItems(self, items: list[QListWidgetItem], addItemWidget: ListWidget, removeItemWidget: ListWidget):
+        # todo item 移动到启用,mod选中,且滑动到第一个 scrollToItem  QListWidget.PositionAtTop
         data = []
         for item in self.getWidgetAllItem(addItemWidget):
             data.append(item.text())
@@ -111,8 +123,14 @@ class editTypeInfoPage(QWidget, Ui_Form, Item):
         data.sort()
         index_list = [(data.index(item), items[index]) for index, item in enumerate(add_data)]
         index_list.sort(key=lambda x: x[0])
+        isEnabled = addItemWidget == self.enabledWidget
         for index, item in index_list[::-1]:
             addItemWidget.insertItem(index, item)
+            if isEnabled:
+                item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
+                item.setCheckState(Qt.Checked)
+            else:
+                item.setData(Qt.CheckStateRole, QVariant())
         if self.enabledWidget.count() > 0:
             self.disableAllBtn.setEnabled(True)
             self.checkSaveBtn()
@@ -123,18 +141,21 @@ class editTypeInfoPage(QWidget, Ui_Form, Item):
         print('保存')
         self._savePage = True
         if self.typeId is None:
+            # 添加
             self.saveFunc(self.saveNameEdit.text(), self.modType, self._getEnableData, True)
         else:
             if self.saveNameEdit.text() == self.title:
                 name = None
             else:
                 name = self.saveNameEdit.text()
+            # 修改
             self.saveFunc(name, self._getEnableData, self.itemIds, self.typeId)
         self.close()
 
     @property
     def _getEnableData(self):
-        return [self.get_item_id(item) for item in self.getWidgetAllItem(self.enabledWidget)]
+        return {self.get_item_id(item): 1 if item.checkState() == 2 else 0 for item in
+                self.getWidgetAllItem(self.enabledWidget)}
 
     def fileNameChanged(self, text):
         self.checkSaveBtn(text)
@@ -149,7 +170,17 @@ class editTypeInfoPage(QWidget, Ui_Form, Item):
         if count == 0:
             self.changeSaveBtn(False)
             return
-        items_file_name = [item.data(Qt.UserRole) for item in self.getWidgetAllItem(self.enabledWidget)]
+        items_file_name = []
+        for item in self.getWidgetAllItem(self.enabledWidget):
+            fileName = self.get_item_fileName(item)
+            if fileName in items_file_name:
+                continue
+            items_file_name.append(fileName)
+            if self.get_item_fileName(item) in self.enabledMod and self.get_item_checkState(
+                    item) != self.get_item_enable_status(item):
+                self.changeSaveBtn(True)
+                return
+
         items_file_name.sort()
         enabled = list(self.enabledMod.keys())
         enabled.sort()
@@ -158,6 +189,12 @@ class editTypeInfoPage(QWidget, Ui_Form, Item):
             self.changeSaveBtn(True)
         else:
             self.changeSaveBtn(False)
+
+    @staticmethod
+    def get_item_checkState(item):
+        if item.checkState() == 2:
+            return 1
+        return item.checkState()
 
     def changeSaveBtn(self, status: bool):
         self.saveBtn.setEnabled(status)
@@ -170,6 +207,37 @@ class editTypeInfoPage(QWidget, Ui_Form, Item):
         self.readThread.finished.connect(self.readThreadFinished)
         self.disabledWdiget.itemSelectionChanged.connect(self.disabledModSelected)
         self.enabledWidget.itemSelectionChanged.connect(self.enabledModSelected)
+        self.enabledWidget.itemChanged.connect(self.itemChanged)
+        self.enabledWidget.dropChanged.connect(self.dropChanged)
+
+    def dropChanged(self):
+        if not self.enabledMod:
+            self.changeSaveBtn(True)
+        else:
+            print(list(self.enabledMod.keys()))
+            print([self.get_item_fileName(i) for i in self.getWidgetAllItem(self.enabledWidget)])
+            if list(self.enabledMod.keys()) != [self.get_item_fileName(i) for i in
+                                                self.getWidgetAllItem(self.enabledWidget)]:
+                self.changeSaveBtn(True)
+            else:
+                self.checkSaveBtn()
+
+    def itemChanged(self, item: QListWidgetItem):
+        fileName = self.get_item_fileName(item)
+        if not fileName:
+            return
+        if fileName not in self.enabledMod:
+            return
+        status = item.checkState()
+        if status == 2:
+            status = 1
+        info = self.get_item_enable_status(item)
+        if info is None:
+            return
+        if status != info:
+            self.changeSaveBtn(True)
+            return
+        self.checkSaveBtn()
 
     def keyPressEvent(self, a0: QKeyEvent):
         if self.isVisible():
@@ -178,6 +246,15 @@ class editTypeInfoPage(QWidget, Ui_Form, Item):
             elif a0.key() == Qt.Key_Escape:
                 self.setFocus()
         super().keyPressEvent(a0)
+
+    def syncTypeBtnChanged(self, status: bool):
+        for item in self.getWidgetAllItem(self.enabledWidget):
+            if status:
+                self._checkTypeHide(item, True, True)
+            else:
+                item.setHidden(False)
+        self.searchLineEdit.clear()
+        self.enabledWidget.setCurrentIndex(QModelIndex())
 
     def setProgressBar(self, value: int):
         self.ProgressBar.setValue(value)
@@ -190,6 +267,7 @@ class editTypeInfoPage(QWidget, Ui_Form, Item):
 
     def readThreadFinished(self):
         self.stackedWidget.setCurrentWidget(self.page_3)
+        self.setEnabled(True)
 
     def updateProgress(self, data: dict):
         if name := data.get('fail'):
@@ -213,15 +291,42 @@ class editTypeInfoPage(QWidget, Ui_Form, Item):
     def setCustomQss(self):
         self.setStyleSheet("background-color: rgb(247,249,252);")
 
+    def _checkTypeHide(self, item, isEnableWidget=None, setHide: bool = False):
+        itemFatherType = self.get_item_father_type(item)
+        itemChildType = self.get_item_child_type(item)
+        if isEnableWidget and self.syncType.isChecked() is False:
+            status = False
+        elif self.filterFatherType == '全部':
+            status = False
+        else:
+            if itemFatherType != self.filterFatherType:
+                status = True
+            elif self.filterChildType == '':
+                status = False
+            elif itemChildType != self.filterChildType:
+                status = True
+            else:
+                status = False
+        if setHide:
+            item.setHidden(status)
+        return status
+
     def searchChange(self, text=''):
         text = text.strip().lower()
         for widget in [self.enabledWidget, self.disabledWdiget]:
+            is_enAbelWidget = widget == self.enabledWidget
             for item in self.getWidgetAllItem(widget):
                 if not text:
-                    item.setHidden(False)
+                    self._checkTypeHide(item, is_enAbelWidget, True)
+                    continue
+                hide = self._checkTypeHide(item, is_enAbelWidget)
+                if hide:
+                    item.setHidden(hide)
                     continue
                 if text not in item.text():
                     item.setHidden(True)
+                else:
+                    item.setHidden(False)
 
     @staticmethod
     def getWidgetAllItem(widget: ListWidget):
@@ -245,9 +350,13 @@ class editTypeInfoPage(QWidget, Ui_Form, Item):
 
         self.typeBox.setText(child_type if child_type else father_type)
         self._set_show(self.disabledWdiget, father_type, child_type)
-        if self.CheckBox.isChecked():
+        self.filterFatherType = father_type
+        self.filterChildType = child_type
+        if self.syncType.isChecked():
             self.disabledBtn.setEnabled(False)
             self._set_show(self.enabledWidget, father_type, child_type)
+        if self.searchLineEdit.text():
+            self.searchLineEdit.clear()
 
     def _set_show(self, widget: ListWidget, fatherType: str = None, childType: str = None):
         for item in self.getWidgetAllItem(widget):
@@ -306,6 +415,6 @@ class editTypeInfoPage(QWidget, Ui_Form, Item):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    main = editTypeInfoPage(None, '近战')
+    main = editTypeInfoPage('近战', saveFunc=lambda *args, **kwargs: print('args', args, kwargs))
     main.show()
     app.exec_()

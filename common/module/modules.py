@@ -114,6 +114,10 @@ class TableModel(QAbstractTableModel):
                 data = str(self._search_result[row][-1])
                 if data:
                     return data
+            elif col == 3:
+                data = str(self._search_result[row][-2])
+                if data:
+                    return data
             return str(self._search_result[row][col])
         if role == Qt.UserRole + 1:
             title = self._search_result[row][0]
@@ -124,6 +128,7 @@ class TableModel(QAbstractTableModel):
         if role == Qt.UserRole + 3:
             # 自定义标题
             return self._search_result[row][-1]
+        # Qt.UserRole + ? 代表自定义描述 没用上 不管
         return None
 
     def changeCustomData(self, data_info, fatherType, childType, oldFatherType, oldChildType):
@@ -213,6 +218,133 @@ class TableModel(QAbstractTableModel):
         self.endResetModel()
 
     def setData(self, index, value, role=...):
+        logger.info(f'修改为:{[value]}, {index.isValid()}')
+        if index.isValid() and role == Qt.EditRole:
+            row = index.row()
+            column = index.column()
+            if column == 1:
+                # 标题
+                return self.changeTitle(value, row, index, column)
+            # NieR:Virtuous Contract(Crowbar)
+            # Replace the Crowbar.form NieR:Automata(ニーア オートマタ). <Virtuous Contract>
+            elif column == 3:
+                # 描述
+                return self.changeDescription(value, row, index, column)
+            return False
+        return False
+
+    def changeDescription(self, value, row, index, column):
+        def change_customDescription(change_data=''):
+            print('change_customDescription', [change_data])
+            self._search_result[row][-2] = change_data
+            vpkConfig.update_config(title, {"customDescription": change_data})
+            if change_data:
+                db.setCustomInfo(title, 'addondescription', change_data)
+                # signalBus.vpkDescriptionChanged.emit(title, change_data or original_description)
+            else:
+                print('change_data为空,不写入数据库')
+
+        def emit():
+            self.dataChanged.emit(index, index, [Qt.DisplayRole])
+
+        def write_to_vpk():
+            box = ReWriteMessageBox(self._parent.window(), file_path, 'addondescription', value)
+            if not box.exec_():
+                show = f'mod:{title} 描述修改失败,存储为自定义描述'
+                logger.error(show)
+                InfoBar.warning(
+                    title='',
+                    content=show,
+                    orient=Qt.Horizontal,
+                    isClosable=False,
+                    position=InfoBarPosition.TOP,
+                    parent=self._parent.window()
+                )
+                if value == customDescription:
+                    logger.info(f'{title} 修改的描述和自定义描述一样,不做任何修改')
+                    return False
+                change_customDescription(value)
+                emit()
+                return True
+            logger.info(f'{title} vpk文件写入成功, 描述修改为<{value}>')
+            self._search_result[row][3] = value
+            emit()
+            return True
+
+        data = self._search_result[row]
+        title = data[0]
+        customDescription = data[-2]
+        originalDescription = data[3]
+        if not value:
+            if customDescription:
+                change_customDescription()
+                emit()
+                logger.info(f'mod:{title} 清除自定义描述')
+                return True
+            logger.info(f'mod:{title} 无自定义描述,不做任何修改')
+            return False
+        # 现在都是有输入值
+        exe_exists = l4d2Config.vpk_application_is_exists
+        if not customDescription and not exe_exists:
+            change_customDescription(value)
+            emit()
+            logger.info(f'mod: {title} 直接设置自定义描述<{value}>')
+            return True
+        file_path = self.folder_path / f'{title}.vpk'
+        res = open_vpk(file_path)
+        # 能否打开
+        can_open = res not in [None, False]
+        del res
+        if not customDescription and exe_exists:
+            if not can_open:
+                InfoBar.warning(
+                    title='',
+                    content=f'mod文件打开失败,不写入文件,存入自定义描述',
+                    orient=Qt.Horizontal,
+                    isClosable=False,
+                    position=InfoBarPosition.TOP,
+                    parent=self._parent.window()
+                )
+                logger.warn(f'mod: {title} 文件打开失败,不写入文件,存入自定义描述')
+                change_customDescription(value)
+                emit()
+                return True
+            if originalDescription == value:
+                logger.info(f'mod: {title} 描述和修改描述一致,不做修改')
+                return False
+            logger.info(f'mod:{title} 自定义描述尝试存储到vpk中')
+            return write_to_vpk()
+        # 现在是有自定义描述 有修改内容
+        if value == customDescription:
+            if value == originalDescription:
+                logger.info(f'mod:{title} 删除自定义描述')
+                change_customDescription()
+                emit()
+                return True
+            if not exe_exists:
+                logger.info(f'mod:{title} 不进行任何操作')
+                return False
+            if exe_exists and not can_open:
+                logger.info(f'mod:{title} 和自定义描述一样,不做修改')
+                return False
+            # 只会是vpk.exe在,能打开
+            return write_to_vpk()
+        # 有修改内容 无自定义描述
+        if value == originalDescription:
+            logger.info('不做任何修改')
+            return False
+        if not exe_exists:
+            logger.info(f'{title} 设置自定义描述: {value}')
+            change_customDescription(value)
+            emit()
+            return True
+        if exe_exists and not can_open:
+            logger.info(f'{title} 无法打开vpk, 设置自定义描述: {value}')
+            change_customDescription(value)
+            emit()
+        return write_to_vpk()
+
+    def changeTitle(self, value, row, index, column):
         def change_customTitle(change_data=''):
             self._search_result[row][-1] = change_data
             vpkConfig.update_config(title, {"customTitle": change_data})
@@ -222,11 +354,8 @@ class TableModel(QAbstractTableModel):
         def emit():
             self.dataChanged.emit(index, index, [Qt.DisplayRole])
 
-        def change_title(change_data):
-            self._search_result[row][1] = change_data
-
         def write_to_vpk():
-            box = ReWriteMessageBox(self._parent.window(), file_path, value)
+            box = ReWriteMessageBox(self._parent.window(), file_path, 'addontitle', value)
             if not box.exec_():
                 show = f'mod:{title} 标题修改失败,存储为自定义标题'
                 logger.error(show)
@@ -249,177 +378,78 @@ class TableModel(QAbstractTableModel):
             emit()
             return True
 
-        logger.info(f'修改为:{[value]}, {index.isValid()}')
-        if index.isValid() and role == Qt.EditRole:
-            row = index.row()
-            column = index.column()
-            if column != 1:
-                return False
-            data = self._search_result[row]
-            title = data[0]
-            customTitle = data[-1]
-            originalTitle = data[column]
-            if not value:
-                if customTitle:
-                    change_customTitle()
-                    emit()
-                    logger.info(f'mod:{title} 清除自定义标题')
-                    return True
-                logger.info(f'mod:{title} 无自定义标题,不做任何修改')
-                return False
-            # 现在都是有输入值
-            exe_exists = l4d2Config.vpk_application_is_exists
-            if not customTitle and not exe_exists:
-                change_customTitle(value)
+        data = self._search_result[row]
+        title = data[0]
+        customTitle = data[-1]
+        originalTitle = data[column]
+        if not value:
+            if customTitle:
+                change_customTitle()
                 emit()
-                logger.info(f'mod: {title} 直接设置自定义标题<{value}>')
+                logger.info(f'mod:{title} 清除自定义标题')
                 return True
-            file_path = self.folder_path / f'{title}.vpk'
-            res = open_vpk(file_path)
-            # 能否打开
-            can_open = res not in [None, False]
-            del res
-            if not customTitle and exe_exists:
-                if not can_open:
-                    InfoBar.warning(
-                        title='',
-                        content=f'mod文件打开失败,不写入文件,存入自定义标题',
-                        orient=Qt.Horizontal,
-                        isClosable=False,
-                        position=InfoBarPosition.TOP,
-                        parent=self._parent.window()
-                    )
-                    logger.warn(f'mod: {title} 文件打开失败,不写入文件,存入自定义标题')
-                    change_customTitle(value)
-                    emit()
-                    return True
-                logger.info(f'mod:{title} 自定义标题尝试存储到vpk中')
-                return write_to_vpk()
-            # 现在是有自定义标题 有修改内容
-            if value == customTitle:
-                if value == originalTitle:
-                    logger.info(f'mod:{title} 删除自定义标题')
-                    change_customTitle()
-                    emit()
-                    return True
-                if not exe_exists:
-                    logger.info(f'mod:{title} 不进行任何操作')
-                    return False
-                if exe_exists and not can_open:
-                    logger.info(f'mod:{title} 和自定义标题一样,不做修改')
-                    return False
-                # 只会是vpk.exe在,能打开
-                return write_to_vpk()
-            # 有修改内容 无自定义标题
-            if value == originalTitle:
-                logger.info('不做任何修改')
-                return False
-            if not exe_exists:
-                logger.info(f'{title} 设置自定义标题: {value}')
+            logger.info(f'mod:{title} 无自定义标题,不做任何修改')
+            return False
+        # 现在都是有输入值
+        exe_exists = l4d2Config.vpk_application_is_exists
+        if not customTitle and not exe_exists:
+            change_customTitle(value)
+            emit()
+            logger.info(f'mod: {title} 直接设置自定义标题<{value}>')
+            return True
+        file_path = self.folder_path / f'{title}.vpk'
+        res = open_vpk(file_path)
+        # 能否打开
+        can_open = res not in [None, False]
+        del res
+        if not customTitle and exe_exists:
+            if not can_open:
+                InfoBar.warning(
+                    title='',
+                    content=f'mod文件打开失败,不写入文件,存入自定义标题',
+                    orient=Qt.Horizontal,
+                    isClosable=False,
+                    position=InfoBarPosition.TOP,
+                    parent=self._parent.window()
+                )
+                logger.warn(f'mod: {title} 文件打开失败,不写入文件,存入自定义标题')
                 change_customTitle(value)
                 emit()
                 return True
-            if exe_exists and not can_open:
-                logger.info(f'{title} 无法打开vpk, 设置自定义标题: {value}')
-                change_customTitle(value)
-                emit()
+            if originalTitle == value:
+                logger.info(f'mod: {title} 标题和修改标题一致,不做修改')
+                return False
+            logger.info(f'mod:{title} 自定义标题尝试存储到vpk中')
             return write_to_vpk()
-        return False
-
-        #     if not compare:
-        #         # 原始标题
-        #         compare = data[column]
-        #     # compare 可能是原始标题也可能是 之前的自定义标题
-        #     if compare != value or value == customTitle:
-        #         if not l4d2Config.vpk_application_is_exists:
-        #             # 没有vpk.exe
-        #             if not value:
-        #                 if customTitle:
-        #                     change_customTitle()
-        #                     self.dataChanged.emit(index, index, [Qt.DisplayRole])
-        #                     logger.info(f'清除 {title} 自定义标题')
-        #                     return True
-        #                 logger.info('不做任何修改')
-        #                 return False
-        #             else:
-        #                 if customTitle:
-        #                     if value == originalTitle:
-        #                         logger.info(f'{title} 和原本标题一致, 删除自定义标题')
-        #                         change_customTitle()
-        #                         self.dataChanged.emit(index, index, [Qt.DisplayRole])
-        #                         return True
-        #                     if value == customTitle:
-        #                         logger.info(f'{title} 修改的标题和自定义标题一样,不做任何修改')
-        #                         return False
-        #                 change_customTitle(value)
-        #                 logger.info(f'mod: {title} 设置自定义标题<{value}>')
-        #                 self.dataChanged.emit(index, index, [Qt.DisplayRole])
-        #                 return True
-        #         logger.info('尝试是否能正常打开vpk')
-        #         file_path = self.folder_path / f'{title}.vpk'
-        #         res = open_vpk(file_path)
-        #         if res in [None, False]:
-        #             InfoBar.warning(
-        #                 title='',
-        #                 content=f'mod文件打开失败,不写入文件,存入自定义标题',
-        #                 orient=Qt.Horizontal,
-        #                 isClosable=False,
-        #                 position=InfoBarPosition.TOP,
-        #                 parent=self._parent.window()
-        #             )
-        #
-        #             self._search_result[row][-1] = value
-        #             title = self.get_row_title(row)
-        #             logger.info(f'文件:{title}标题修改为 <{value}>,原始标题为 <{originalTitle}> ')
-        #             vpkConfig.update_config(title, {"customTitle": value})
-        #             self.dataChanged.emit(index, index, [Qt.DisplayRole])
-        #             return True
-        #         del res
-        #         new_title = value
-        #         if not value:
-        #             # 输入内容为空
-        #             if customTitle:
-        #                 # 能打开,有自定义标题,则保存到vpk的addoninfo中
-        #                 logger.info(f'mod:{title} 自定义标题尝试存储到vpk中')
-        #                 new_title = customTitle
-        #                 change_customTitle()
-        #             else:
-        #                 # 能打开,没有自定义标题
-        #                 logger.info(f'mod:{title} 修改为空,无自定义标题,显示原始标题')
-        #                 return False
-        #         else:
-        #             if value == originalTitle:
-        #                 logger.info(f'mod:{title} 取消自定义标题')
-        #                 change_customTitle()
-        #                 self.dataChanged.emit(index, index, [Qt.DisplayRole])
-        #                 return True
-        #             elif value == customTitle:
-        #                 logger.info(f'mod:{title} 自定义标题尝试存储到vpk中')
-        #                 change_customTitle()
-        #             else:
-        #                 logger.info(f'mod:{title} 修改标题为<{value}>并存储到vpk中')
-        #                 if customTitle:
-        #                     change_customTitle()
-        #         box = ReWriteMessageBox(self._parent.window(), file_path, new_title)
-        #         if not box.exec_():
-        #             show = f'mod:{title} 标题修改失败,存储为自定义标题'
-        #             logger.error(show)
-        #             InfoBar.warning(
-        #                 title='',
-        #                 content=show,
-        #                 orient=Qt.Horizontal,
-        #                 isClosable=False,
-        #                 position=InfoBarPosition.TOP,
-        #                 parent=self._parent.window()
-        #             )
-        #             change_customTitle(new_title)
-        #             self.dataChanged.emit(index, index, [Qt.DisplayRole])
-        #             return True
-        #         logger.info(f'{title} vpk文件写入成功, 标题修改为<{new_title}>')
-        #         self._search_result[row][1] = new_title
-        #         self.dataChanged.emit(index, index, [Qt.DisplayRole])
-        #         return True
-        # return False
+        # 现在是有自定义标题 有修改内容
+        if value == customTitle:
+            if value == originalTitle:
+                logger.info(f'mod:{title} 删除自定义标题')
+                change_customTitle()
+                emit()
+                return True
+            if not exe_exists:
+                logger.info(f'mod:{title} 不进行任何操作')
+                return False
+            if exe_exists and not can_open:
+                logger.info(f'mod:{title} 和自定义标题一样,不做修改')
+                return False
+            # 只会是vpk.exe在,能打开
+            return write_to_vpk()
+        # 有修改内容 无自定义标题
+        if value == originalTitle:
+            logger.info('不做任何修改')
+            return False
+        if not exe_exists:
+            logger.info(f'{title} 设置自定义标题: {value}')
+            change_customTitle(value)
+            emit()
+            return True
+        if exe_exists and not can_open:
+            logger.info(f'{title} 无法打开vpk, 设置自定义标题: {value}')
+            change_customTitle(value)
+            emit()
+        return write_to_vpk()
 
     def resetModel(self):
         self.beginResetModel()
@@ -440,6 +470,8 @@ class TableModel(QAbstractTableModel):
         add_data = [title]
         for i in NEED_DATA:
             add_data.append(data.get('file_info', {}).get(i, ''))
+        # 自定义描述
+        add_data.append(data.get('customDescription', ''))
         # 自定义标题
         add_data.append(data.get('customTitle', ''))
         return add_data
@@ -498,8 +530,10 @@ class TableModel(QAbstractTableModel):
     def sort(self, column, order=...):
         if self._search_result:
             self.layoutAboutToBeChanged.emit()
-            if column != 1:
+            if column not in [1, 3]:
                 key = lambda x: x[column]
+            elif column == 3:
+                key = lambda x: x[column] if not x[-2] else x[-2]
             else:
                 key = lambda x: x[column] if not x[-1] else x[-1]
             self._search_result.sort(key=key, reverse=(order == Qt.AscendingOrder))
@@ -639,6 +673,6 @@ class TableModel(QAbstractTableModel):
         return self._find_index(self._search_result, filename)
 
     def flags(self, index: QModelIndex):
-        if index.column() == 1:
+        if index.column() in [1, 3]:
             return Qt.ItemIsSelectable | Qt.ItemIsEditable | Qt.ItemIsEnabled
         return Qt.ItemIsSelectable | Qt.ItemIsEnabled

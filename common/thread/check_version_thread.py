@@ -20,6 +20,7 @@ class CheckVersion(QThread):
 
     @staticmethod
     def sendRequest():
+        # todo 加速地址改为可配置,后续自动下载包
         url = 'https://www.ghproxy.cn/https://raw.githubusercontent.com/fdklgbh/L4D2-Mod-Manager/refs/heads/master/docs/update_version.json'
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         try:
@@ -29,10 +30,19 @@ class CheckVersion(QThread):
                 'status': False,
                 'msg': '请求失败或者超时,请检查网络状态!'
             }
+        else:
+            try:
+                logger.info(f'请求返回信息:{res.text}')
+            except Exception as e:
+                logger.warn(f'输出日志失败:{e}')
         if res.status_code != 200:
+            try:
+                logger.warning(f'返回数据 ===> {res.text}')
+            except Exception as e:
+                logger.error(f'返回数据文本输出错误,{e}')
             return {
                 'status': False,
-                'msg': res.status_code
+                'msg': '响应码: ' + str(res.status_code) + ',具体信息看日志'
             }
         else:
             logger.info(f'返回数据 ===> {res.json()}')

@@ -4,7 +4,7 @@
 # @File: messagebox.py
 from pathlib import Path
 
-from PyQt5.QtCore import QThreadPool, pyqtSignal
+from PyQt5.QtCore import QThreadPool, pyqtSignal, Qt
 from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QSpacerItem, QSizePolicy
 from qfluentwidgets import MessageBoxBase, IndeterminateProgressBar, PlainTextEdit, SubtitleLabel, BodyLabel, ComboBox, \
     IndeterminateProgressRing, ListWidget
@@ -79,10 +79,9 @@ class ChangeTypeMessageBox(MessageBoxBase):
 
 
 class ReWriteMessageBox(MessageBoxBase):
-    def __init__(self, parent, file_path: Path, new_title):
+    def __init__(self, parent, file_path: Path, key, new_value):
         super().__init__(parent)
         self._file = file_path
-        self._new_title = new_title
         self.inProgressBar = IndeterminateProgressBar(self)
         self.widget.setMinimumWidth(520)
         self.plainText = PlainTextEdit(self)
@@ -90,7 +89,7 @@ class ReWriteMessageBox(MessageBoxBase):
         self.plainText.setMinimumHeight(100)
         self._thread_pool = QThreadPool.globalInstance()
         title = SubtitleLabel(self)
-        title.setText(f'写入标题到 {self._file.stem} 的addoninfo文件中')
+        title.setText(f'写入配置到 {self._file.stem} 的addoninfo文件中')
         body = BodyLabel(self)
         body.setText('写入成功会直接退出,如果没有成功,点击确定')
         self.cancelButton.setText('我知道了')
@@ -102,7 +101,7 @@ class ReWriteMessageBox(MessageBoxBase):
         signalBus.reWriteLogSignal.connect(self.plainText.appendPlainText)
         res = vpkConfig.get_file_config(self._file.stem)
         file_info = res.get('file_info', {"addonsteamappid": '550'})
-        file_info.update({'addontitle': new_title})
+        file_info.update({key: new_value})
         self.yesButton.hide()
         self.buttonLayout.insertStretch(0, 1)
         self.cancelButton.setEnabled(False)
@@ -131,33 +130,52 @@ class ReWriteMessageBox(MessageBoxBase):
 class ChoiceTypeMessageBox(MessageBoxBase):
     """
     添加切换mod前,先选择分类
+    todo 添加的时候,选择是否勾选读取addons workshop中的mod文件(可能会读取addonlist中启用或者禁用)
     """
 
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        # self.titleLabel = SubtitleLabel('打开 URL')
-        # self.urlLineEdit = LineEdit()
         layout = QHBoxLayout()
         self.comboBox = ComboBox()
+        self.loadTypeComboBox = ComboBox()
         text_list = ['全部'] + ModType.father_type_keys()
         text_list.remove('地图')
+        self.all_type = text_list
         self.comboBox.addItems(text_list)
         self.subtitle = SubtitleLabel()
         self.subtitle.setText('选择后续的分类: ')
         layout.addWidget(self.subtitle)
         layout.addWidget(self.comboBox)
+        self.viewLayout.addLayout(layout)
+        self.load_used()
         self.yesButton.setText('确定')
         self.cancelButton.setText('取消')
-        # self.urlLineEdit.setPlaceholderText('输入文件、流或者播放列表的 URL')
-        # self.urlLineEdit.setClearButtonEnabled(True)
-
-        # 将组件添加到布局中
-        # self.viewLayout.addWidget(self.titleLabel)
-        # self.viewLayout.addWidget(self.urlLineEdit)
-        self.viewLayout.addLayout(layout)
-        # 设置对话框的最小宽度
+        self.comboBox.currentTextChanged.connect(self.newTypeChoice)
         self.widget.setMinimumWidth(350)
+
+    def load_used(self):
+        layout = QHBoxLayout()
+        layout.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        self.loadTypeComboBox.addItem('')
+        self.loadTypeComboBox.addItems(self.all_type)
+        self.loadTypeComboBox.setMinimumWidth(100)
+        subtitle = BodyLabel()
+        subtitle.setText('加载启用mod分类: ')
+        layout.addWidget(subtitle)
+        layout.addWidget(self.loadTypeComboBox)
+        self.viewLayout.addLayout(layout)
+
+    def getLoadType(self):
+        return self.loadTypeComboBox.text()
+
+    def newTypeChoice(self, text):
+        self.loadTypeComboBox.clear()
+        self.loadTypeComboBox.addItem('')
+        if text == '全部':
+            self.loadTypeComboBox.addItems(self.all_type)
+        else:
+            self.loadTypeComboBox.addItem(text)
 
 
 class LoadingMessageBox(MessageBoxBase):

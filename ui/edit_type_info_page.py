@@ -9,6 +9,8 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtGui import QDropEvent, QDragEnterEvent
 
 
 class Ui_Form(object):
@@ -29,9 +31,9 @@ class Ui_Form(object):
         self.typeBox.setMaximumSize(QtCore.QSize(150, 16777215))
         self.typeBox.setObjectName("typeBox")
         self.horizontalLayout.addWidget(self.typeBox)
-        self.CheckBox = CheckBox(Form)
-        self.CheckBox.setObjectName("CheckBox")
-        self.horizontalLayout.addWidget(self.CheckBox)
+        self.syncType = CheckBox(Form)
+        self.syncType.setObjectName("syncType")
+        self.horizontalLayout.addWidget(self.syncType)
         self.searchLineEdit = SearchLineEdit(Form)
         self.searchLineEdit.setMaximumSize(QtCore.QSize(400, 33))
         self.searchLineEdit.setObjectName("searchLineEdit")
@@ -125,7 +127,7 @@ class Ui_Form(object):
         self.verticalLayout.setStretch(5, 1)
         self.verticalLayout.setStretch(6, 3)
         self.horizontalLayout_4.addLayout(self.verticalLayout)
-        self.enabledWidget = ListWidget(self.page_3)
+        self.enabledWidget = CListWidget(self.page_3)
         self.enabledWidget.setEnabled(True)
         self.enabledWidget.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.enabledWidget.setObjectName("enabledWidget")
@@ -162,6 +164,7 @@ class Ui_Form(object):
         self.saveBtn.clicked.connect(Form.savePage) # type: ignore
         self.closeBtn.clicked.connect(Form.close) # type: ignore
         self.saveNameEdit.textChanged['QString'].connect(Form.fileNameChanged) # type: ignore
+        self.syncType.toggled['bool'].connect(Form.syncTypeBtnChanged) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(Form)
 
     def retranslateUi(self, Form):
@@ -169,7 +172,7 @@ class Ui_Form(object):
         Form.setWindowTitle(_translate("Form", "Form"))
         self.saveNameEdit.setPlaceholderText(_translate("Form", "保存名称"))
         self.typeBox.setText(_translate("Form", "全部"))
-        self.CheckBox.setText(_translate("Form", "分类筛选两侧"))
+        self.syncType.setText(_translate("Form", "分类筛选两侧"))
         self.searchLineEdit.setPlaceholderText(_translate("Form", "搜索"))
         self.SubtitleLabel.setText(_translate("Form", "正在加载:"))
         self.loadingModText.setText(_translate("Form", "加载中..."))
@@ -179,3 +182,29 @@ class Ui_Form(object):
         self.saveBtn.setText(_translate("Form", "保存"))
         self.closeBtn.setText(_translate("Form", "关闭"))
 from qfluentwidgets import CheckBox, DropDownPushButton, LineEdit, ListWidget, PrimaryPushButton, ProgressBar, PushButton, SearchLineEdit, SubtitleLabel
+
+
+class CListWidget(ListWidget):
+    dropChanged = pyqtSignal()
+
+    def dragMoveEvent(self, event):
+        # 获取当前拖拽项的行号
+        current_row = self.currentRow()
+        # 获取目标位置的行号（若无效则返回-1）
+        target_row = self.indexAt(event.pos()).row()
+        # 忽略无效拖拽位置（如底部边界）
+        if (target_row == current_row + 1) or (current_row == self.count() - 1 and target_row == -1):
+            event.ignore()
+        else:
+            super().dragMoveEvent(event)
+    def dropEvent(self, e: QDropEvent):
+        old_order = [self.item(i).text() for i in range(self.count())]
+        super().dropEvent(e)  # 先执行默认行为
+        new_order = [self.item(i).text() for i in range(self.count())]
+
+        if old_order != new_order:
+            print("实际顺序已改变")
+            self.dropChanged.emit()
+        else:
+            print("无效拖拽，未改变顺序")
+

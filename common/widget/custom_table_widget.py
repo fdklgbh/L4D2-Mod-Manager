@@ -62,7 +62,7 @@ class CustomTableView(TableView):
         if row not in select_rows:
             self.selectRow(item.row())
         menu = RoundMenu(parent=self)
-        if item.column() == 1:
+        if item.column() in [1, 3]:
             edit = Action(FIF.EDIT, self.tr('编辑'))
             menu.addAction(edit)
             edit.triggered.connect(lambda: self.edit(item))

@@ -5,8 +5,8 @@
 import logging
 from typing import Type, Union
 from logging.handlers import RotatingFileHandler
-from common.conf import CONFIG, LogPath
-from sqlalchemy import exc, create_engine, desc
+from common.conf import CONFIG, LogPath, IS_DEV
+from sqlalchemy import exc, create_engine, desc, text
 from sqlalchemy.orm import sessionmaker, close_all_sessions, scoped_session
 from common.database.modules import *
 
@@ -15,20 +15,37 @@ class SqlAlchemyOption:
     def __init__(self):
         path = CONFIG / 'L4d2ModManager.db'
         logPath = LogPath / 'SQLAlchemy.log'
-        echo = True
+        echo = True if not IS_DEV else False
         self._engine = create_engine(f'sqlite:///{path}?charset=utf8', echo=echo, logging_name='SQLAlchemy',
-                                     pool_size=20, max_overflow=40, pool_timeout=30, pool_recycle=1800,
+                                     pool_size=50, max_overflow=100, pool_timeout=30, pool_recycle=1800,
                                      connect_args={"check_same_thread": False})
         if echo:
             handler = RotatingFileHandler(logPath, maxBytes=5 * 1024 * 1024, backupCount=3, encoding='utf8')
             formatter = logging.Formatter("%(asctime)s %(levelname)s %(name)s %(message)s")
             handler.setFormatter(formatter)
             self._engine.logger.logger.addHandler(handler)
-
+        self._update_db()
         Base.metadata.create_all(self._engine)
         SessionFactory = sessionmaker(bind=self._engine)
         # Session = scoped_session(SessionFactory)
         self._session = scoped_session(SessionFactory)
+
+    def _update_db(self):
+        with self._engine.connect() as connection:
+            result = connection.execute(
+                text("SELECT name FROM sqlite_master WHERE type='table' AND name='classificationInfo';")).fetchone()
+            if not result:
+                # 如果表不存在，直接返回，不执行任何更新操作
+                return
+            # classificationInfo 表添加 enable 字段 范围为0, 1,默认为1
+            result = connection.execute(text("PRAGMA table_info(classificationInfo);")).fetchall()
+            column_names = [column[1] for column in result]
+            if 'enable' not in column_names:
+                # 如果没有 'enable' 列，则添加该列
+                sql = """
+                ALTER TABLE classificationInfo ADD COLUMN enable INTEGER NOT NULL DEFAULT 1 CHECK (enable IN (0, 1));
+                """
+                connection.execute(text(sql))
 
     def addType(self, name: str, type_='全部', commit=True):
         """
@@ -56,7 +73,7 @@ class SqlAlchemyOption:
         return self._session.query(ClassificationInfo).filter_by(typeId=typeId).order_by(
             desc(ClassificationInfo.serialNumber)).first().serialNumber
 
-    def addClassificationInfo(self, type_id: int, vpkInfoIds: list[int], startNumber, commit=False):
+    def addClassificationInfo(self, type_id: int, vpkInfoIds: dict[int], startNumber, commit=False):
         """
         对应切换信息的id 以及对应的vpk id
         :param commit:
@@ -69,9 +86,9 @@ class SqlAlchemyOption:
         #     info = ClassificationInfo(typeId=type_id, vpkInfoId=vpkInfoId)
         #     self._session.add(info)
         infos = []
-        for vpkInfoId in vpkInfoIds:
+        for vpkInfoId, enable in vpkInfoIds.items():
             # 使用当前的 startNumber 作为 serialNumber
-            info = ClassificationInfo(typeId=type_id, vpkInfoId=vpkInfoId, serialNumber=startNumber)
+            info = ClassificationInfo(typeId=type_id, vpkInfoId=vpkInfoId, serialNumber=startNumber, enable=enable)
             infos.append(info)
             # 更新 startNumber
             startNumber += 1
@@ -91,8 +108,19 @@ class SqlAlchemyOption:
         if commit:
             self._session.commit()
 
+    def updateClassificationInfo(self, type_id: int, vpkInfoIds: dict[int], commit=True):
+        print('更新 vpkInfoIds', vpkInfoIds)
+        for index, (vpkInfoId, enable) in enumerate(vpkInfoIds.items()):
+            self._session.query(ClassificationInfo).filter(
+                ClassificationInfo.typeId == type_id, ClassificationInfo.vpkInfoId == vpkInfoId).update(
+                {ClassificationInfo.enable: enable, ClassificationInfo.serialNumber: index},
+                synchronize_session=False)
+        if commit:
+            self.commit()
+
     def findSwitchVpkInfo(self, typeId: int):
-        infos = self._session.query(ClassificationInfo).filter_by(typeId=typeId).all()
+        infos = self._session.query(ClassificationInfo).filter_by(typeId=typeId).order_by(
+            ClassificationInfo.serialNumber).all()
         data = {}
         for info in infos:
             vpkInfo: VPKInfo = info.vpkInfo
@@ -103,9 +131,35 @@ class SqlAlchemyOption:
                 'fatherType': vpkInfo.fatherType,
                 'childType': vpkInfo.childType,
                 'addonInfo': vpkInfo.addonInfo or {},
-                'addonInfoContent': vpkInfo.customAddonInfoContent or vpkInfo.addonInfoContent
+                'addonInfoContent': vpkInfo.customAddonInfoContent or vpkInfo.addonInfoContent,
+                'enable': info.enable
             }
-        return dict(sorted(data.items()))
+        return data
+
+    def findManyVpkInfo(self, fileNames: list, fatherType: str) -> dict:
+        query = self._session.query(VPKInfo).filter(VPKInfo.fileName.in_(fileNames))
+        if fatherType != '全部':
+            query = query.filter(VPKInfo.fatherType == fatherType)
+        elif fatherType == '全部':
+            query = query.filter(VPKInfo.fatherType != '地图')
+        else:
+            return {}
+        result = query.all()
+        file_to_index = {file: idx for idx, file in enumerate(fileNames)}
+        result.sort(key=lambda x: file_to_index.get(x.fileName, len(fileNames)))
+        data = {}
+        for vpkInfo in result:
+            data[vpkInfo.fileName] = {
+                'id': vpkInfo.id,
+                'title': vpkInfo.customTitle or vpkInfo.addonInfo.get('addontitle', '未知标题'),
+                'fatherType': vpkInfo.fatherType,
+                'childType': vpkInfo.childType,
+                'addonInfo': vpkInfo.addonInfo or {},
+                'addonInfoContent': vpkInfo.customAddonInfoContent or vpkInfo.addonInfoContent,
+                'enable': 1
+            }
+
+        return data
 
     def findSpecificFilesInfo(self, fileNames: list[str]) -> list:
         existing_files = self._session.query(VPKInfo.fileName).filter(VPKInfo.fileName.in_(fileNames)).all()
@@ -277,10 +331,11 @@ class SqlAlchemyOption:
         查找将要启用mod文件 文件名以及排序
         :param typeId:
         :return:
+            {fileName: enable}
         """
         res = self._session.query(ClassificationInfo).filter_by(typeId=typeId).order_by(
             ClassificationInfo.serialNumber).all()
-        return {info.vpkInfo.fileName: info.serialNumber for info in res}
+        return {info.vpkInfo.fileName: info.enable for info in res}
 
     def setCustomTitle(self, fileName, title, commit=True):
         res = self._getVpkInfoByFileName(fileName)
@@ -292,6 +347,15 @@ class SqlAlchemyOption:
             if commit:
                 self.commit()
             return res.customAddonInfo.get('addontitle', '')
+
+    def setCustomInfo(self, fileName, key, value, commit=True):
+        res = self._getVpkInfoByFileName(fileName)
+        if res:
+            res.customAddonInfo[key] = value
+            if commit:
+                self.commit()
+            return res.customAddonInfo.get(key)
+        print('xxxxxxxxxxxxxxxxxx')
 
 
 db = SqlAlchemyOption()

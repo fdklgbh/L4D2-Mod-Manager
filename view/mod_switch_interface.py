@@ -45,6 +45,7 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
     def __init__(self, parent):
         super().__init__(parent=parent)
         self.setupUi(self)
+        self.setEnabled(False)
         self.connectSignals()
         self._pauseMove = False
         self.switchWindows: editTypeInfoPage = None
@@ -58,12 +59,14 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
                 self.addType(name, indexId, type_)
             print('加载完毕')
             self.switch_type_info.setCurrentRow(0)
+            self.setEnabled(True)
             return
         self.add_default_type()
         self.switch_type_info.setCurrentRow(0)
+        self.setEnabled(True)
 
     def add_default_type(self):
-        data = []
+        data = {}
         for i in l4d2Config.read_addonlist(True):
             file = l4d2Config.addons_path / i
             logger.info(f'加载启用的mod文件:{file}')
@@ -82,7 +85,7 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
                     logger.warn(f'出现无缓存文件, {file.stem}, 等待0.2秒')
                     time.sleep(0.2)
                 else:
-                    data.append(vpkInfoIndex)
+                    data[vpkInfoIndex] = 1
                     break
                 if max_retry < 0:
                     logger.warn(f'加载启用的mod文件失败:{file}')
@@ -105,10 +108,9 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
                                    res.get('customTitle', res.get('file_info', {}).get('addontitle')))
         return result.get('id'), result.get('fatherType', '其他')
 
-    def add_type_detail_info(self, name, type_, data: list[int], selected=False):
+    def add_type_detail_info(self, name, type_, data: dict[int], selected=False):
         """
         添加切换类型
-        :param startNumber:
         :param selected:
         :param name:
         :param type_:
@@ -117,7 +119,7 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
         """
         try:
             id_ = db.addType(name, type_, commit=False)
-            print('add_type_detail_info', id_)
+            print('add_type_detail_info', id_, 'data', data)
             db.addClassificationInfo(id_, data, 1)
             db.commit()
             item = self.addType(name, id_, type_)
@@ -212,7 +214,8 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
         menu = RoundMenu()
         if item:
             use = Action(MyIcon.switch, '切换')
-            use.triggered.connect(lambda x: self.menueChangeType(item))
+            # todo 切换开始前记录当前mod (1.2.x)
+            use.triggered.connect(lambda x: self.menuChangeType(item))
             menu.addAction(use)
             refresh = Action(MyIcon.refresh, '刷新')
             refresh.triggered.connect(lambda x: self.refreshType(item))
@@ -236,28 +239,24 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
         self.switch_type_info.takeItem(row)
         db.deleteType(item.data(Qt.UserRole))
 
-    def edit_type_detail_info(self, name, after: list[int], before: list[int], typeId: int):
+    def edit_type_detail_info(self, name, after: dict, before: dict, typeId: int):
         #     (self.saveNameEdit.text(), self._getEnableData, self.itemIds, self.typeId)
+        """
+        :param name:
+        :param after:
+        :param before:
+        :param typeId:
+        :return:
+        """
         if name:
             db.changeClassificationName(typeId, name)
-        after_set = set(after)
-        before_set = set(before)
-        need_add = after_set.difference(before_set)
-        need_remove = before_set.difference(after_set)
-        logger.info(f'需要添加的vpkInfo.id:{need_add}')
-        logger.info(f'需要删除的vpkInfo.id:{need_remove}')
-        if need_remove:
-            db.deleteClassificationInfo(typeId, list(need_remove), commit=False)
-        if need_add:
-            start = db.getClassificationInfoMaxNumber(typeId) + 1
-            db.addClassificationInfo(typeId, need_add, start, commit=False)
-        db.commit()
+        print('after', after)
+        print('before', before)
+        db.deleteClassificationInfo(typeId, list(before.keys()), False)
+        db.addClassificationInfo(typeId, {i: after.get(i, 1) for i in after}, 0, True)
         for i in range(self.switch_type_info.count()):
             item = self.switch_type_info.item(i)
             if item.data(Qt.UserRole) == typeId:
-                # item.setData(Qt.UserRole, indexId)
-                #         item.setData(Qt.UserRole + 1, type_)
-                #         item.setData(Qt.UserRole + 2, name)
                 if name:
                     item.setData(Qt.UserRole + 2, name)
                     item.setText(f'{item.data(Qt.UserRole + 1)} - {item.data(Qt.UserRole + 2)}')
@@ -275,7 +274,11 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
         box = ChoiceTypeMessageBox(self.window())
         if not box.exec_():
             return
-        self.startNewWindow('添加', self.add_type_detail_info, box.comboBox.text())
+        loadType = box.getLoadType()
+        print(loadType)
+        fileNames: list = [i.split('\\')[-1].replace('.vpk', '') for i in l4d2Config.read_addonlist(True)]
+        res = db.findManyVpkInfo(fileNames, loadType)
+        self.startNewWindow('添加', self.add_type_detail_info, box.comboBox.text(), enabledMod=res)
 
     def startNewWindow(self, windowTitle, saveFunc, modType='全部', title=None, enabledMod: dict = None, typeId=None):
         if self.switchWindows:
@@ -293,7 +296,7 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
             print(self.switchWindows)
             return
 
-        self.switchWindows = editTypeInfoPage(None, modType, title, enabledMod, saveFunc, typeId)
+        self.switchWindows = editTypeInfoPage(modType, title, enabledMod, saveFunc, typeId)
         # self.w.setWindowModality(Qt.ApplicationModal)
         self.switchWindows.setWindowTitle(windowTitle)
         self.switchWindows.closedSignal.connect(lambda: setattr(self, 'switchWindows', None))
@@ -306,8 +309,7 @@ class ModSwitchInterface(QWidget, Ui_ModSwitchInterface, Item):
                 if name == proc.name():
                     return True
 
-    def menueChangeType(self, item: QListWidgetItem):
-
+    def menuChangeType(self, item: QListWidgetItem):
         def pause():
             load_window.loadingStatusChangedSignal.emit(True)
 
