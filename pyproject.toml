@@ -1,0 +1,21 @@
+[project]
+name = "left4dead2"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "alembic>=1.17.0",
+    "loguru>=0.7.3",
+    "psutil>=7.1.0",
+    "pydantic>=2.12.3",
+    "pyqt-fluent-widgets>=1.9.1",
+    "pyqt5==5.15.11",
+    "pyqt5-qt5==5.15.2",
+    "qfluentpackage",
+    "requests>=2.32.5",
+    "sqlmodel>=0.0.27",
+]
+
+[tool.uv.sources]
+qfluentpackage = { url = "https://github.com/fdklgbh/my_qfluent_utils_package/releases/download/1.0.3/qfluentpackage-1.0.3-py3-none-any.whl" }

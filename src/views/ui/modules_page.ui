@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>modShowView</class>
+ <widget class="QFrame" name="modShowView">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>882</width>
+    <height>876</height>
+   </rect>
+  </property>
+  <property name="tabletTracking">
+   <bool>false</bool>
+  </property>
+  <property name="windowTitle">
+   <string>Frame</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="1,9">
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="SearchLineEdit" name="search_edit"/>
+     </item>
+     <item>
+      <widget class="PushButton" name="refresh_btn">
+       <property name="toolTip">
+        <string/>
+       </property>
+       <property name="text">
+        <string>刷新</string>
+       </property>
+       <property name="shortcut">
+        <string>F5</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="DropDownPushButton" name="menu_btn">
+       <property name="minimumSize">
+        <size>
+         <width>120</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>全部</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QSplitter" name="splitter">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="handleWidth">
+      <number>6</number>
+     </property>
+     <property name="childrenCollapsible">
+      <bool>true</bool>
+     </property>
+     <widget class="ModShowTableView" name="tableView"/>
+     <widget class="QWidget" name="vkp_info" native="true">
+      <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0,5,0">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <spacer name="verticalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>286</width>
+           <height>37</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="PixmapLabel" name="file_pic"/>
+       </item>
+       <item>
+        <widget class="PlainTextEdit" name="addons_info">
+         <property name="tabletTracking">
+          <bool>false</bool>
+         </property>
+         <property name="tabChangesFocus">
+          <bool>true</bool>
+         </property>
+         <property name="lineWrapMode">
+          <enum>QPlainTextEdit::NoWrap</enum>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+         <property name="backgroundVisible">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>PushButton</class>
+   <extends>QPushButton</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>DropDownPushButton</class>
+   <extends>PushButton</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>PixmapLabel</class>
+   <extends>QLabel</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>LineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>SearchLineEdit</class>
+   <extends>LineEdit</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>PlainTextEdit</class>
+   <extends>QPlainTextEdit</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>ModShowTableView</class>
+   <extends>QTableView</extends>
+   <header>views.components.mod_show_view</header>
+  </customwidget>
+ </customwidgets>
+ <tabstops>
+  <tabstop>search_edit</tabstop>
+  <tabstop>refresh_btn</tabstop>
+  <tabstop>tableView</tabstop>
+ </tabstops>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>search_edit</sender>
+   <signal>searchSignal(QString)</signal>
+   <receiver>modShowView</receiver>
+   <slot>perform_search()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>238</x>
+     <y>21</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>153</x>
+     <y>23</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>search_edit</sender>
+   <signal>textChanged(QString)</signal>
+   <receiver>modShowView</receiver>
+   <slot>perform_search()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>366</x>
+     <y>38</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>47</x>
+     <y>38</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>search_edit</sender>
+   <signal>clearSignal()</signal>
+   <receiver>modShowView</receiver>
+   <slot>perform_search()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>366</x>
+     <y>42</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>630</x>
+     <y>14</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>splitter</sender>
+   <signal>splitterMoved(int,int)</signal>
+   <receiver>modShowView</receiver>
+   <slot>on_splitter_moved()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>366</x>
+     <y>282</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>366</x>
+     <y>254</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>onDoubleClicked()</slot>
+  <slot>show_addon_info()</slot>
+  <slot>perform_search()</slot>
+  <slot>search_restore()</slot>
+  <slot>show_type_menu()</slot>
+  <slot>on_splitter_moved()</slot>
+ </slots>
+</ui>
