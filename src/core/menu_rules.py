@@ -3,311 +3,351 @@
 # @Author: Administrator
 # @File: menu_rules.py
 from functools import lru_cache
+from typing import Any
+
 from .enums import MenuCategory
 
 CATEGORY = [
-    '幸存者', '特感', '武器', '近战', '医疗品', '投掷', 'UI', '杂项', '载具', '弹药', '材质特效', '动作', '地图', '其他'
+    "幸存者",
+    "特感",
+    "武器",
+    "近战",
+    "医疗品",
+    "投掷",
+    "UI",
+    "杂项",
+    "载具",
+    "弹药",
+    "材质特效",
+    "动作",
+    "地图",
+    "其他",
 ]
 
 SUBCATEGORY = {
     # 人物 根据mdl文件检查, 完成
     "幸存者": {
-        "比尔": 'namvet',
-        "比尔躯体": "namvet_deathpose",
-        "弗朗西斯": 'biker',
-        "路易斯": 'manager',
-        '佐伊': 'teenangst',
-        "Ellis": 'mechanic',
-        "Coach": 'coach',
-        "Nick": 'gambler',
+        "比尔": "namvet",
+        "比尔躯体": "models/survivors/namvet/namvet_deathpose.mdl",
+        "弗朗西斯": "biker",
+        "路易斯": "manager",
+        "佐伊": "teenangst",
+        "Ellis": "mechanic",
+        "Coach": "coach",
+        "Nick": "gambler",
         "Rochelle": "producer",
-        "语音": '',
-        '其他': ''
+        # 语音通过正则匹配
+        "语音": r"^sound/player/survivor/voice/(?:coach|gambler|mechanic|producer|biker|teengirl|namvet|manager).*?\.wav$",
+        "其他": "",
     },
     # 特感 重写完成(声音)
     "特感": {
         "小丧尸": {
-            "mdl": ['common_fem_infected_w_abdomen_l4d1', 'common_fem_infected_w_abdomen_thru_l4d1',
-                    'common_fem_infected_w_back_lower_l4d1', 'common_fem_infected_w_back_upper_l4d1',
-                    'common_fem_infected_w_l_arm_lower_l4d1', 'common_fem_infected_w_l_arm_shoulder_l4d1',
-                    'common_fem_infected_w_l_arm_upper_l4d1', 'common_fem_infected_w_l_obliques_l4d1',
-                    'common_fem_infected_w_r_arm_lower_l4d1', 'common_fem_infected_w_r_arm_shoulder_l4d1',
-                    'common_fem_infected_w_r_arm_upper_l4d1', 'common_fem_infected_w_r_obliques_l4d1',
-                    'common_fem_infected_w_slash_torso1_l4d1', 'common_fem_infected_w_slash_torso2_l4d1',
-                    'common_fem_infected_w_slash_torso3_l4d1', 'common_fem_infected_w_slash_torso4_l4d1',
-                    'common_fem_infected_w_slash_torso5_l4d1', 'common_fem_infected_w_slash_torso6_l4d1',
-                    'common_fem_infected_w_slash_torso9_l4d1', 'common_fem_infected_w_slash_torso10_l4d1',
-                    'common_fem_infected_w_slash_torso11_l4d1', 'common_fem_infected_w_slash_torso12_l4d1',
-                    'common_fem_infected_w_slash_torso13_l4d1', 'common_fem_infected_w_slash_torso14_l4d1',
-                    'common_fem_infected_w_spine_l4d1', 'common_fem_infected_w_t_half_l4d1',
-                    'common_female_baggagehandler_01', 'common_female_nurse01', 'common_female_rural01',
-                    'common_female01', 'common_female01_suit', 'common_male_baggagehandler_01',
-                    'common_male_baggagehandler_02', 'common_male_ceda_l4d1', 'common_male_fallen_survivor_l4d1',
-                    'common_male_mud_l4d1', 'common_male_parachutist', 'common_male_pilot', 'common_male_riot_l4d1',
-                    'common_male_roadcrew_l4d1', 'common_male_rural01', 'common_male_suit', 'common_male01',
-                    'common_male02', 'common_military_male01', 'common_patient_male01', 'common_police_male01',
-                    'common_surgeon_male01', 'common_tsaagent_male01', 'common_worker_male01'],
-            "folder": 'common'
+            "mdl": [
+                "common_male01",
+                "common_male02",
+                "common_military_male01",
+                "common_patient_male01",
+                "common_police_male01",
+                "common_surgeon_male01",
+                "common_tsaagent_male01",
+                "common_worker_male01",
+            ],
+            "regex": "^common_(?:fem_infected|female|male)_",
+            "folder": "common",
         },
         "胖子": {
-            "mdl": ['boomer', 'boomette', 'exploded_boomette', 'boomer_l4d1'],
-            "folder": 'boomer'
+            "mdl": ["boomer", "boomette", "exploded_boomette", "boomer_l4d1"],
+            "folder": "boomer",
         },
-        "猎人": {
-            "mdl": ['hunter', 'hunter_l4d1'],
-            "folder": 'hunter'
-        },
-        "牛牛": {
-            'mdl': ['charger'],
-            'folder': 'charger'
-        },
-        "舌头": {
-            "mdl": ['smoker', 'smoker_l4d1'],
-            "folder": 'smoker'
-        },
-        "坦克": {
-            "mdl": ['tank', 'hulk', 'hulk_l4d1', 'hulk_dlc3'],
-            "folder": 'hulk'
-        },
-        "猴子": {
-            "mdl": ['jockey'],
-            'folder': 'jockey'
-        },
-        "口水": {
-            "mdl": ['spitter'],
-            'folder': 'spitter'
-        },
-        "妹子": {
-            "mdl": ['witch'],
-            'folder': 'witch'
-        },
+        "猎人": {"mdl": ["hunter", "hunter_l4d1"], "folder": "hunter"},
+        "牛牛": {"mdl": ["charger"], "folder": "charger"},
+        "舌头": {"mdl": ["smoker", "smoker_l4d1"], "folder": "smoker"},
+        "坦克": {"mdl": ["tank", "hulk", "hulk_l4d1", "hulk_dlc3"], "folder": "hulk"},
+        "猴子": {"mdl": ["jockey"], "folder": "jockey"},
+        "口水": {"mdl": ["spitter"], "folder": "spitter"},
+        "妹子": {"mdl": ["witch"], "folder": "witch"},
         # read_vpk使用文本
-        "多种特感": {
-            'mdl': [],
-            'folder': ''
-        },
+        "多种特感": {"mdl": [], "folder": ""},
         "语音": {
-            'path': ['sound/player/(?:hunter|boomer|charger|jockey|smoker|spitter|tank)/',
-                     'sound/player/footsteps/(?:hunter|boomer|charger|jockey|smoker|spitter|tank)',
-                     'sound/npc/infected', 'sound/music/witch']
+            "path": [
+                "sound/player/(?:hunter|boomer|charger|jockey|smoker|spitter|tank)/",
+                "sound/player/footsteps/(?:hunter|boomer|charger|jockey|smoker|spitter|tank)",
+                "sound/npc/infected",
+                "sound/music/witch",
+            ]
         },
-        '其他': {
-            'mdl': [],
-            'folder': ''
-        }
+        "其他": {"mdl": [], "folder": ""},
     },
     # 武器
     "武器": {
         "手枪": {
-            "mdl": ["v_dual_pistola", "v_pistola", "w_pistol_a", "w_pistol_a_dual", "w_pistol_b"],
+            "mdl": [
+                "v_dual_pistola",
+                "v_pistola",
+                "w_pistol_a",
+                "w_pistol_a_dual",
+                "w_pistol_b",
+            ],
             "vmt": ["v_4pistols"],
-            "vtf": ["v_4pistols", "v_4pistols_exp"]
+            "vtf": ["v_4pistols", "v_4pistols_exp"],
         },
         "马格南": {
             "mdl": ["v_desert_eagle", "w_desert_eagle"],
             "vmt": ["deserteagle", "deserteagle_bluewood", "deserteagle_operative"],
-            "vtf": ["deserteagle", "deserteagle_bluewood", "deserteagle_bluewood_exp", "deserteagle_normal",
-                    "deserteagle_operative", "deserteagle_operative_exp"]
+            "vtf": [
+                "deserteagle",
+                "deserteagle_bluewood",
+                "deserteagle_bluewood_exp",
+                "deserteagle_normal",
+                "deserteagle_operative",
+                "deserteagle_operative_exp",
+            ],
         },
         "木喷": {
             "mdl": ["v_pumpshotgun", "w_shotgun"],
             "vtf": ["v_shotgun_wood", "v_shotgun_wood_exp", "v_pump_shotgun_reference"],
-            "vmt": ["v_shotgun_wood", "v_pump_shotgun_reference", "v_pump_shotgun_reference_world"]
+            "vmt": [
+                "v_shotgun_wood",
+                "v_pump_shotgun_reference",
+                "v_pump_shotgun_reference_world",
+            ],
         },
         "铁喷": {
             "mdl": ["v_shotgun_chrome", "w_pumpshotgun_a"],
             "vmt": ["v_shotgun_a"],
-            "vtf": ["v_shotgun_a", "v_shotgun_a_exp"]
+            "vtf": ["v_shotgun_a", "v_shotgun_a_exp"],
         },
         "一代连喷": {
             "mdl": ["v_autoshotgun", "w_autoshot_m4super"],
             "vmt": ["m4super", "m4super_world", "m4super_worn"],
-            "vtf": ["m4super", "m4super_worn"]
+            "vtf": ["m4super", "m4super_worn"],
         },
         "二代连喷": {
             "mdl": ["v_shotgun_spas", "w_shotgun_spas"],
             "vmt": ["shotgun_spas"],
-            "vtf": ["shotgun_spas", "shotgun_spas_exp"]
+            "vtf": ["shotgun_spas", "shotgun_spas_exp"],
         },
         "乌兹": {
             "mdl": ["v_smg", "w_smg_uzi"],
             "vmt": ["uzi", "uzi_world", "uzi_worn"],
-            "vtf": ["uzi", "uzi_worn"]
+            "vtf": ["uzi", "uzi_worn"],
         },
         "MAC-10": {
             "mdl": ["v_silenced_smg", "w_smg_a"],
             "vmt": ["smg_a", "smg_a_worn"],
-            "vtf": ["smg_a", "smg_a_worn", "smg_a_worn_exp"]
+            "vtf": ["smg_a", "smg_a_worn", "smg_a_worn_exp"],
         },
         "MP5": {
             "mdl": ["v_smg_mp5", "w_smg_mp5"],
             "vmt": ["mp5_1", "w_smg_mp5"],
-            "vtf": ["mp5_1", "mp5_1_ref", "w_smg_mp5"]
+            "vtf": ["mp5_1", "mp5_1_ref", "w_smg_mp5"],
         },
         "AK": {
             "mdl": ["v_rifle_ak47", "w_rifle_ak47"],
             "vmt": ["ak47", "ak47_rural", "ak47_wartorn"],
-            "vtf": ["ak47", "ak47_exp", "ak47_rural", "ak47_rural_exp", "ak47_wartorn", "ak47_wartorn_exp"]
+            "vtf": [
+                "ak47",
+                "ak47_exp",
+                "ak47_rural",
+                "ak47_rural_exp",
+                "ak47_wartorn",
+                "ak47_wartorn_exp",
+            ],
         },
         "M4": {
             "mdl": ["v_rifle", "w_rifle_m16a2"],
             "vmt": ["m16a2", "m16a2_namvet", "m16a2_world", "m16a2_worn"],
-            "vtf": ["m16a2", "m16a2_namvet", "m16a2_worn"]
+            "vtf": ["m16a2", "m16a2_namvet", "m16a2_worn"],
         },
         "三连发": {
             "mdl": ["v_desert_rifle", "w_rifle_b", "w_desert_rifle"],
             "vtf": ["rifle_b", "rifle_a"],
-            "vmt": ["rifle_b"]
+            "vmt": ["rifle_b"],
         },
         "SG552": {
             "mdl": ["v_rif_sg552", "w_rifle_sg552"],
             "vmt": ["rif_sg552"],
-            "vtf": ["rif_sg552", "rif_sg552_ref"]
+            "vtf": ["rif_sg552", "rif_sg552_ref"],
         },
         "鸟狙": {
             "mdl": ["v_snip_scout", "w_sniper_scout"],
             "vmt": ["w_snip_scout", "snip_scout"],
-            "vtf": ["w_snip_scout", "snip_scout", "snip_scout_ref"]
+            "vtf": ["w_snip_scout", "snip_scout", "snip_scout_ref"],
         },
         # 十五连
         "木狙": {
             "mdl": ["v_huntingrifle", "w_sniper_mini14"],
-            "vtf": ["v_sniper_reference_worn", "v_sniper_reference_ref", "v_sniper_reference"],
-            "vmt": ["v_sniper_reference_worn", "v_sniper_reference"]
+            "vtf": [
+                "v_sniper_reference_worn",
+                "v_sniper_reference_ref",
+                "v_sniper_reference",
+            ],
+            "vmt": ["v_sniper_reference_worn", "v_sniper_reference"],
         },
         # 30连
         "连狙": {
             "mdl": ["v_sniper_military", "w_sniper_military"],
             "vtf": ["v_sniper_a"],
-            "vmt": ["v_sniper_a"]
+            "vmt": ["v_sniper_a"],
         },
         "大狙": {
             "mdl": ["v_snip_awp", "w_sniper_awp"],
             "vmt": ["v_awp", "v_awp_scope", "w_snip_awp"],
-            "vtf": ["v_awp", "v_awp_ref", "v_awp_scope", "v_awp_scope_ref", "w_snip_awp"]
+            "vtf": [
+                "v_awp",
+                "v_awp_ref",
+                "v_awp_scope",
+                "v_awp_scope_ref",
+                "w_snip_awp",
+            ],
         },
-        "机枪": {
-            "mdl": ["v_m60", "w_m60"],
-            "vtf": ["m60"],
-            "vmt": ["m60"]
-        },
+        "机枪": {"mdl": ["v_m60", "w_m60"], "vtf": ["m60"], "vmt": ["m60"]},
         "榴弹枪": {
             "mdl": ["v_grenade_launcher", "w_grenade_launcher", "w_he_grenade"],
             "vmt": ["w_he_grenade", "grenade_launcher"],
-            "vtf": ["w_he_grenade_normal", "w_he_grenade", "grenade_launcher", "grenade_launcher_exponent"]
+            "vtf": [
+                "w_he_grenade_normal",
+                "w_he_grenade",
+                "grenade_launcher",
+                "grenade_launcher_exponent",
+            ],
         },
-        '加特林枪台': {
+        "加特林枪台": {
             "mdl": ["w_minigun"],
             "vtf": ["w_minigun"],
-            "vmt": ["w_minigun"]
+            "vmt": ["w_minigun"],
         },
-        '重机枪': {
+        "重机枪": {
             "mdl": ["50_cal_broken", "50cal"],
             "vmt": ["50cal"],
-            "vtf": ["50cal", "50cal_detail"]
-        }
+            "vtf": ["50cal", "50cal_detail"],
+        },
     },
     # 近战
     "近战": {
         "砍刀": {
             "mdl": ["v_machete", "w_machete"],
             "vtf": ["machete_exponent", "machete"],
-            "vmt": ["machete"]
+            "vmt": ["machete"],
         },
         "武士刀": {
             "mdl": ["v_katana", "w_katana"],
             "vtf": ["katana_normal", "katana"],
-            "vmt": ["katana"]
+            "vmt": ["katana"],
         },
         "撬棍": {
             "mdl": ["v_crowbar", "w_crowbar"],
             "vtf": ["crowbar_normal", "crowbar", "crowbar_gold", "crowbar_gold_tint"],
-            "vmt": ["crowbar", "crowbar_gold"]
+            "vmt": ["crowbar", "crowbar_gold"],
         },
         "消防斧": {
             "mdl": ["v_fireaxe", "w_fireaxe"],
             "vtf": ["v_fireaxe"],
-            "vmt": ["v_fireaxe"]
+            "vmt": ["v_fireaxe"],
         },
         "电锯": {
             "mdl": ["v_chainsaw", "w_chainsaw"],
             "vmt": ["chainsaw", "chainsaw_chain"],
-            "vtf": ["chainsaw", "chainsaw_chain", "chainsaw_exp"]
+            "vtf": ["chainsaw", "chainsaw_chain", "chainsaw_exp"],
         },
         "小刀": {
             "mdl": ["v_knife_t", "w_knife_t"],
             "vtf": ["knife_t", "knife_t_ref", "w_knife_t"],
-            "vmt": ["knife_t", "w_knife_t"]
+            "vmt": ["knife_t", "w_knife_t"],
         },
         "防爆盾": {
             "mdl": ["w_riotshield", "v_riotshield"],
-            "vtf": ["riotshield_plastic", "riotshield_metal", "riotshield_metal_normal"],
-            "vmt": ["riotshield_metal", "riotshield_plastic"]
+            "vtf": [
+                "riotshield_plastic",
+                "riotshield_metal",
+                "riotshield_metal_normal",
+            ],
+            "vmt": ["riotshield_metal", "riotshield_plastic"],
         },
         "平底锅": {
             "mdl": ["v_frying_pan", "w_frying_pan"],
             "vmt": ["4melee_weapons"],
-            "vtf": ["4melee_weapons", "4melee_weapons_normal"]
+            "vtf": ["4melee_weapons", "4melee_weapons_normal"],
         },
         "吉他": {
             "mdl": ["v_electric_guitar", "w_electric_guitar"],
             "vtf": ["electric_guitar_normal", "electric_guitar", "electric_guitar_exp"],
-            "vmt": ["electric_guitar"]
+            "vmt": ["electric_guitar"],
         },
         "警棍": {
             "mdl": ["v_tonfa"],
             "vtf": ["tonfa_normal", "tonfa"],
-            "vmt": ["tonfa"]
+            "vmt": ["tonfa"],
         },
         "棒球棒": {
             "mdl": ["v_bat", "w_bat"],
             "vtf": ["bat_normal", "bat"],
-            "vmt": ["bat"]
+            "vmt": ["bat"],
         },
         "板球棒": {
             "mdl": ["v_cricket_bat", "w_cricket_bat"],
-            "vtf": ["cricket_bat_trophy_normal", "cricket_bat", "cricket_bat_normal", "cricket_bat_trophy"],
-            "vmt": ["cricket_bat", "cricket_bat_trophy"]
+            "vtf": [
+                "cricket_bat_trophy_normal",
+                "cricket_bat",
+                "cricket_bat_normal",
+                "cricket_bat_trophy",
+            ],
+            "vmt": ["cricket_bat", "cricket_bat_trophy"],
         },
         "高尔夫": {
             "mdl": ["v_golfclub", "w_golfclub"],
             "vmt": ["golf_club"],
-            "vtf": ["golf_club", "golf_club_normal"]
+            "vtf": ["golf_club", "golf_club_normal"],
         },
         "干草叉": {
             "mdl": ["v_pitchfork", "w_pitchfork"],
             "vmt": ["pitchfork"],
-            "vtf": ["pitchfork", "pitchfork_exponent", "pitchfork_normal"]
+            "vtf": ["pitchfork", "pitchfork_exponent", "pitchfork_normal"],
         },
         "铁锹": {
             "mdl": ["v_shovel", "w_shovel"],
             "vtf": ["shovel_normal", "shovel", "shovel_exp"],
-            "vmt": ["shovel"]
-        }
+            "vmt": ["shovel"],
+        },
     },
     # 医疗
     "医疗品": {
         "医疗包": {
             "mdl": ["v_medkit", "w_eq_medkit"],
             "vmt": ["w_eq_medkit", "v_eq_medkit"],
-            "vtf": ["w_eq_medkit", "w_eq_medkit_nrm"]
+            "vtf": ["w_eq_medkit", "w_eq_medkit_nrm"],
         },
         "电击器": {
-            "mdl": ["v_defibrillator", "w_eq_defibrillator", "w_eq_defibrillator_no_paddles",
-                    "w_eq_defibrillator_paddles"],
+            "mdl": [
+                "v_defibrillator",
+                "w_eq_defibrillator",
+                "w_eq_defibrillator_no_paddles",
+                "w_eq_defibrillator_paddles",
+            ],
             "vmt": ["defibrillator", "v_eq_defibrillator", "w_eq_defibrillator"],
-            "vtf": ["defibrillator", "w_eq_defibrillator"]
+            "vtf": ["defibrillator", "w_eq_defibrillator"],
         },
         "止痛药": {
             "mdl": ["v_painpills", "w_eq_painpills"],
             "vmt": ["w_eq_painpills", "v_eq_painpills"],
-            "vtf": ["w_eq_painpills"]
+            "vtf": ["w_eq_painpills"],
         },
         "肾上腺素": {
             "mdl": ["v_adrenaline", "w_eq_adrenaline"],
-            "vmt": ["adrenaline_shot", "adrenaline_shot_clear", "adrenaline_shot_plastic", "v_eq_adrenaline",
-                    "w_eq_adrenaline"],
-            "vtf": ["adrenaline_shot", "adrenaline_shot_clear", "adrenaline_shot_plastic", "w_eq_adrenaline"]
+            "vmt": [
+                "adrenaline_shot",
+                "adrenaline_shot_clear",
+                "adrenaline_shot_plastic",
+                "v_eq_adrenaline",
+                "w_eq_adrenaline",
+            ],
+            "vtf": [
+                "adrenaline_shot",
+                "adrenaline_shot_clear",
+                "adrenaline_shot_plastic",
+                "w_eq_adrenaline",
+            ],
         },
     },
     # 投掷
@@ -315,190 +355,323 @@ SUBCATEGORY = {
         "土制炸弹": {
             "mdl": ["v_pipebomb", "w_eq_pipebomb"],
             "vmt": ["v_eq_pipebomb", "w_eq_pipebomb"],
-            "vtf": ["v_eq_pipebomb"]
+            "vtf": ["v_eq_pipebomb"],
         },
         "燃烧瓶": {
             "mdl": ["v_molotov", "w_eq_molotov"],
-            "vmt": ["v_eq_molotov_bottle", "v_eq_molotov_rag", "w_eq_molotov_bottle", "w_eq_molotov_rag"],
-            "vtf": ["v_eq_molotov_bottle", "v_eq_molotov_bottle_normal", "v_eq_molotov_rag", "v_eq_molotov_rag_normal",
-                    "w_eq_molotov_bottle", "w_eq_molotov_rag"]
+            "vmt": [
+                "v_eq_molotov_bottle",
+                "v_eq_molotov_rag",
+                "w_eq_molotov_bottle",
+                "w_eq_molotov_rag",
+            ],
+            "vtf": [
+                "v_eq_molotov_bottle",
+                "v_eq_molotov_bottle_normal",
+                "v_eq_molotov_rag",
+                "v_eq_molotov_rag_normal",
+                "w_eq_molotov_bottle",
+                "w_eq_molotov_rag",
+            ],
         },
         "胆汁": {
             "mdl": ["v_bile_flask", "w_eq_bile_flask"],
             "vmt": ["v_bile_flask", "v_bile_flask_cap"],
-            "vtf": ["v_bile_flask", "v_bile_flask_cap"]
+            "vtf": ["v_bile_flask", "v_bile_flask_cap"],
         },
     },
-    '杂项': {
-        '门': {
-            "path": ["materials/models/props_doors"]
-        },
+    "杂项": {
+        "门": {"path": ["materials/models/props_doors"]},
         "天空盒": {},
         "点唱机": {
-            "mdl": ['jukebox01', 'jukebox01_body', 'jukebox01_menu'],
-            "vtf": ["jukebox_menu_selection5", "jukebox", "jukebox_envmap", "jukebox_menu_glow1", "jukebox_menu_glow2",
-                    "jukebox_menu_selection1", "jukebox_menu_selection2", "jukebox_menu_selection3",
-                    "jukebox_menu_selection4"],
-            "vmt": ["jukebox", "jukebox_menu_glow1", "jukebox_menu_glow2", "jukebox_menu_selection1",
-                    "jukebox_menu_selection2", "jukebox_menu_selection3", "jukebox_menu_selection4",
-                    "jukebox_menu_selection5"]
+            "mdl": ["jukebox01", "jukebox01_body", "jukebox01_menu"],
+            "vtf": [
+                "jukebox_menu_selection5",
+                "jukebox",
+                "jukebox_envmap",
+                "jukebox_menu_glow1",
+                "jukebox_menu_glow2",
+                "jukebox_menu_selection1",
+                "jukebox_menu_selection2",
+                "jukebox_menu_selection3",
+                "jukebox_menu_selection4",
+            ],
+            "vmt": [
+                "jukebox",
+                "jukebox_menu_glow1",
+                "jukebox_menu_glow2",
+                "jukebox_menu_selection1",
+                "jukebox_menu_selection2",
+                "jukebox_menu_selection3",
+                "jukebox_menu_selection4",
+                "jukebox_menu_selection5",
+            ],
         },
         "可乐": {
             "mdl": ["v_cola", "w_cola"],
             "vmt": ["v_cola_glass", "v_cola_logos"],
-            "vtf": ["v_cola_glass", "v_cola_glass_normal", "v_cola_logos", "v_cola_logos_normal"]
+            "vtf": [
+                "v_cola_glass",
+                "v_cola_glass_normal",
+                "v_cola_logos",
+                "v_cola_logos_normal",
+            ],
         },
         "红外线盒子": {
             "mdl": ["w_laser_sights"],
             "vtf": ["w_laser_sights"],
-            "vmt": ["w_laser_sights"]
+            "vmt": ["w_laser_sights"],
         },
         "油桶": {
-            "mdl": ["gascan001a", 'wooden_barricade_gascans', 'dieselcan'],
-            "vtf": ["phys_objects02d", "phys_objects02a", "phys_objects02a_normal", "phys_objects02b",
-                    "phys_objects02c", "phys_objects04a"],
-            "vmt": ["phys_objects02a", "phys_objects02b", "phys_objects02c", "phys_objects02d", "phys_objects04a"]
+            "mdl": ["gascan001a", "wooden_barricade_gascans", "dieselcan"],
+            "vtf": [
+                "phys_objects02d",
+                "phys_objects02a",
+                "phys_objects02a_normal",
+                "phys_objects02b",
+                "phys_objects02c",
+                "phys_objects04a",
+            ],
+            "vmt": [
+                "phys_objects02a",
+                "phys_objects02b",
+                "phys_objects02c",
+                "phys_objects02d",
+                "phys_objects04a",
+            ],
         },
         "煤气罐": {
             "vmt": ["propanecanister01a"],
             "vtf": ["propanecanister01a"],
-            "mdl": ["propanecanister001a"]
+            "mdl": ["propanecanister001a"],
         },
         "氧气罐": {
             "vtf": ["oxygentank01"],
             "mdl": ["oxygentank01"],
-            "vmt": ["oxygentank01"]
+            "vmt": ["oxygentank01"],
         },
         "烟花盒": {
             "vtf": ["explosive_box001"],
             "vmt": ["explosive_box001_hinges", "explosive_box001"],
-            "mdl": ["explosive_box001"]
+            "mdl": ["explosive_box001"],
         },
-        "树": {
-            'path': ['materials/models/props_foliage']
-        },
-        "声音": {
-            'path': ['sound']
-        },
-        "喷漆": {
-            'path': ['materials/vgui/logos']
-        },
-        "侏儒": {
-            "mdl": ['gnome', 'v_gnome']
-        },
+        "树": {"path": ["materials/models/props_foliage"]},
+        "声音": {"path": ["sound"]},
+        "喷漆": {"path": ["materials/vgui/logos"]},
+        "侏儒": {"mdl": ["gnome", "v_gnome"]},
         "自动贩卖机": {
             "vmt": ["vending_machine01", "vending_machine", "vending_machine_off"],
-            "vtf": ["vending_machine01", "vending_machine01_mask"]
+            "vtf": ["vending_machine01", "vending_machine01_mask"],
         },
-        "脚本": {
-            'path': ['scripts']
+        "脚本": {"path": ["scripts"]},
+        "医疗箱": {
+            "vtf": ["medicalcabinet02", "medicalcabinet02_ref"],
+            "vmt": ["medicalcabinet02"],
         },
-        '医疗箱': {
-            "vtf": ['medicalcabinet02', 'medicalcabinet02_ref'],
-            'vmt': ['medicalcabinet02']
+        "涂鸦": {
+            "vtf": [
+                "graffiti_alleys_01",
+                "graffiti_alleys_02",
+                "graffiti_alleys_03",
+                "graffiti_alleys_04",
+                "graffiti_alleys_05",
+                "graffiti_alleys_06",
+                "graffiti_docks_01",
+                "graffiti_docks_02",
+                "graffiti_docks_03",
+                "graffiti_docks_04",
+                "graffiti_docks_05",
+                "graffiti_docks_06",
+                "graffiti_docks_07",
+                "graffiti_fight",
+                "graffiti_japanese",
+                "graffiti_lighthouse_01",
+                "graffiti_lighthouse_02",
+                "graffiti_lighthouse_03",
+                "graffiti_lighthouse_04",
+                "graffiti_lighthouse_05",
+                "graffiti_lighthouse_06",
+                "graffiti_lighthouse_07",
+                "graffiti_lighthouse_08",
+                "graffiti_lighthouse_08a",
+                "graffiti_lighthouse_09",
+                "graffiti_lighthouse_10",
+                "graffiti_nonesurvive",
+                "graffiti_saferoom_airport01_02",
+                "graffiti_saferoom_airport01_03",
+                "graffiti_saferoom_airport02_01",
+                "graffiti_saferoom_airport02_02",
+                "graffiti_saferoom_airport03_01",
+                "graffiti_saferoom_airport03_02",
+                "graffiti_saferoom_c1_m3-4_01",
+                "graffiti_saferoom_c1_m3-4_02",
+                "graffiti_saferoom_c2_m4-5_01",
+                "graffiti_saferoom_c2_m4-5_02",
+                "graffiti_saferoom_c2_m4-5_03",
+                "graffiti_saferoom_c3_m2-3_01",
+                "graffiti_saferoom_c3_m2-3_02",
+                "graffiti_saferoom_c3_m2-3_03",
+                "graffiti_saferoom_c3_m3-4_01",
+                "graffiti_saferoom_c3_m3-4_02",
+                "graffiti_saferoom_c4_m1-2_01",
+                "graffiti_saferoom_c4_m1-2_02",
+                "graffiti_saferoom_c4_m2-3_01",
+                "graffiti_saferoom_c4_m2-3_02",
+                "graffiti_saferoom_c4_m2-3_03",
+                "graffiti_saferoom_c4_m2-3_04",
+                "graffiti_saferoom_c4_m2-3_05",
+                "graffiti_saferoom_c5_m1-2_01",
+                "graffiti_saferoom_c5_m1-2_02",
+                "graffiti_saferoom_c5_m1-2_03",
+                "graffiti_saferoom_c5_m1-2_04",
+                "graffiti_saferoom_c5_m3-4_01",
+                "graffiti_saferoom_c5_m3-4_02",
+                "graffiti_saferoom_c5_m3house02",
+                "graffiti_saferoom_c5_m3house03",
+                "graffiti_saferoom_chicagoted",
+                "graffiti_saferoom_citygone",
+                "graffiti_saferoom_crashcourse01_01",
+                "graffiti_saferoom_crashcourse01_02",
+                "graffiti_saferoom_crashcourse01_03",
+                "graffiti_saferoom_crashcourse01_04",
+                "graffiti_saferoom_farm01_01",
+                "graffiti_saferoom_farm01_02",
+                "graffiti_saferoom_farm01_03",
+                "graffiti_saferoom_farm01_04",
+                "graffiti_saferoom_farm02_02",
+                "graffiti_saferoom_farm03_01",
+                "graffiti_saferoom_farm04_01",
+                "graffiti_saferoom_farm04_02",
+                "graffiti_saferoom_farm04_03",
+                "graffiti_saferoom_heatherignore",
+                "graffiti_saferoom_hospitaloverrun",
+                "graffiti_saferoom_ikilled63",
+                "graffiti_saferoom_nobodycoming",
+                "graffiti_saferoom_nobodysave",
+                "graffiti_saferoom_peterwaited",
+                "graffiti_saferoom_port_m2-3_01",
+                "graffiti_saferoom_port_m2-3_02",
+                "graffiti_saferoom_port_m2-3_03",
+                "graffiti_saferoom_port_m2-3_04",
+                "graffiti_saferoom_port_m2-3_05",
+                "graffiti_saferoom_port_m2-3_06",
+                "graffiti_saferoom_port_m2-3_07",
+                "graffiti_saferoom_port_m2-3_08",
+                "graffiti_saferoom_smalltown01_02",
+                "graffiti_saferoom_smalltown02_01",
+                "graffiti_saferoom_smalltown02_02",
+                "graffiti_saferoom_smalltown02_03",
+                "graffiti_saferoom_smalltown03_01",
+                "graffiti_saferoom_smalltown03_02",
+                "graffiti_saferoom_smalltown03_03",
+                "graffiti_saferoom_smalltown03_04",
+                "graffiti_saferoom_smalltown03_05",
+                "graffiti_saferoom_smalltown04_01",
+                "graffiti_saferoom_smalltown04_02",
+                "graffiti_saferoom_smalltown04_03",
+            ],
+            "vtf_path_regex": ["^materials/graffiti/(?:psd)?.*$"],
         },
-        '涂鸦': {
-            'vtf': ["graffiti_alleys_01", "graffiti_alleys_02", "graffiti_alleys_03", "graffiti_alleys_04",
-                    "graffiti_alleys_05", "graffiti_alleys_06", "graffiti_docks_01", "graffiti_docks_02",
-                    "graffiti_docks_03",
-                    "graffiti_docks_04", "graffiti_docks_05", "graffiti_docks_06", "graffiti_docks_07",
-                    "graffiti_fight",
-                    "graffiti_japanese", "graffiti_lighthouse_01", "graffiti_lighthouse_02", "graffiti_lighthouse_03",
-                    "graffiti_lighthouse_04", "graffiti_lighthouse_05", "graffiti_lighthouse_06",
-                    "graffiti_lighthouse_07",
-                    "graffiti_lighthouse_08", "graffiti_lighthouse_08a", "graffiti_lighthouse_09",
-                    "graffiti_lighthouse_10",
-                    "graffiti_nonesurvive", "graffiti_saferoom_airport01_02", "graffiti_saferoom_airport01_03",
-                    "graffiti_saferoom_airport02_01", "graffiti_saferoom_airport02_02",
-                    "graffiti_saferoom_airport03_01",
-                    "graffiti_saferoom_airport03_02", "graffiti_saferoom_c1_m3-4_01", "graffiti_saferoom_c1_m3-4_02",
-                    "graffiti_saferoom_c2_m4-5_01", "graffiti_saferoom_c2_m4-5_02", "graffiti_saferoom_c2_m4-5_03",
-                    "graffiti_saferoom_c3_m2-3_01", "graffiti_saferoom_c3_m2-3_02", "graffiti_saferoom_c3_m2-3_03",
-                    "graffiti_saferoom_c3_m3-4_01", "graffiti_saferoom_c3_m3-4_02", "graffiti_saferoom_c4_m1-2_01",
-                    "graffiti_saferoom_c4_m1-2_02", "graffiti_saferoom_c4_m2-3_01", "graffiti_saferoom_c4_m2-3_02",
-                    "graffiti_saferoom_c4_m2-3_03", "graffiti_saferoom_c4_m2-3_04", "graffiti_saferoom_c4_m2-3_05",
-                    "graffiti_saferoom_c5_m1-2_01", "graffiti_saferoom_c5_m1-2_02", "graffiti_saferoom_c5_m1-2_03",
-                    "graffiti_saferoom_c5_m1-2_04", "graffiti_saferoom_c5_m3-4_01", "graffiti_saferoom_c5_m3-4_02",
-                    "graffiti_saferoom_c5_m3house02", "graffiti_saferoom_c5_m3house03", "graffiti_saferoom_chicagoted",
-                    "graffiti_saferoom_citygone", "graffiti_saferoom_crashcourse01_01",
-                    "graffiti_saferoom_crashcourse01_02",
-                    "graffiti_saferoom_crashcourse01_03", "graffiti_saferoom_crashcourse01_04",
-                    "graffiti_saferoom_farm01_01",
-                    "graffiti_saferoom_farm01_02", "graffiti_saferoom_farm01_03", "graffiti_saferoom_farm01_04",
-                    "graffiti_saferoom_farm02_02", "graffiti_saferoom_farm03_01", "graffiti_saferoom_farm04_01",
-                    "graffiti_saferoom_farm04_02", "graffiti_saferoom_farm04_03", "graffiti_saferoom_heatherignore",
-                    "graffiti_saferoom_hospitaloverrun", "graffiti_saferoom_ikilled63",
-                    "graffiti_saferoom_nobodycoming",
-                    "graffiti_saferoom_nobodysave", "graffiti_saferoom_peterwaited", "graffiti_saferoom_port_m2-3_01",
-                    "graffiti_saferoom_port_m2-3_02", "graffiti_saferoom_port_m2-3_03",
-                    "graffiti_saferoom_port_m2-3_04",
-                    "graffiti_saferoom_port_m2-3_05", "graffiti_saferoom_port_m2-3_06",
-                    "graffiti_saferoom_port_m2-3_07",
-                    "graffiti_saferoom_port_m2-3_08", "graffiti_saferoom_smalltown01_02",
-                    "graffiti_saferoom_smalltown02_01",
-                    "graffiti_saferoom_smalltown02_02", "graffiti_saferoom_smalltown02_03",
-                    "graffiti_saferoom_smalltown03_01",
-                    "graffiti_saferoom_smalltown03_02", "graffiti_saferoom_smalltown03_03",
-                    "graffiti_saferoom_smalltown03_04",
-                    "graffiti_saferoom_smalltown03_05", "graffiti_saferoom_smalltown04_01",
-                    "graffiti_saferoom_smalltown04_02",
-                    "graffiti_saferoom_smalltown04_03"],
-            "vtf_path_regex": ['^materials/graffiti/(?:psd)?.*$']
-        },
-        "手电筒": {
-            'vtf': ['flashlight001'],
-            'vtf_path_regex': ['materials/effects']
-        }
+        "手电筒": {"vtf": ["flashlight001"], "vtf_path_regex": ["materials/effects"]},
     },
     # 生成菜单兼容
     "弹药": {
         "sub": False,
-        'mdl': ['v_explosive_ammopack', 'w_eq_explosive_ammopack', 'v_incendiary_ammopack', 'w_eq_incendiary_ammopack',
-                'w_rd_grenade_scale_x1', 'w_rd_grenade_scale_x4', 'w_rd_grenade_scale_x4_burn', 'ammo_stack',
-                'coffeeammo'],
-        'vtf': ['explosive_ammopack', 'exploding_ammo', 'incendiary_ammopack', 'w_rd_grenade', 'w_rd_grenade_normal',
-                'w_eq_ammopack'],
-        'vmt': ['exploding_ammo', 'explosive_ammopack', 'incendiary_ammopack', 'w_rd_grenade', 'w_eq_ammopack',
-                'v_eq_ammopack']
+        "mdl": [
+            "v_explosive_ammopack",
+            "w_eq_explosive_ammopack",
+            "v_incendiary_ammopack",
+            "w_eq_incendiary_ammopack",
+            "w_rd_grenade_scale_x1",
+            "w_rd_grenade_scale_x4",
+            "w_rd_grenade_scale_x4_burn",
+            "ammo_stack",
+            "coffeeammo",
+        ],
+        "vtf": [
+            "explosive_ammopack",
+            "exploding_ammo",
+            "incendiary_ammopack",
+            "w_rd_grenade",
+            "w_rd_grenade_normal",
+            "w_eq_ammopack",
+        ],
+        "vmt": [
+            "exploding_ammo",
+            "explosive_ammopack",
+            "incendiary_ammopack",
+            "w_rd_grenade",
+            "w_eq_ammopack",
+            "v_eq_ammopack",
+        ],
     },
-    'UI': {
-        "sub": False,
-        'path': ['resource/ui', 'materials/vgui']
-    },
-    "材质特效": {
-        "sub": False,
-    },
-    "动作": {
-        "sub": False,
-        'path': ['models/xdreanims']
-    },
+    "UI": {"sub": False, "path": ["resource/ui", "materials/vgui"]},
+    # "材质特效": {
+    #     "sub": False,
+    # },
+    "动作": {"sub": False, "path": ["models/xdreanims"]},
     "载具": {
         "直升机": {
-            "vmt": ["helicopter_movingblades", "helicopter_news_adj", "helicopter_news2", "searchlight_small_01",
-                    "helicopter_glass", "helicopter_army2", "helicopter_army", "chopper_generic",
-                    "helicopter_bladeramp",
-                    "helicopter_c2m5", "helicopter_c2m5_2", "helicopter_news_downed", "helicopter_news_downed_02",
-                    "helicopter_rescue", "helicopter_rescue_smashed", "helicopter_rescue_windows"],
-            "vtf": ["helicopter_news_adj", "searchlight_small_01", "searchlight_small_01_256", "helicopter_glass",
-                    "helicopter_rescue_windows", "helicopter_bladeramp", "helicopter_concert", "helicopter_concert2",
-                    "helicopter_concert2_ref", "helicopter_movingblades", "helicopter_news_downed",
-                    "helicopter_news_downed_02", "helicopter_rescue", "helicopter_rescue_smashed"],
-            "mdl": ["c2m5_helicopter", "c2m5_helicopter_small", "helicopter_rescue_smashed", "helicopter_news_downed",
-                    "helicopter_rescue"],
+            "vmt": [
+                "helicopter_movingblades",
+                "helicopter_news_adj",
+                "helicopter_news2",
+                "searchlight_small_01",
+                "helicopter_glass",
+                "helicopter_army2",
+                "helicopter_army",
+                "chopper_generic",
+                "helicopter_bladeramp",
+                "helicopter_c2m5",
+                "helicopter_c2m5_2",
+                "helicopter_news_downed",
+                "helicopter_news_downed_02",
+                "helicopter_rescue",
+                "helicopter_rescue_smashed",
+                "helicopter_rescue_windows",
+            ],
+            "vtf": [
+                "helicopter_news_adj",
+                "searchlight_small_01",
+                "searchlight_small_01_256",
+                "helicopter_glass",
+                "helicopter_rescue_windows",
+                "helicopter_bladeramp",
+                "helicopter_concert",
+                "helicopter_concert2",
+                "helicopter_concert2_ref",
+                "helicopter_movingblades",
+                "helicopter_news_downed",
+                "helicopter_news_downed_02",
+                "helicopter_rescue",
+                "helicopter_rescue_smashed",
+            ],
+            "mdl": [
+                "c2m5_helicopter",
+                "c2m5_helicopter_small",
+                "helicopter_rescue_smashed",
+                "helicopter_news_downed",
+                "helicopter_rescue",
+            ],
         },
         "F18": {
             "vmt": ["thrust_tiled", "f18_cmap"],
             "vtf": ["thrust_tiled", "f18_cmap", "f18_normal"],
             "mdl": ["f18", "f18_sb", "f18_agm65maverick", "f18_placeholder"],
-            'mdl_path_regex': ['^models/(?:f18|missiles)']
+            "mdl_path_regex": ["^models/(?:f18|missiles)"],
         },
         "油罐车": {
-            "vtf": ["airport_fuel_truck_ref", "airport_fuel_truck", "tanker_wrecked_envmask", "tanker_wrecked"],
+            "vtf": [
+                "airport_fuel_truck_ref",
+                "airport_fuel_truck",
+                "tanker_wrecked_envmask",
+                "tanker_wrecked",
+            ],
             "vtf_path_regex": ["^materials/models/props_vehicles"],
             "vmt": ["airport_fuel_truck", "tanker_wrecked"],
             "vmt_path_regex": ["^materials/models/props_vehicles"],
             "mdl": ["airport_fuel_truck", "tanker001a"],
-            "mdl_path_regex": ["^models/props_vehicles"]
+            "mdl_path_regex": ["^models/props_vehicles"],
         },
         "救护车": {
             "mdl": ["ambulance"],
@@ -506,7 +679,7 @@ SUBCATEGORY = {
             "vtf": ["ambulance_ref", "ambulance"],
             "vtf_path_regex": ["^materials/models/props_vehicles"],
             "vmt": ["ambulance"],
-            "vmt_path_regex": ["^materials/models/props_vehicles"]
+            "vmt_path_regex": ["^materials/models/props_vehicles"],
         },
         "军用卡车": {
             "mdl": ["army_truck"],
@@ -514,47 +687,91 @@ SUBCATEGORY = {
             "vtf": ["army_truck", "army_truck_ref"],
             "vtf_path_regex": ["^materials/models/props_vehicles"],
             "vmt": ["army_truck"],
-            "vmt_path_regex": ["^materials/models/props_vehicles"]
+            "vmt_path_regex": ["^materials/models/props_vehicles"],
         },
         "船": {
             "mdl": ["boat_rescue_tug_sunshine", "boat_rescue_tug"],
             "mdl_path_regex": ["^models/props_vehicles"],
-            "vmt": ["boat_rescue_tug", "boat_rescue_tug_sunshine", "boat_rescue_tug_windows"],
+            "vmt": [
+                "boat_rescue_tug",
+                "boat_rescue_tug_sunshine",
+                "boat_rescue_tug_windows",
+            ],
             "vmt_path_regex": ["^materials/models/props_vehicles"],
             "vtf": ["boat_rescue_tug", "boat_rescue_tug_windows"],
-            "vtf_path_regex": ["^materials/models/props_vehicles"]
+            "vtf_path_regex": ["^materials/models/props_vehicles"],
         },
         "公共汽车": {
             "mdl": ["bus01_2", "bridge_busses"],
             "mdl_path_regex": ["^models/(?:props_vehicles|c5_bridge_destruction)"],
-            "vtf": ["bus01_b_ref", "bus01_a", "bus01_a_2", "bus01_a_ref", "bus01_b", "bus01_b_2"],
+            "vtf": [
+                "bus01_b_ref",
+                "bus01_a",
+                "bus01_a_2",
+                "bus01_a_ref",
+                "bus01_b",
+                "bus01_b_2",
+            ],
             "vtf_path_regex": ["^materials/models/props_vehicles"],
             "vmt": ["bus01_a", "bus01_a_2", "bus01_b", "bus01_b_2"],
-            "vmt_path_regex": ["^materials/models/props_vehicles"]
+            "vmt_path_regex": ["^materials/models/props_vehicles"],
         },
-        '轿车': {
-            "mdl": ["carparts_wheel01a_static", "cara_69sedan_glass", "cara_82hatchback", "cara_82hatchback_glass",
-                    "cara_82hatchback_wrecked", "cara_82hatchback_wrecked_glass", "cara_84sedan", "cara_84sedan_glass",
-                    "cara_95sedan", "cara_95sedan_glass", "cara_95sedan_glass_alarm", "cara_95sedan_wrecked",
-                    "cara_95sedan_wrecked_glass", "carparts_axel01a_static", "carparts_door01a_static",
-                    "carparts_tire01a_static", "zapastl", "zapastl_static"],
+        "轿车": {
+            "mdl": [
+                "carparts_wheel01a_static",
+                "cara_69sedan_glass",
+                "cara_82hatchback",
+                "cara_82hatchback_glass",
+                "cara_82hatchback_wrecked",
+                "cara_82hatchback_wrecked_glass",
+                "cara_84sedan",
+                "cara_84sedan_glass",
+                "cara_95sedan",
+                "cara_95sedan_glass",
+                "cara_95sedan_glass_alarm",
+                "cara_95sedan_wrecked",
+                "cara_95sedan_wrecked_glass",
+                "carparts_axel01a_static",
+                "carparts_door01a_static",
+                "carparts_tire01a_static",
+                "zapastl",
+                "zapastl_static",
+            ],
             "mdl_path_regex": ["^models/props_vehicles"],
-            "vtf": ["4carz1024_glass_alarm_illum_mask", "4carz1024", "4carz1024_envmask", "4carz1024_glass",
-                    "zapor_replacement"],
+            "vtf": [
+                "4carz1024_glass_alarm_illum_mask",
+                "4carz1024",
+                "4carz1024_envmask",
+                "4carz1024_glass",
+                "zapor_replacement",
+            ],
             "vtf_path_regex": ["^materials/models/props_vehicles"],
-            "vmt": ["4carz1024", "4carz1024_glass", "cara_95sedan_glass_alarm", "zapor_replacement"],
-            "vmt_path_regex": ["^materials/models/props_vehicles"]
+            "vmt": [
+                "4carz1024",
+                "4carz1024_glass",
+                "cara_95sedan_glass_alarm",
+                "zapor_replacement",
+            ],
+            "vmt_path_regex": ["^materials/models/props_vehicles"],
         },
         "拖车": {
-            "mdl": ["ceda_trailer_interior_trim", "ceda_door_rotating", "ceda_door_rotating_dm01_01",
-                    "ceda_door_rotating_dm01_02", "ceda_door_rotating_dm01_03", "ceda_door_rotating_gib",
-                    "ceda_trailer_closed", "ceda_trailer_entrance_door", "ceda_trailer_exit_door",
-                    "ceda_trailer_exterior"],
+            "mdl": [
+                "ceda_trailer_interior_trim",
+                "ceda_door_rotating",
+                "ceda_door_rotating_dm01_01",
+                "ceda_door_rotating_dm01_02",
+                "ceda_door_rotating_dm01_03",
+                "ceda_door_rotating_gib",
+                "ceda_trailer_closed",
+                "ceda_trailer_entrance_door",
+                "ceda_trailer_exit_door",
+                "ceda_trailer_exterior",
+            ],
             "mdl_path_regex": ["^models/props_vehicles"],
             "vtf": ["ceda_trailer_skin", "ceda_trailer"],
             "vtf_path_regex": ["^materials/models/props_vehicles"],
             "vmt": ["ceda_trailer", "ceda_trailer_skin"],
-            "vmt_path_regex": ["^materials/models/props_vehicles"]
+            "vmt_path_regex": ["^materials/models/props_vehicles"],
         },
         "教堂巴士": {
             "mdl": ["church_bus01"],
@@ -562,16 +779,29 @@ SUBCATEGORY = {
             "vtf": ["churchbus01_b", "churchbus01_a"],
             "vtf_path_regex": ["^materials/models/props_vehicles"],
             "vmt": ["churchbus01_a", "churchbus01_b"],
-            "vmt_path_regex": ["^materials/models/props_vehicles"]
+            "vmt_path_regex": ["^materials/models/props_vehicles"],
         },
-        '挂车': {
-            "mdl": ["flatnose_truck_wrecked", "flatnose_truck", "flatnose_truck_glass", "longnose_truck_glass",
-                    "longnose_truck", "semi_trailer_wrecked", "semi_trailer", "semi_trailer_freestanding"],
+        "挂车": {
+            "mdl": [
+                "flatnose_truck_wrecked",
+                "flatnose_truck",
+                "flatnose_truck_glass",
+                "longnose_truck_glass",
+                "longnose_truck",
+                "semi_trailer_wrecked",
+                "semi_trailer",
+                "semi_trailer_freestanding",
+            ],
             "mdl_path_regex": ["^models/props_vehicles"],
-            "vtf": ["flatnose_truck_glass", "flatnose_truck", "semi_trailer_ref", "semi_trailer"],
+            "vtf": [
+                "flatnose_truck_glass",
+                "flatnose_truck",
+                "semi_trailer_ref",
+                "semi_trailer",
+            ],
             "vtf_path_regex": ["^materials/models/props_vehicles"],
             "vmt": ["flatnose_truck", "flatnose_truck_glass", "semi_trailer"],
-            "vmt_path_regex": ["^materials/models/props_vehicles"]
+            "vmt_path_regex": ["^materials/models/props_vehicles"],
         },
         "悍马": {
             "mdl": ["hmmwv_supply_glass", "hmmwv", "hmmwv_glass", "hmmwv_supply"],
@@ -579,40 +809,84 @@ SUBCATEGORY = {
             "vmt": ["hmmwv", "hmmwv_glass", "hmmwv_interior", "humvee"],
             "vmt_path_regex": ["^materials/models/props_vehicles"],
             "vtf": ["hmmwv", "hmmwv_glass", "hmmwv_interior", "humvee"],
-            "vtf_path_regex": ["^materials/models/props_vehicles"]
+            "vtf_path_regex": ["^materials/models/props_vehicles"],
         },
         "皮卡/SUV": {
-            "mdl": ["pickup_truck_2004_glass", "pickup_truck_78", "pickup_truck_78_glass", "pickup_truck_2004",
-                    "suv_2001", "suv_2001_glass", "utility_truck_windows", "utility_truck"],
+            "mdl": [
+                "pickup_truck_2004_glass",
+                "pickup_truck_78",
+                "pickup_truck_78_glass",
+                "pickup_truck_2004",
+                "suv_2001",
+                "suv_2001_glass",
+                "utility_truck_windows",
+                "utility_truck",
+            ],
             "mdl_path_regex": ["^models/props_vehicles"],
-            "vtf": ["pickup_trucks_ref", "pickup_trucks", "pickup_trucks_glass", "utility_truck_ref", "utility_truck"],
+            "vtf": [
+                "pickup_trucks_ref",
+                "pickup_trucks",
+                "pickup_trucks_glass",
+                "utility_truck_ref",
+                "utility_truck",
+            ],
             "vtf_path_regex": ["^materials/models/props_vehicles"],
             "vmt": ["pickup_trucks", "pickup_trucks_glass", "utility_truck"],
-            "vmt_path_regex": ["^materials/models/props_vehicles"]
+            "vmt_path_regex": ["^materials/models/props_vehicles"],
         },
         "警车": {
-            "mdl": ["police_car_rural_trunkopen_glass", "police_car_city", "police_car_city_glass", "police_car_rural"],
+            "mdl": [
+                "police_car_rural_trunkopen_glass",
+                "police_car_city",
+                "police_car_city_glass",
+                "police_car_rural",
+            ],
             "mdl_path_regex": ["^models/props_vehicles"],
-            "vtf": ["police_cab_rural", "police_cab_city", "police_cab_city_glass", "police_cab_ref"],
+            "vtf": [
+                "police_cab_rural",
+                "police_cab_city",
+                "police_cab_city_glass",
+                "police_cab_ref",
+            ],
             "vtf_path_regex": ["^materials/models/props_vehicles"],
             "vmt": ["police_cab_city", "police_cab_city_glass", "police_cab_rural"],
-            "vmt_path_regex": ["^materials/models/props_vehicles"]
+            "vmt_path_regex": ["^materials/models/props_vehicles"],
         },
         "赛车": {
-            "mdl": ["racecar_stage_floor", "racecar", "racecar_damaged", "racecar_damaged_glass",
-                    "racecar_damaged_glass_outro", "racecar_damaged_outro", "racecar_fillercap", "racecar_glass",
-                    "racecar_stage"],
+            "mdl": [
+                "racecar_stage_floor",
+                "racecar",
+                "racecar_damaged",
+                "racecar_damaged_glass",
+                "racecar_damaged_glass_outro",
+                "racecar_damaged_outro",
+                "racecar_fillercap",
+                "racecar_glass",
+                "racecar_stage",
+            ],
             "mdl_path_regex": ["^models/props_vehicles"],
-            "vtf": ["racecar_stage_floor", "racecar", "racecar_damaged",
-                    "racecar_damaged_glass", "racecar_glass", "racecar_stage"],
+            "vtf": [
+                "racecar_stage_floor",
+                "racecar",
+                "racecar_damaged",
+                "racecar_damaged_glass",
+                "racecar_glass",
+                "racecar_stage",
+            ],
             "vtf_path_regex": ["^materials/models/props_vehicles"],
-            "vmt": ["racecar", "racecar_damaged",
-                    "racecar_damaged_glass", "racecar_glass", "racecar_stage", "racecar_stage_floor"],
-            "vmt_path_regex": ["^materials/models/props_vehicles"]
+            "vmt": [
+                "racecar",
+                "racecar_damaged",
+                "racecar_damaged_glass",
+                "racecar_glass",
+                "racecar_stage",
+                "racecar_stage_floor",
+            ],
+            "vmt_path_regex": ["^materials/models/props_vehicles"],
         },
         "出租车": {
             "mdl": ["taxi_city", "taxi_city_glass", "taxi_rural"],
-            "mdl_path_regex": ["^models/props_vehicles"]
+            "mdl_path_regex": ["^models/props_vehicles"],
         },
         "拖拉机": {
             "mdl": ["tractor01", "tractor", "tractor_lever"],
@@ -622,14 +896,27 @@ SUBCATEGORY = {
             "vmt": ["tractor", "tractor01"],
             "vmt_path_regex": ["^materials/models/props_vehicles"],
         },
-        '火车': {
-            "mdl": ["train_box", "train_box_open", "train_boxwreck", "train_flatcar", "train_ladder", "trains_lever"],
+        "火车": {
+            "mdl": [
+                "train_box",
+                "train_box_open",
+                "train_boxwreck",
+                "train_flatcar",
+                "train_ladder",
+                "trains_lever",
+            ],
             "mdl_path_regex": ["^models/props_vehicles"],
-            "vtf": ["train_lever", "train_box", "train_box_spec", "train_flatcar", "train_flatcar_spec",
-                    "train_ladder"],
+            "vtf": [
+                "train_lever",
+                "train_box",
+                "train_box_spec",
+                "train_flatcar",
+                "train_flatcar_spec",
+                "train_ladder",
+            ],
             "vtf_path_regex": ["^materials/models/props_vehicles"],
             "vmt": ["train_box", "train_flatcar", "train_ladder", "train_lever"],
-            "vmt_path_regex": ["^materials/models/props_vehicles"]
+            "vmt_path_regex": ["^materials/models/props_vehicles"],
         },
         "面包车": {
             "mdl": ["van_glass", "van"],
@@ -639,8 +926,12 @@ SUBCATEGORY = {
             "vmt": ["van1"],
             "vmt_path_regex": ["^materials/models/props_vehicles"],
         },
-        "其他": {}
-    }
+        "其他": {},
+    },
+    "地图": {
+        "sub": False,
+        "path_regex": ["^maps/", "^missions/", "^materials/.*?/?maps/"],
+    },
 }
 
 
@@ -654,33 +945,48 @@ class Menu:
     def find_subcategory(self, category: MenuCategory) -> None | list[str]:
         """
         找一级分类的子分类
-        :param category:
-        :return:
+        Args:
+            category:
+
+        Returns:
+
         """
         if not (sub := SUBCATEGORY.get(category)):
             return None
-        if not sub.get('child'):
+        if not sub.get("child"):
             return None
         return list(sub.keys())
 
     @lru_cache()
+    def get_category(self, category: MenuCategory) -> dict[str, Any]:
+        if tmp := SUBCATEGORY.get(category):
+            return tmp
+        return {}
+
+    @lru_cache()
     def has_child(self, category: MenuCategory) -> bool:
-        if not (tmp := SUBCATEGORY.get(category)) or tmp.get('sub') is False:
+        if not (tmp := self.get_category(category)) or tmp.get("sub") is False:
             return False
         return True
 
     @lru_cache()
-    def subcategory_rules(self, category: MenuCategory) -> None | dict[str, dict]:
+    def subcategory_rules(
+        self, category: MenuCategory, sub: str
+    ) -> None | dict[str, dict]:
         """
         子分类匹配规则
-        :param category:
-        :return:
+        Args:
+            category:
+            sub:
+
+        Returns:
+
         """
         if not self.has_child(category):
             return None
-        return SUBCATEGORY.get(category)
+        return SUBCATEGORY.get(category).get(sub)
 
 
 menu = Menu()
 
-__all__ = ['menu']
+__all__ = ["menu"]

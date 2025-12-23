@@ -2,13 +2,12 @@
 # @Time: 2025/12/16
 # @Author: Administrator
 # @File: mod_category.py
+from schemas.base import Base
 
-from pydantic import BaseModel
 
-
-class ModCategory(BaseModel):
+class ModCategory(Base):
     category: str
-    subCategory: str
+    subCategory: str = ""
 
 
-__all__ = ['ModCategory']
+__all__ = ["ModCategory"]

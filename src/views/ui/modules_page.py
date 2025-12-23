@@ -20,20 +20,34 @@ class Ui_modShowView(object):
         self.verticalLayout.setObjectName("verticalLayout")
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
-        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        spacerItem = QtWidgets.QSpacerItem(
+            40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum
+        )
         self.horizontalLayout.addItem(spacerItem)
         self.search_edit = SearchLineEdit(modShowView)
+        self.search_edit.setPlaceholderText("")
+        self.search_edit.setProperty("transparent", False)
+        self.search_edit.setProperty(
+            "lightCustomQss", 'LineEdit[type="error"] {\n' "    color: red;\n" "}"
+        )
+        self.search_edit.setProperty(
+            "darkCustomQss", 'LineEdit[type="error"] {\n' "    color: red;\n" "}"
+        )
         self.search_edit.setObjectName("search_edit")
         self.horizontalLayout.addWidget(self.search_edit)
-        self.refresh_btn = PushButton(modShowView)
-        self.refresh_btn.setToolTip("")
+        self.regexBtn = CheckBox(modShowView)
+        self.regexBtn.setObjectName("regexBtn")
+        self.horizontalLayout.addWidget(self.regexBtn)
+        self.refresh_btn = SplitPushButton(modShowView)
         self.refresh_btn.setObjectName("refresh_btn")
         self.horizontalLayout.addWidget(self.refresh_btn)
         self.menu_btn = DropDownPushButton(modShowView)
         self.menu_btn.setMinimumSize(QtCore.QSize(120, 0))
         self.menu_btn.setObjectName("menu_btn")
         self.horizontalLayout.addWidget(self.menu_btn)
-        spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        spacerItem1 = QtWidgets.QSpacerItem(
+            40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum
+        )
         self.horizontalLayout.addItem(spacerItem1)
         self.verticalLayout.addLayout(self.horizontalLayout)
         self.splitter = QtWidgets.QSplitter(modShowView)
@@ -48,7 +62,9 @@ class Ui_modShowView(object):
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.vkp_info)
         self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
-        spacerItem2 = QtWidgets.QSpacerItem(286, 37, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        spacerItem2 = QtWidgets.QSpacerItem(
+            286, 37, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
+        )
         self.verticalLayout_2.addItem(spacerItem2)
         self.file_pic = PixmapLabel(self.vkp_info)
         self.file_pic.setObjectName("file_pic")
@@ -61,7 +77,9 @@ class Ui_modShowView(object):
         self.addons_info.setBackgroundVisible(False)
         self.addons_info.setObjectName("addons_info")
         self.verticalLayout_2.addWidget(self.addons_info)
-        spacerItem3 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        spacerItem3 = QtWidgets.QSpacerItem(
+            20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
+        )
         self.verticalLayout_2.addItem(spacerItem3)
         self.verticalLayout_2.setStretch(2, 5)
         self.verticalLayout.addWidget(self.splitter)
@@ -69,19 +87,29 @@ class Ui_modShowView(object):
         self.verticalLayout.setStretch(1, 9)
 
         self.retranslateUi(modShowView)
-        self.search_edit.searchSignal['QString'].connect(modShowView.perform_search) # type: ignore
-        self.search_edit.textChanged['QString'].connect(modShowView.perform_search) # type: ignore
-        self.search_edit.clearSignal.connect(modShowView.perform_search) # type: ignore
-        self.splitter.splitterMoved['int','int'].connect(modShowView.on_splitter_moved) # type: ignore
+        self.search_edit.searchSignal["QString"].connect(modShowView.perform_search)  # type: ignore
+        self.search_edit.textChanged["QString"].connect(modShowView.perform_search)  # type: ignore
+        self.search_edit.clearSignal.connect(modShowView.perform_search)  # type: ignore
+        self.splitter.splitterMoved["int", "int"].connect(modShowView.on_splitter_moved)  # type: ignore
+        self.regexBtn.clicked["bool"].connect(modShowView.changePlaceholderText)  # type: ignore
+        self.tableView.doubleClicked["QModelIndex"].connect(modShowView.onDoubleClicked)  # type: ignore
         QtCore.QMetaObject.connectSlotsByName(modShowView)
-        modShowView.setTabOrder(self.search_edit, self.refresh_btn)
-        modShowView.setTabOrder(self.refresh_btn, self.tableView)
+        modShowView.setTabOrder(self.search_edit, self.tableView)
 
     def retranslateUi(self, modShowView):
         _translate = QtCore.QCoreApplication.translate
         modShowView.setWindowTitle(_translate("modShowView", "Frame"))
-        self.refresh_btn.setText(_translate("modShowView", "刷新"))
-        self.refresh_btn.setShortcut(_translate("modShowView", "F5"))
+        self.regexBtn.setText(_translate("modShowView", "正则"))
+        self.refresh_btn.setProperty("text_", _translate("modShowView", "刷新"))
         self.menu_btn.setText(_translate("modShowView", "全部"))
-from qfluentwidgets import DropDownPushButton, PixmapLabel, PlainTextEdit, PushButton, SearchLineEdit
-from views.components.mod_show_tableview import ModShowTableView
+
+
+from qfluentwidgets import (
+    CheckBox,
+    DropDownPushButton,
+    PixmapLabel,
+    PlainTextEdit,
+    SearchLineEdit,
+    SplitPushButton,
+)
+from views.components import ModShowTableView

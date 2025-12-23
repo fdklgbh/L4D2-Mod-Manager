@@ -33,18 +33,36 @@
       </spacer>
      </item>
      <item>
-      <widget class="SearchLineEdit" name="search_edit"/>
-     </item>
-     <item>
-      <widget class="PushButton" name="refresh_btn">
-       <property name="toolTip">
+      <widget class="SearchLineEdit" name="search_edit">
+       <property name="placeholderText">
         <string/>
        </property>
-       <property name="text">
-        <string>刷新</string>
+       <property name="transparent" stdset="0">
+        <bool>false</bool>
        </property>
-       <property name="shortcut">
-        <string>F5</string>
+       <property name="lightCustomQss" stdset="0">
+        <string notr="true">LineEdit[type=&quot;error&quot;] {
+    color: red;
+}</string>
+       </property>
+       <property name="darkCustomQss" stdset="0">
+        <string notr="true">LineEdit[type=&quot;error&quot;] {
+    color: red;
+}</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="CheckBox" name="regexBtn">
+       <property name="text">
+        <string>正则</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="SplitPushButton" name="refresh_btn">
+       <property name="text_" stdset="0">
+        <string>刷新</string>
        </property>
       </widget>
      </item>
@@ -158,6 +176,11 @@
  </widget>
  <customwidgets>
   <customwidget>
+   <class>CheckBox</class>
+   <extends>QCheckBox</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
    <class>PushButton</class>
    <extends>QPushButton</extends>
    <header>qfluentwidgets</header>
@@ -165,6 +188,11 @@
   <customwidget>
    <class>DropDownPushButton</class>
    <extends>PushButton</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>SplitPushButton</class>
+   <extends>QWidget</extends>
    <header>qfluentwidgets</header>
   </customwidget>
   <customwidget>
@@ -190,12 +218,11 @@
   <customwidget>
    <class>ModShowTableView</class>
    <extends>QTableView</extends>
-   <header>views.components.mod_show_view</header>
+   <header>views.components</header>
   </customwidget>
  </customwidgets>
  <tabstops>
   <tabstop>search_edit</tabstop>
-  <tabstop>refresh_btn</tabstop>
   <tabstop>tableView</tabstop>
  </tabstops>
  <resources/>
@@ -207,8 +234,8 @@
    <slot>perform_search()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>238</x>
-     <y>21</y>
+     <x>325</x>
+     <y>56</y>
     </hint>
     <hint type="destinationlabel">
      <x>153</x>
@@ -223,7 +250,7 @@
    <slot>perform_search()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>366</x>
+     <x>289</x>
      <y>38</y>
     </hint>
     <hint type="destinationlabel">
@@ -239,7 +266,7 @@
    <slot>perform_search()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>366</x>
+     <x>289</x>
      <y>42</y>
     </hint>
     <hint type="destinationlabel">
@@ -264,6 +291,38 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>regexBtn</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>modShowView</receiver>
+   <slot>changePlaceholderText()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>430</x>
+     <y>47</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>468</x>
+     <y>9</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>tableView</sender>
+   <signal>doubleClicked(QModelIndex)</signal>
+   <receiver>modShowView</receiver>
+   <slot>onDoubleClicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>167</x>
+     <y>340</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>86</x>
+     <y>73</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>onDoubleClicked()</slot>
@@ -272,5 +331,6 @@
   <slot>search_restore()</slot>
   <slot>show_type_menu()</slot>
   <slot>on_splitter_moved()</slot>
+  <slot>changePlaceholderText()</slot>
  </slots>
 </ui>

@@ -5,8 +5,14 @@
 from qfluentwidgets import MessageBox, Dialog
 
 
-def customDialog(title, content, parent, yesBtn: bool | str = '确定', cancelBtn: bool | str = '取消',
-                 hideTitleBar=True):
+def customDialog(
+    title,
+    content,
+    parent,
+    yesBtn: bool | str = "确定",
+    cancelBtn: bool | str = "取消",
+    hideTitleBar=True,
+):
     w = Dialog(title, content, parent)
     _buttonStatus(yesBtn, cancelBtn, w)
     if hideTitleBar:
@@ -31,8 +37,14 @@ def _buttonStatus(yesBtn, cancelBtn, w):
         w.buttonGroup.hide()
 
 
-def customMessageBox(title, message, parent, yesBtn: bool | str = '确定', cancelBtn: bool | str = '取消',
-                     canCopy=False):
+def customMessageBox(
+    title,
+    message,
+    parent,
+    yesBtn: bool | str = "确定",
+    cancelBtn: bool | str = "取消",
+    canCopy=False,
+):
     w = MessageBox(title, message, parent)
     _buttonStatus(yesBtn, cancelBtn, w)
     w.setContentCopyable(canCopy)
