@@ -13,7 +13,7 @@ repos:
     rev: v2.3.1
     hooks:
       - id: autoflake
-        args: [ --remove-all-unused-imports, --recursive, --in-place ]
+        args: [ --remove-all-unused-imports, --recursive, --in-place, --exclude=__init__.py ]
 
   - repo: https://github.com/psf/black
     rev: 25.12.0
