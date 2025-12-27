@@ -4,9 +4,9 @@
 # @File: setting_view.py
 from pathlib import Path
 
-from PyQt5.QtCore import QUrl, Qt
-from PyQt5.QtGui import QDesktopServices
-from PyQt5.QtWidgets import QWidget, QFileDialog
+from PySide6.QtCore import QUrl, Qt
+from PySide6.QtGui import QDesktopServices
+from PySide6.QtWidgets import QWidget, QFileDialog
 
 # from common.style_sheet import StyleSheet
 # from common.thread import CheckVersion

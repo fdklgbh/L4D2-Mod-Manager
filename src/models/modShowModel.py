@@ -6,8 +6,8 @@ import bisect
 from functools import lru_cache
 from pathlib import Path
 
-from PyQt5.QtCore import QAbstractTableModel, Qt, QModelIndex, QTimer
-from PyQt5.QtWidgets import QWidget
+from PySide6.QtCore import QAbstractTableModel, Qt, QModelIndex
+from PySide6.QtWidgets import QWidget
 
 from core import LogBase
 from schemas import *
@@ -17,6 +17,7 @@ class ModShowModel(QAbstractTableModel, LogBase):
     TAG = "ModShowModel"
 
     def __init__(self, parent: QWidget, headers: list[str], folder_path: Path):
+        print("ModShowModel")
         super().__init__(parent=parent)
         self._headers = headers
         self._folder_path = folder_path
@@ -92,7 +93,6 @@ class ModShowModel(QAbstractTableModel, LogBase):
         self._filename_to_index[modInfo.filename] = row
         self._index_to_filename[row] = modInfo.filename
         self.endInsertRows()
-        self.logger.debug("addModInfo success")
 
     def _flush(self):
         if not self._pending:

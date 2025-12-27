@@ -19,7 +19,7 @@ repos:
     rev: 25.12.0
     hooks:
       - id: black
-        args: [ --config, "./pyproject.toml" ]
+        args: [ --config, "./pyproject.toml"]
 
   - repo: https://github.com/terrencepreilly/darglint
     rev: v1.8.1

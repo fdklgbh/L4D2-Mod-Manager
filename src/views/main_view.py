@@ -2,11 +2,12 @@
 # @Time: 2025/12/14
 # @Author: Administrator
 # @File: main_view.py
+from PySide6.QtGui import QIcon
 from qfluentPackage.windows import CFluentWindow
 from qfluentwidgets import NavigationItemPosition, FluentIcon as FIF
 
-from core import appConstants, l4d2Config, Icon, LogBase, dispose
-from views import SettingView, ModShowView
+from core import *
+from views import SettingView, ModShowView, LogView
 
 
 class MainWindow(CFluentWindow, LogBase):
@@ -15,7 +16,9 @@ class MainWindow(CFluentWindow, LogBase):
     def __init__(self):
         super().__init__()
         self.initWindow()
+        self.setWindowIcon(QIcon(Icon.L4D2.path()))
         self.settings_view = SettingView(self)
+        self.log_view = LogView(self)
         self.mod_view = ModShowView(
             [
                 l4d2Config.addons_path,
@@ -30,6 +33,12 @@ class MainWindow(CFluentWindow, LogBase):
 
     def initNavigation(self):
         self.addSubInterface(self.mod_view, Icon.M, self.tr("Mod"))
+        self.addSubInterface(
+            self.log_view,
+            FIF.FILTER,
+            self.tr("日志"),
+            NavigationItemPosition.BOTTOM,
+        )
         self.addSubInterface(
             self.settings_view,
             FIF.SETTING,
@@ -51,3 +60,7 @@ class MainWindow(CFluentWindow, LogBase):
         dispose()
         self.logger.info("数据库断开链接")
         super().closeEvent(a0)
+
+    def resizeEvent(self, e):
+        signalBus.resizeSignal.emit()
+        super().resizeEvent(e)

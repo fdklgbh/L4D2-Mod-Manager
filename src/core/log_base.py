@@ -8,8 +8,9 @@ from loguru import logger
 class LogBase:
     TAG = ""
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    # def __init__(self, *args, **kwargs):
+    #     print("LogBase", args, kwargs)
+    #     super().__init__()
 
     @property
     def logger(self):

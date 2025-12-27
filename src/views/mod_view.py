@@ -4,20 +4,26 @@
 # @File: mod_view.py
 from pathlib import Path
 
-from PyQt5.QtCore import (
+from PySide6.QtCore import (
     Qt,
     QRegularExpression,
     QModelIndex,
-    QTimer,
-    QThread,
-    QCoreApplication,
 )
-from PyQt5.QtWidgets import QWidget, QAbstractItemView, QApplication
+from PySide6.QtGui import QShortcut, QKeySequence
+from PySide6.QtWidgets import QWidget, QAbstractItemView, QApplication, QHeaderView
 from qfluentPackage.widget import CSegmentedWidget
-from qfluentwidgets import RoundMenu, Action, InfoBar, InfoBarIcon, InfoBarPosition
+from qfluentwidgets import (
+    RoundMenu,
+    Action,
+    InfoBar,
+    InfoBarIcon,
+    InfoBarPosition,
+    StateToolTip,
+)
 
 from core import l4d2Config, LogBase
 from models import *
+from schemas import ModInfo
 from services import GenerateModInfo
 from .ui import Ui_modShowView
 
@@ -27,36 +33,62 @@ class ModuleStacked(QWidget, Ui_modShowView, LogBase):
 
     def __init__(self, path: Path):
         super().__init__()
+        self.stateTooltip: StateToolTip = None
         self.setupUi(self)
         self.analysisVpkThread = GenerateModInfo(path)
-        menu = RoundMenu(parent=self.refresh_btn)
-        menu.addAction(
-            Action(text="重新读取VPK文件", triggered=lambda: print("重新读取"))
-        )
-        self.refresh_btn.setFlyout(menu)
+        self.mod_total, self.progress_num = 0, 0
+        self._folder = path
+        self.refresh_add_menu()
         self.source_model = ModShowModel(
             self, ["文件名", "标题", "作者", "描述", "标语"], path
         )
-        # self.proxy_model = ProxyModSearch(self)
-        # self.proxy_model.setSourceModel(self.source_model)
-        # self.tableView.setModel(self.proxy_model)
-        self.tableView.setModel(self.source_model)
+        self.proxy_model = ProxyModSearch(self)
+        self.proxy_model.setSourceModel(self.source_model)
+        self.set_tableview()
         self.changePlaceholderText(False)
-        self.tableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.hide_vkp_info()
         self.connectSignal()
-        # if not l4d2Config.is_disable_mod_path(path):
-        #     self.analysisVpkThread.start()
+        self.analysisVpkThread.start()
+
+    def set_tableview(self):
+        # 边框可见
+        self.tableView.setBorderVisible(True)
+        self.tableView.setBorderRadius(8)
+        self.tableView.setModel(self.proxy_model)
+        # 自动换行
+        self.tableView.setWordWrap(False)
+        # 表头隐藏
+        self.tableView.verticalHeader().hide()
+        # 按照内容自适应宽度大小
+        # self.tableView.resizeColumnsToContents()
+        # 水平表头设置为自动拉伸
+        self.tableView.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.Stretch
+        )
+        # self.tableView.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
+
+        # 排序
+        self.tableView.setSortingEnabled(True)
+        self.tableView.horizontalHeader().setSortIndicator(-1, Qt.AscendingOrder)
+        self.tableView.setEditTriggers(QAbstractItemView.NoEditTriggers)
+
+    def refresh_add_menu(self):
+        menu = RoundMenu(parent=self.refresh_btn)
+        menu.addAction(Action(text="重新读取VPK文件", triggered=self.reloadMod))
+        self.refresh_btn.setFlyout(menu)
+
+    def reloadMod(self):
+        self.analysisVpkThread.reload()
         self.analysisVpkThread.start()
 
     def perform_search(self, text: str = ""):
         self.tableView.horizontalHeader().setSortIndicator(-1, Qt.AscendingOrder)
         # 恢复表列头的初始升序/降序状态
         self.tableView.clearSelection()
-        # if self.regexBtn.isChecked():
-        #     self.verify_regex(text)
-        # else:
-        #     self.proxy_model.setFilterFixedString(text)
+        if self.regexBtn.isChecked():
+            self.verify_regex(text)
+        else:
+            self.proxy_model.setFilterFixedString(text)
         self.hide_vkp_info()
 
     def onDoubleClicked(self, e: QModelIndex):
@@ -132,34 +164,54 @@ class ModuleStacked(QWidget, Ui_modShowView, LogBase):
         self.analysisVpkThread.finished.connect(self.threadFinished)
         self.analysisVpkThread.itemSignal.connect(self.addRow)
 
+        QShortcut(QKeySequence("ctrl+f"), self).activated.connect(
+            self.search_edit.setFocus
+        )
+        QShortcut(QKeySequence("f5"), self).activated.connect(self.refresh)
+
     def refresh(self):
+        print("refresh")
         self.source_model.clearAll()
         # self.tableView.setModel(self.source_model)
         self.analysisVpkThread.start()
 
     def threadFinished(self):
-        self.logger.debug("threadFinished 触发")
+        self.logger.debug(f"mod文件夹 {self._folder.name} 加载完成")
+        if self.stateTooltip:
+            self.stateTooltip.setContent("全部加载完成了")
+            self.stateTooltip.setState(True)
+        self.progress_num = 0
         self.setDisabled(False)
-        # self.proxy_model.setDynamicSortFilter(True)
-        # self.proxy_model.disableFilter(False)
-        # self.tableView.setModel(self.proxy_model)
+        self.stateTooltip = None
+        self.proxy_model.setDynamicSortFilter(True)
+        self.proxy_model.disableFilter(False)
 
     def threadStarted(self):
-        self.logger.debug("threadStarted 触发")
+        self.logger.debug(f"开始加载 {self._folder.name} vpk文件")
         self.setDisabled(True)
-        # self.proxy_model.disableFilter(True)
-        # self.proxy_model.setDynamicSortFilter(False)
+        self.mod_total = self.analysisVpkThread.get_total()
+        self.proxy_model.disableFilter(True)
+        self.proxy_model.setDynamicSortFilter(False)
         self.search_edit.clear()
         self.perform_search()
+        self.stateTooltip = StateToolTip(
+            "正在加载vpk信息", f"{self.progress_num}/{self.mod_total}", self
+        )
+        self.stateTooltip.move(self.stateTooltip.getSuitablePos())
+        self.stateTooltip.show()
 
     def cleanup(self):
         self.logger.debug("cleanup_thread")
         self.analysisVpkThread.quit()
         self.analysisVpkThread.wait(1)
 
-    def addRow(self, modInfo):
+    def addRow(self, modInfo: ModInfo):
+        self.progress_num += 1
+        if self.stateTooltip:
+            self.stateTooltip.setContent(
+                f"{self.progress_num}/{self.mod_total} {modInfo.filename}"
+            )
         self.source_model.addModInfo(modInfo)
-        self.logger.debug(f"数据添加成功")
 
     def closeEvent(self, a0):
         self.cleanup()

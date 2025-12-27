@@ -4,11 +4,10 @@
 # @File: main.py
 import sys
 
-from PyQt5.QtCore import (
+from PySide6.QtCore import (
     Qt,
     QLocale,
 )
-from PyQt5.QtWidgets import QApplication
 from loguru import logger
 from qfluentwidgets import FluentTranslator
 
@@ -20,12 +19,11 @@ from utils.safe_application import SafeApplication
 from views.first_view import FirstView
 from views.main_view import MainWindow
 
-
-QApplication.setHighDpiScaleFactorRoundingPolicy(
-    Qt.HighDpiScaleFactorRoundingPolicy.PassThrough
-)
-QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
-QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
+# QApplication.setHighDpiScaleFactorRoundingPolicy(
+#     Qt.HighDpiScaleFactorRoundingPolicy.PassThrough
+# )
+# QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
+# QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
 
 app = SafeApplication(sys.argv)
 app.setAttribute(Qt.AA_DontCreateNativeWidgetSiblings)
@@ -36,7 +34,7 @@ translator = FluentTranslator(locale)
 app.installTranslator(translator)
 app.setStyleSheet("""* {background-color: transparent;border: none}""")
 
-
+logger = logger.bind(tag="main")
 try:
     w = None
 
@@ -51,10 +49,10 @@ try:
         print(l4d2Config.l4d2_path, l4d2Config.disable_mod_path)
         first = FirstView()
         first.finished.connect(show)
-        first.exec()
+        first.show()
     else:
         show()
-    res = app.exec_()
+    res = app.exec()
     print(f"code {res=}")
 
 except Exception as e:

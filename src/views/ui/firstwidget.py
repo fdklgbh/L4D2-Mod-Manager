@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'first_use.ui'
+## Form generated from reading UI file 'firstwidget.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.10.1
+## Created by: Qt User Interface Compiler version 6.6.0
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -30,7 +30,7 @@ class Ui_firstUse(object):
     def setupUi(self, firstUse):
         if not firstUse.objectName():
             firstUse.setObjectName("firstUse")
-        firstUse.resize(289, 223)
+        firstUse.resize(609, 467)
         self.verticalLayout = QVBoxLayout(firstUse)
         self.verticalLayout.setObjectName("verticalLayout")
         self.SubtitleLabel = SubtitleLabel(firstUse)
@@ -43,7 +43,7 @@ class Ui_firstUse(object):
         self.BodyLabel = BodyLabel(firstUse)
         self.BodyLabel.setObjectName("BodyLabel")
 
-        self.formLayout.setWidget(0, QFormLayout.ItemRole.LabelRole, self.BodyLabel)
+        self.formLayout.setWidget(0, QFormLayout.LabelRole, self.BodyLabel)
 
         self.gamePathEdit = LineEdit(firstUse)
         self.gamePathEdit.setObjectName("gamePathEdit")
@@ -55,26 +55,24 @@ class Ui_firstUse(object):
             "darkCustomQss", 'LineEdit[type="error"] {\n' "    color: red;\n" "}"
         )
 
-        self.formLayout.setWidget(0, QFormLayout.ItemRole.FieldRole, self.gamePathEdit)
+        self.formLayout.setWidget(0, QFormLayout.FieldRole, self.gamePathEdit)
 
         self.BodyLabel_2 = BodyLabel(firstUse)
         self.BodyLabel_2.setObjectName("BodyLabel_2")
 
-        self.formLayout.setWidget(1, QFormLayout.ItemRole.LabelRole, self.BodyLabel_2)
+        self.formLayout.setWidget(1, QFormLayout.LabelRole, self.BodyLabel_2)
 
         self.disablePathEdit = LineEdit(firstUse)
         self.disablePathEdit.setObjectName("disablePathEdit")
 
-        self.formLayout.setWidget(
-            1, QFormLayout.ItemRole.FieldRole, self.disablePathEdit
-        )
+        self.formLayout.setWidget(1, QFormLayout.FieldRole, self.disablePathEdit)
 
         self.verticalLayout.addLayout(self.formLayout)
 
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.horizontalSpacer = QSpacerItem(
-            40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum
+            40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum
         )
 
         self.horizontalLayout.addItem(self.horizontalSpacer)

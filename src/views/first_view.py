@@ -5,34 +5,26 @@
 import sys
 from pathlib import Path
 
-from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import QApplication, QDialog
+from PySide6.QtCore import Signal
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import QApplication
+from qfluentwidgets import FluentWidget
 
-from core import GamePathValidator, l4d2Config
+from core import GamePathValidator, l4d2Config, Icon
 from views.ui import Ui_firstUse
 
 
-class FirstView(QDialog, Ui_firstUse):
-    finished = pyqtSignal()
+class FirstView(FluentWidget, Ui_firstUse):
+    finished = Signal()
 
     def __init__(self):
         super().__init__()
         self.setupUi(self)
-        self.setFixedSize(420, 180)
-        # self.setWindowFlags(Qt.FramelessWindowHint)  # 隐藏标题栏
-        self.setStyleSheet(
-            """
-               FirstView {
-                   background-color: white;
-                   border-radius: 10px;
-               }
-               * {
-                   border: none;
-               }
-           """
-        )
-        self.quitBtn.clicked.connect(self.reject)
+        self.setWindowIcon(QIcon(Icon.L4D2.path()))
+        self.setFixedSize(420, 200)
+        self.quitBtn.clicked.connect(self.quit)
         self.sureBtn.clicked.connect(self.setPath)
+        self.verticalLayout.setContentsMargins(10, self.titleBar.height() + 10, 10, 10)
 
     def quit(self):
         print("quit")
@@ -71,10 +63,11 @@ class FirstView(QDialog, Ui_firstUse):
         l4d2Config.l4d2_path = self.gamePathEdit.text()
         l4d2Config.disable_mod_path = self.disablePathEdit.text()
         self.finished.emit()
-        self.accept()
         self.close()
 
-    def reject(self):
-        print("reject")
-        super().reject()
-        self.quit()
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    w = FirstView()
+    w.show()
+    app.exec()

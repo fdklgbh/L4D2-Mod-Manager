@@ -4,16 +4,16 @@
 # @File: mod_show_tableview.py
 from pathlib import Path
 
-from PyQt5.QtCore import pyqtSignal, QModelIndex
+from PySide6.QtCore import QModelIndex, Signal
 from qfluentwidgets import TableView
 
 
 class ModShowTableView(TableView):
-    openFolderSignal = pyqtSignal(str)
-    openGCFSpaceSignal = pyqtSignal(str)
-    modeEnableSignal = pyqtSignal(Path, int, str)
-    doubleClickedSignal = pyqtSignal(QModelIndex)
-    refreshCacheSignal = pyqtSignal(list)
+    openFolderSignal = Signal(str)
+    openGCFSpaceSignal = Signal(str)
+    modeEnableSignal = Signal(Path, int, str)
+    doubleClickedSignal = Signal(QModelIndex)
+    refreshCacheSignal = Signal(list)
 
     def __init__(self, parent):
         super().__init__(parent)

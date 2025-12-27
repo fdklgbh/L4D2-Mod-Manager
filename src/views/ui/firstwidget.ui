@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>firstUse</class>
+ <widget class="QWidget" name="firstUse">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>609</width>
+    <height>467</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>首次配置</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="SubtitleLabel" name="SubtitleLabel">
+     <property name="text">
+      <string>设置配置路径</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QFormLayout" name="formLayout">
+     <item row="0" column="0">
+      <widget class="BodyLabel" name="BodyLabel">
+       <property name="text">
+        <string>游戏文件夹</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="LineEdit" name="gamePathEdit">
+       <property name="placeholderText">
+        <string>游戏根目录</string>
+       </property>
+       <property name="transparent" stdset="0">
+        <bool>false</bool>
+       </property>
+       <property name="lightCustomQss" stdset="0">
+        <string notr="true">LineEdit[type=&quot;error&quot;] {
+    color: red;
+}</string>
+       </property>
+       <property name="darkCustomQss" stdset="0">
+        <string notr="true">LineEdit[type=&quot;error&quot;] {
+    color: red;
+}</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="BodyLabel" name="BodyLabel_2">
+       <property name="text">
+        <string>禁用mod文件夹</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="LineEdit" name="disablePathEdit">
+       <property name="placeholderText">
+        <string>禁用mod路径(不存在会自动创建文件)</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="6,2,2">
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="PrimaryPushButton" name="sureBtn">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>确定</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="PushButton" name="quitBtn">
+       <property name="text">
+        <string>退出</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>PushButton</class>
+   <extends>QPushButton</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>PrimaryPushButton</class>
+   <extends>PushButton</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>BodyLabel</class>
+   <extends>QLabel</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>SubtitleLabel</class>
+   <extends>QLabel</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>LineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>gamePathEdit</sender>
+   <signal>textChanged(QString)</signal>
+   <receiver>firstUse</receiver>
+   <slot>verify()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>177</x>
+     <y>179</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>115</x>
+     <y>158</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>disablePathEdit</sender>
+   <signal>textChanged(QString)</signal>
+   <receiver>firstUse</receiver>
+   <slot>verify()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>240</x>
+     <y>212</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>157</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>verify()</slot>
+ </slots>
+</ui>

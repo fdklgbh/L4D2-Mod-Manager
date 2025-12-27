@@ -2,7 +2,7 @@
 # @Time: 2025/12/16
 # @Author: Administrator
 # @File: mod_search_proxy.py
-from PyQt5.QtCore import QSortFilterProxyModel, Qt
+from PySide6.QtCore import QSortFilterProxyModel, Qt
 
 from core import LogBase
 from schemas import ModCategory
@@ -49,7 +49,6 @@ class ProxyModSearch(QSortFilterProxyModel, LogBase):
             self.invalidateFilter()
 
     def lessThan(self, left, right):
-        self.logger.debug("lessThan 触发")
         left_data = self.sourceModel().data(left, Qt.DisplayRole)
         right_data = self.sourceModel().data(right, Qt.DisplayRole)
         return str(left_data) < str(right_data)

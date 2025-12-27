@@ -4,9 +4,9 @@
 # @File: analysis_vpk.py
 import re
 from pathlib import Path
+from typing import TypeAlias
 
 import vdf
-from typing import TypeAlias
 
 from core import LogBase, appConstants, MenuCategory, Menu, VPKInfo
 from schemas import ModCategory
@@ -21,10 +21,10 @@ Data: TypeAlias = dict[str, str]
 class AnalysisVPK(LogBase):
     TAG = "AnalysisVPK"
 
-    def getAddonInfo(self, path: Path) -> VPKInfo:
+    def getAddonInfo(self, path: Path, category: ModCategory = None) -> VPKInfo:
         vpk = OpenVPK(path)
         if not vpk.verify():
-            print("not vpk.verify()")
+            self.logger.warning(f"{path.stem} 不是VPK文件")
             return self._no_data(path)
         data = vpk.get_addonInfo()
         if data:
@@ -51,15 +51,16 @@ class AnalysisVPK(LogBase):
             result = {}
             self.logger.warning(f"{path.stem} 没有addoninfo.txtt文件")
         filelist: list[str] = [i for i in vpk]
-        category = self.check_type(filelist, result)
         if not category:
-            for key in appConstants.mapKey:
-                value = result.get(key, "")
-                if value == "1":
-                    category = ModCategory(category="地图")
-                    break
-            else:
-                category = ModCategory(category="其他")
+            category = self.check_type(filelist, result)
+            if not category:
+                for key in appConstants.mapKey:
+                    value = result.get(key, "")
+                    if value == "1":
+                        category = ModCategory(category="地图")
+                        break
+                else:
+                    category = ModCategory(category="其他")
         return VPKInfo(
             fileName=path.stem,
             category=category.category,
