@@ -3,10 +3,13 @@
 # @Author: Administrator
 # @File: vpk_file_schemas.py
 
-from pydantic import BaseModel, Field
+from pydantic import Field
+
+from .base import Base
 
 
-class VPKFilePath(BaseModel):
+class VPKFilePath(Base):
+    filename: str
     mdl: list[str] = Field(default=[], description="mdl文件目录")
     vtf: list[str] = Field(default=[], description="vtf文件目录")
     vmt: list[str] = Field(default=[], description="vmt文件目录")

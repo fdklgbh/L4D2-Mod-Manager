@@ -14,14 +14,13 @@ class ProxyModSearch(QSortFilterProxyModel, LogBase):
     def __init__(self, parent):
         super().__init__(parent)
         self._disableFilter = False
-        self._filter_category: ModCategory = ModCategory(
-            category="全部", subCategory=""
-        )
+        self._filter_category: ModCategory | None = None
         self.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self.setFilterKeyColumn(-1)
 
-    def setCategoryFilter(self, category, subCategory):
-        self._filter_category = ModCategory(category=category, subCategory=subCategory)
+    def setCategoryFilter(self, category: ModCategory | None):
+        self._filter_category = category
+        self.logger.debug(f"{category=}")
         self.invalidate()
 
     def filterAcceptsRow(self, source_row, source_parent):
@@ -29,15 +28,14 @@ class ProxyModSearch(QSortFilterProxyModel, LogBase):
             return True
         if not super().filterAcceptsRow(source_row, source_parent):
             return False
-
-        if self._filter_category.category == "全部":
+        if self._filter_category is None:
             return True
 
         index = self.sourceModel().index(source_row, 1, source_parent)
         category: ModCategory = self.sourceModel().data(index, Qt.UserRole + 1)
         if category.category != self._filter_category.category:
             return False
-        if self._filter_category.subCategory == "全部":
+        if self._filter_category.subCategory == "":
             return True
         if self._filter_category.subCategory == category.subCategory:
             return True

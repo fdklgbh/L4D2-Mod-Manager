@@ -52,7 +52,7 @@ class AnalysisVPK(LogBase):
             self.logger.warning(f"{path.stem} 没有addoninfo.txtt文件")
         filelist: list[str] = [i for i in vpk]
         if not category:
-            category = self.check_type(filelist, result)
+            category = self.check_type(filelist, result, path.stem)
             if not category:
                 for key in appConstants.mapKey:
                     value = result.get(key, "")
@@ -72,12 +72,14 @@ class AnalysisVPK(LogBase):
             url=self._url(path),
         )
 
-    def check_type(self, fileList: list[str], data: dict[str, str]) -> CategoryResult:
+    def check_type(
+        self, fileList: list[str], data: dict[str, str], filename: str
+    ) -> CategoryResult:
         if category := self._check_map(fileList, data):
             return category
         if category := self._check_sky(fileList):
             return category
-        vpkFilePath = VPKFilePath()
+        vpkFilePath = VPKFilePath(filename=filename)
         for file in fileList:
             if file.endswith(".mdl"):
                 vpkFilePath.mdl.append(file)
@@ -109,8 +111,15 @@ class AnalysisVPK(LogBase):
                 continue
             if not Menu.get_category(category):
                 return None
-            return self._check_other(info, category)
+            self.debug_show(info.filename, f"{category=}", info)
+            if result := self._check_other(info, category):
+                self.debug_show(info.filename, f"{result=}")
+                return result
         return None
+
+    def debug_show(self, filename, *args):
+        if filename == "1748422778":
+            self.logger.debug(",".join([str(_) for _ in args]))
 
     def _check_other(self, info: VPKFilePath, category: MenuCategory) -> CategoryResult:
 
@@ -133,6 +142,7 @@ class AnalysisVPK(LogBase):
             return False
 
         def check_file(suffix):
+            self.debug_show(filename, f"{suffix=}")
             if not (path_list := getattr(info, suffix, None)):
                 return None
             regex_key = file_suffix + "_path_regex"
@@ -155,22 +165,27 @@ class AnalysisVPK(LogBase):
                         return self.__result_category(category)
                     continue
                 for sub, rules in cats.items():
+                    self.debug_show(filename, sub)
                     if not (suffix_rule := rules.get(suffix)):
                         continue
-                    if not check_path(file, rules.get(regex_key), True):
-                        continue
+                    if check_path(file, rules.get(regex_key), True):
+                        return self.__result_category(category, sub)
                     if check_suffix_rules(file, suffix_rule):
                         return self.__result_category(category, sub)
             return None
 
+        filename = info.filename
+        self.debug_show(filename, f"检测类型-{category=}")
         for file_suffix in ["mdl", "vmt", "vtf"]:
             if res := check_file(file_suffix):
                 return res
         data = Menu.get_category(category)
         if not Menu.has_child(category):
+            self.debug_show(filename, category, "不存在子菜单")
             if check_path(info.path, data.get("path"), data.get("regex", False)):
                 return self.__result_category(category, "")
         else:
+            self.debug_show(filename, category, "存在子菜单")
             for k, sub in data.items():
                 sub: dict
                 if k == "脚本":

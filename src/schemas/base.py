@@ -8,7 +8,7 @@ from pydantic import BaseModel
 class Base(BaseModel):
     def __str__(self):
         fields_str = ", ".join(f"{k}={repr(v)}" for k, v in self.model_dump().items())
-        return f"{self.__class__.__name__}({fields_str[:100]})"
+        return f"{self.__class__.__name__}({fields_str})"
 
 
 __all__ = ["Base"]

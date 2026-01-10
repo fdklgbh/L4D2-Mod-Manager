@@ -21,9 +21,9 @@ from qfluentwidgets import (
     StateToolTip,
 )
 
-from core import l4d2Config, LogBase
+from core import l4d2Config, LogBase, Menu
 from models import *
-from schemas import ModInfo
+from schemas import ModInfo, ModCategory
 from services import GenerateModInfo
 from .ui import Ui_modShowView
 
@@ -79,7 +79,7 @@ class ModuleStacked(QWidget, Ui_modShowView, LogBase):
 
     def reloadMod(self):
         self.analysisVpkThread.reload()
-        self.analysisVpkThread.start()
+        self.refresh()
 
     def perform_search(self, text: str = ""):
         self.tableView.horizontalHeader().setSortIndicator(-1, Qt.AscendingOrder)
@@ -163,16 +163,15 @@ class ModuleStacked(QWidget, Ui_modShowView, LogBase):
         self.analysisVpkThread.started.connect(self.threadStarted)
         self.analysisVpkThread.finished.connect(self.threadFinished)
         self.analysisVpkThread.itemSignal.connect(self.addRow)
-
         QShortcut(QKeySequence("ctrl+f"), self).activated.connect(
             self.search_edit.setFocus
         )
         QShortcut(QKeySequence("f5"), self).activated.connect(self.refresh)
 
     def refresh(self):
-        print("refresh")
         self.source_model.clearAll()
-        # self.tableView.setModel(self.source_model)
+        self.proxy_model.setCategoryFilter(None)
+        self.menu_btn.setText("全部")
         self.analysisVpkThread.start()
 
     def threadFinished(self):
@@ -185,6 +184,53 @@ class ModuleStacked(QWidget, Ui_modShowView, LogBase):
         self.stateTooltip = None
         self.proxy_model.setDynamicSortFilter(True)
         self.proxy_model.disableFilter(False)
+        self.logger.debug(
+            f"{self._folder.name}-分类信息: {self.source_model.get_menu_infos}"
+        )
+        self.set_menu()
+
+    def set_menu(self):
+        if old_menu := self.menu_btn.menu():
+            old_menu.deleteLater()
+        _menu = RoundMenu(parent=self.menu_btn)
+        source_menu_info = self.source_model.get_menu_infos
+        action_all = Action(text=f'全部({source_menu_info.get("all")})', parent=_menu)
+        action_all.setToolTip("全部")
+        _menu.addAction(action_all)
+        for category in Menu.category:
+            all_num = source_menu_info.get(f"{category}", 0)
+            if Menu.has_child(category):
+                category_menu = RoundMenu(parent=_menu, title=f"{category}({all_num})")
+                action = Action(text=f"全部({all_num})", parent=category_menu)
+                action.setData(ModCategory(category=category))
+                action.setToolTip(category)
+                category_menu.addAction(action)
+                for sub in Menu.find_subcategory(category):
+                    num = source_menu_info.get(f"{category}-{sub}", 0)
+                    sub_action = Action(text=sub + f"({num})", parent=category_menu)
+                    sub_action.setData(ModCategory(category=category, subCategory=sub))
+                    sub_action.setToolTip(sub)
+                    category_menu.addAction(sub_action)
+                _menu.addMenu(category_menu)
+            else:
+                action = Action(text=f"{category}({all_num})", parent=_menu)
+                action.setData(ModCategory(category=category))
+                action.setToolTip(category)
+                _menu.addAction(action)
+        _menu.triggered.connect(self.menu_choice)
+        self.menu_btn.setMenu(_menu)
+
+    def menu_choice(self, action: Action):
+        self.logger.debug(f"menu_choice: {action}, {action.data()}")
+        mod_type: ModCategory = action.data()
+        self.proxy_model.setCategoryFilter(mod_type)
+        if mod_type:
+            text = mod_type.category
+            if mod_type.subCategory:
+                text = mod_type.subCategory
+        else:
+            text = "全部"
+        self.menu_btn.setText(text)
 
     def threadStarted(self):
         self.logger.debug(f"开始加载 {self._folder.name} vpk文件")

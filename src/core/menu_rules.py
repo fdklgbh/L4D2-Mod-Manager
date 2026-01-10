@@ -953,7 +953,7 @@ class Menu:
         """
         if not (sub := SUBCATEGORY.get(category)):
             return None
-        if not sub.get("child"):
+        if sub.get("sub") is False:
             return None
         return list(sub.keys())
 

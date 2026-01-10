@@ -19,7 +19,7 @@ engine = create_engine(
     pool_recycle=1800,
     connect_args={"check_same_thread": False},
 )
-
+print(f"{appConstants.dbUrl}")
 SessionLocal = scoped_session(sessionmaker(bind=engine))
 
 
