@@ -51,6 +51,7 @@ class ModuleStacked(QWidget, Ui_modShowView, LogBase):
         self.analysisVpkThread.start()
 
     def set_tableview(self):
+        self.tableView.folderPath = self._folder
         # 边框可见
         self.tableView.setBorderVisible(True)
         self.tableView.setBorderRadius(8)

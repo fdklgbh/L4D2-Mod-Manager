@@ -60,7 +60,18 @@ class AnalysisVPK(LogBase):
                         category = ModCategory(category="地图")
                         break
                 else:
-                    category = ModCategory(category="其他")
+                    if any(
+                        [
+                            _ in path.stem
+                            for _ in ["组件材质", "基础材质", "附加材质", "预设材质"]
+                        ]
+                    ):
+                        # 什么类型都没匹配上,也许是人物mod的附加材质(根据文件名判断)
+                        category = ModCategory(
+                            category=MenuCategory.SURVIVOR, subCategory="其他"
+                        )
+                    else:
+                        category = ModCategory(category="其他")
         return VPKInfo(
             fileName=path.stem,
             category=category.category,
@@ -118,7 +129,7 @@ class AnalysisVPK(LogBase):
         return None
 
     def debug_show(self, filename, *args):
-        if filename == "1748422778":
+        if filename == "【杂项-瞄准镜】甘雨1":
             self.logger.debug(",".join([str(_) for _ in args]))
 
     def _check_other(self, info: VPKFilePath, category: MenuCategory) -> CategoryResult:
@@ -142,7 +153,6 @@ class AnalysisVPK(LogBase):
             return False
 
         def check_file(suffix):
-            self.debug_show(filename, f"{suffix=}")
             if not (path_list := getattr(info, suffix, None)):
                 return None
             regex_key = file_suffix + "_path_regex"
@@ -181,11 +191,9 @@ class AnalysisVPK(LogBase):
                 return res
         data = Menu.get_category(category)
         if not Menu.has_child(category):
-            self.debug_show(filename, category, "不存在子菜单")
             if check_path(info.path, data.get("path"), data.get("regex", False)):
                 return self.__result_category(category, "")
         else:
-            self.debug_show(filename, category, "存在子菜单")
             for k, sub in data.items():
                 sub: dict
                 if k == "脚本":

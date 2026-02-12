@@ -606,9 +606,6 @@ SUBCATEGORY = {
         ],
     },
     "UI": {"sub": False, "path": ["resource/ui", "materials/vgui"]},
-    # "材质特效": {
-    #     "sub": False,
-    # },
     "动作": {"sub": False, "path": ["models/xdreanims"]},
     "载具": {
         "直升机": {

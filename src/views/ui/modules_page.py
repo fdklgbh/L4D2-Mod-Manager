@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'modules_page.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.10.1
+## Created by: Qt User Interface Compiler version 6.6.0
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -18,6 +18,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+
 from qfluentwidgets import (
     CheckBox,
     DropDownPushButton,
@@ -26,7 +27,6 @@ from qfluentwidgets import (
     SearchLineEdit,
     SplitPushButton,
 )
-
 from views.components import ModShowTableView
 
 
@@ -41,7 +41,7 @@ class Ui_modShowView(object):
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.horizontalSpacer = QSpacerItem(
-            40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum
+            40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum
         )
 
         self.horizontalLayout.addItem(self.horizontalSpacer)
@@ -74,8 +74,13 @@ class Ui_modShowView(object):
 
         self.horizontalLayout.addWidget(self.menu_btn)
 
+        self.autoRaise = CheckBox(modShowView)
+        self.autoRaise.setObjectName("autoRaise")
+
+        self.horizontalLayout.addWidget(self.autoRaise)
+
         self.horizontalSpacer_2 = QSpacerItem(
-            40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum
+            40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum
         )
 
         self.horizontalLayout.addItem(self.horizontalSpacer_2)
@@ -96,7 +101,7 @@ class Ui_modShowView(object):
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
         self.verticalSpacer_2 = QSpacerItem(
-            286, 37, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding
+            286, 37, QSizePolicy.Minimum, QSizePolicy.Expanding
         )
 
         self.verticalLayout_2.addItem(self.verticalSpacer_2)
@@ -117,7 +122,7 @@ class Ui_modShowView(object):
         self.verticalLayout_2.addWidget(self.addons_info)
 
         self.verticalSpacer = QSpacerItem(
-            20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding
+            20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding
         )
 
         self.verticalLayout_2.addItem(self.verticalSpacer)
@@ -156,6 +161,9 @@ class Ui_modShowView(object):
         )
         self.menu_btn.setText(
             QCoreApplication.translate("modShowView", "\u5168\u90e8", None)
+        )
+        self.autoRaise.setText(
+            QCoreApplication.translate("modShowView", "\u81ea\u8c03\u6574", None)
         )
 
     # retranslateUi

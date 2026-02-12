@@ -20,11 +20,8 @@ class ModShowModel(QAbstractTableModel, LogBase):
         super().__init__(parent=parent)
         self._headers = headers
         self._folder_path = folder_path
-        # self._timer = QTimer(self)
         self._data: dict[str, ModInfo] = {}
         self._filenames: list[str] = []
-        # self._filename_to_index: dict[str, int] = {}  # 文件名 -> 索引映射
-        # self._index_to_filename: dict[int, str] = {}  # 索引 -> 文件名映射
         self._menu_info: dict[str, int] = {}
 
     def rowCount(self, parent=QModelIndex()):
@@ -91,7 +88,6 @@ class ModShowModel(QAbstractTableModel, LogBase):
         Returns:
 
         """
-        # self._pending.append(modInfo)
         row = len(self._data)
         self.beginInsertRows(QModelIndex(), row, row)
         self._add_once_data(modInfo)
@@ -100,8 +96,6 @@ class ModShowModel(QAbstractTableModel, LogBase):
     def _add_once_data(self, modInfo: ModInfo):
         self._data[modInfo.filename] = modInfo
         self._filenames.append(modInfo.filename)
-        # self._filename_to_index[modInfo.filename] = row
-        # self._index_to_filename[row] = modInfo.filename
         self._add_menu_info(modInfo)
 
     def addModInfos(self, modInfos: list[ModInfo]):
@@ -134,19 +128,12 @@ class ModShowModel(QAbstractTableModel, LogBase):
 
         """
         if 0 <= row < len(self._data):
-            # name = self._data[row].name
             self.beginRemoveRows(QModelIndex(), row, row)
             # 删除数据
             self._remove_menu_info(self._data[self._filenames[row]])
             del self._data[self._filenames[row]]
             self._menu_info["all"] -= 1
             self._filenames.pop(row)
-            # 更新映射关系
-            # del self._filename_to_index[name]
-            # del self._index_to_filename[row]
-
-            # 调整后续索引映射
-            # self._adjust_indices_after_removal(row)
             self.endRemoveRows()
 
     def _add_menu_info(self, modInfo: ModInfo):
@@ -179,38 +166,6 @@ class ModShowModel(QAbstractTableModel, LogBase):
             self._remove_menu_info(self._data[filename])
             self._add_menu_info(self._data[filename])
             self._data[filename].modCategory = category
-            # if not (index := self._filename_to_index.get(filename)):
-            #     continue
-            # self._data[index].modCategory = category
-
-    # def _adjust_indices_after_removal(self, removed_index: int):
-    #     """
-    #     删除元素后调整索引映射
-    #     Args:
-    #         removed_index:
-    #
-    #     Returns:
-    #
-    #     """
-    #     # 创建新的映射字典
-    #     adjusted_index_to_filename = {}
-    #     adjusted_filename_to_index = {}
-    #
-    #     # 重新构建映射关系
-    #     for index, name in self._index_to_filename.items():
-    #         if index > removed_index:
-    #             # 后续索引减1
-    #             new_index = index - 1
-    #             adjusted_index_to_filename[new_index] = name
-    #             adjusted_filename_to_index[name] = new_index
-    #         else:
-    #             # 前面的索引不变
-    #             adjusted_index_to_filename[index] = name
-    #             adjusted_filename_to_index[name] = index
-    #
-    #     # 更新映射字典
-    #     self._index_to_filename = adjusted_index_to_filename
-    #     self._filename_to_index = adjusted_filename_to_index
 
     def clearAll(self):
         """清空所有数据"""
@@ -220,8 +175,6 @@ class ModShowModel(QAbstractTableModel, LogBase):
         self._data.clear()
         self._filenames.clear()
         self._menu_info.clear()
-        # self._filename_to_index.clear()
-        # self._index_to_filename.clear()
         self.endRemoveRows()
 
     def getHeader(self, column):
