@@ -49,7 +49,7 @@ class AnalysisVPK(LogBase):
                 result = {}
         else:
             result = {}
-            self.logger.warning(f"{path.stem} 没有addoninfo.txtt文件")
+            self.logger.warning(f"{path.stem} 没有addoninfo.txt文件")
         filelist: list[str] = [i for i in vpk]
         if not category:
             category = self.check_type(filelist, result, path.stem)

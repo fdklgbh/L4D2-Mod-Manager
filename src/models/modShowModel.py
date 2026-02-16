@@ -16,7 +16,6 @@ class ModShowModel(QAbstractTableModel, LogBase):
     TAG = "ModShowModel"
 
     def __init__(self, parent: QWidget, headers: list[str], folder_path: Path):
-        print("ModShowModel")
         super().__init__(parent=parent)
         self._headers = headers
         self._folder_path = folder_path

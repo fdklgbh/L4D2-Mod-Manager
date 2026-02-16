@@ -2,11 +2,13 @@
 # @Time: 2025/12/19
 # @Author: Administrator
 # @File: l4d2cfg.py
+import platform
 from pathlib import Path
 
 from qfluentwidgets import ConfigItem
 
 from .settings import setting_cfg
+from functools import lru_cache
 
 
 class L4d2Config:
@@ -29,7 +31,8 @@ class L4d2Config:
 
     @property
     def l4d2_vpk_path(self):
-        return Path(self.l4d2_path) / "bin" / "vpk.exe"
+        name = "vpk.exe" if self.is_win else "vpk"
+        return Path(self.l4d2_path) / "bin" / name
 
     @property
     def vpk_application_is_exists(self):
@@ -81,6 +84,11 @@ class L4d2Config:
     @property
     def addonlist_file(self):
         return self.l4d2_path / "left4dead2" / "addonlist.txt"
+
+    @property
+    @lru_cache()
+    def is_win(self):
+        return platform.system() == "Windows"
 
 
 l4d2Config = L4d2Config()

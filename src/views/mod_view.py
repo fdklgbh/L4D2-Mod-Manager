@@ -21,7 +21,7 @@ from qfluentwidgets import (
     StateToolTip,
 )
 
-from core import l4d2Config, LogBase, Menu
+from core import l4d2Config, LogBase, Menu, signalBus
 from models import *
 from schemas import ModInfo, ModCategory
 from services import GenerateModInfo
@@ -143,7 +143,7 @@ class ModuleStacked(QWidget, Ui_modShowView, LogBase):
         self.search_edit.style().polish(self.search_edit)
         self.search_edit.update()
 
-    def on_splitter_moved(self, *args):
+    def handleSplitterMoved(self, *args):
         sizes = self.splitter.sizes()
         if sizes[1] == 0:
             self.splitter.setHandleWidth(0)
@@ -164,10 +164,17 @@ class ModuleStacked(QWidget, Ui_modShowView, LogBase):
         self.analysisVpkThread.started.connect(self.threadStarted)
         self.analysisVpkThread.finished.connect(self.threadFinished)
         self.analysisVpkThread.itemSignal.connect(self.addRow)
+        signalBus.modMoveSignal.connect(self.onModMoved)
         QShortcut(QKeySequence("ctrl+f"), self).activated.connect(
             self.search_edit.setFocus
         )
         QShortcut(QKeySequence("f5"), self).activated.connect(self.refresh)
+
+    def onModMoved(self, target_path: Path):
+        """当mod被移动到本目录时, 触发刷新"""
+        if self._folder.resolve() == target_path:
+            self.logger.info(f"检测到mod移入目录 {self._folder.name}, 触发刷新")
+            self.refresh()
 
     def refresh(self):
         self.source_model.clearAll()

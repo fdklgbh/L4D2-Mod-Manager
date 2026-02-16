@@ -286,7 +286,7 @@
    <sender>splitter</sender>
    <signal>splitterMoved(int,int)</signal>
    <receiver>modShowView</receiver>
-   <slot>on_splitter_moved()</slot>
+   <slot>handleSplitterMoved()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>366</x>
@@ -337,7 +337,7 @@
   <slot>perform_search()</slot>
   <slot>search_restore()</slot>
   <slot>show_type_menu()</slot>
-  <slot>on_splitter_moved()</slot>
+  <slot>handleSplitterMoved()</slot>
   <slot>changePlaceholderText()</slot>
  </slots>
 </ui>

@@ -140,7 +140,7 @@ class Ui_modShowView(object):
         self.search_edit.searchSignal.connect(modShowView.perform_search)
         self.search_edit.textChanged.connect(modShowView.perform_search)
         self.search_edit.clearSignal.connect(modShowView.perform_search)
-        self.splitter.splitterMoved.connect(modShowView.on_splitter_moved)
+        self.splitter.splitterMoved.connect(modShowView.handleSplitterMoved)
         self.regexBtn.clicked["bool"].connect(modShowView.changePlaceholderText)
         self.tableView.doubleClicked.connect(modShowView.onDoubleClicked)
 
