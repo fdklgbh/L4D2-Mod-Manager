@@ -337,7 +337,7 @@ class ModShowTableView(TableView, LogBase):
             vpk = OpenVPK(self.folderPath / f"{i.filename}.vpk")
             if vpk.verify():
                 self.logger.debug(
-                    f'{i.filename} 目录结构:\n{"\n".join([_ for _ in vpk])}'
+                    f"{i.filename} 目录结构:\n{'\n'.join([_ for _ in vpk])}"
                 )
             else:
                 self.logger.warning(f"{i.filename}.vpk打开失败")

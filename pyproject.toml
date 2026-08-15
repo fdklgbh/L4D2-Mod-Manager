@@ -20,36 +20,38 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "autoflake>=2.3.1",
-    "black>=25.12.0",
-    "darglint>=1.8.1",
     "pre-commit>=4.5.1",
+    "ruff>=0.14.1",
 ]
 
-# ======== Black 配置 ========
-[tool.black]
+# ======== Ruff 配置 ========
+[tool.ruff]
 line-length = 88
-target-version = ["py312"]
-include = '\.pyi?$'
-extend-exclude = '''
-/(
-  \.venv
-  | \.idea
-  | __pycache__
-  | alembic
-  | build
-  | dist
-  | temp
-  | readme_pic
-  | src/utils/vpk/vpk_change\.py
-  | src/views/ui
-)
-'''
+target-version = "py312"
+extend-exclude = [
+    ".idea",
+    "alembic",
+    "build",
+    "dist",
+    "temp",
+    "readme_pic",
+    "src/utils/vpk/vpk_change.py",
+    "src/views/ui",
+]
 
-[tool.darglint]
-ignore = ["DAR101", "DAR201", "DAR401"]
-strictness = "short"
-docstring_style = "google"
+[tool.ruff.lint]
+# F401 matches autoflake's --remove-all-unused-imports behavior.
+# DOC rules preserve the darglint checks that were not ignored.
+preview = true
+select = ["F401", "DOC102", "DOC202", "DOC402", "DOC403", "DOC502"]
+
+[tool.ruff.lint.per-file-ignores]
+# Preserve autoflake's existing __init__.py exclusion.
+"__init__.py" = ["F401"]
+
+[tool.ruff.format]
+# Keep Ruff's stable, Black-compatible formatting style.
+preview = false
 
 [tool.uv.sources]
 qfluentpackage = { url = "https://github.com/fdklgbh/my_qfluent_utils_package/releases/download/1.0.4/qfluentpackage-1.0.4-py3-none-any.whl" }

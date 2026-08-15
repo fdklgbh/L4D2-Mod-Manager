@@ -202,7 +202,7 @@ class ModuleStacked(QWidget, Ui_modShowView, LogBase):
             old_menu.deleteLater()
         _menu = RoundMenu(parent=self.menu_btn)
         source_menu_info = self.source_model.get_menu_infos
-        action_all = Action(text=f'全部({source_menu_info.get("all")})', parent=_menu)
+        action_all = Action(text=f"全部({source_menu_info.get('all')})", parent=_menu)
         action_all.setToolTip("全部")
         _menu.addAction(action_all)
         for category in Menu.category:

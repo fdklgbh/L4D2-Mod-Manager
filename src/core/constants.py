@@ -66,7 +66,7 @@ class AppConstants:
     @property
     @lru_cache()
     def windowsTitle(self):
-        return f'L4D2 Mod管理器 {self.VERSION}{" dev" if self.DEBUG else ""}'
+        return f"L4D2 Mod管理器 {self.VERSION}{' dev' if self.DEBUG else ''}"
 
     @property
     def modKey(self):
