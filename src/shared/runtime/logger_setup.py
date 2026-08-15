@@ -6,7 +6,8 @@ import sys
 
 from loguru import logger
 
-from core import appConstants, signalBus
+from shared.app import appConstants
+from shared.runtime import signalBus
 
 
 def level_filter(level: str, record):

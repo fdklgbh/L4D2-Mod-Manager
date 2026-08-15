@@ -35,7 +35,7 @@ extend-exclude = [
     "dist",
     "temp",
     "readme_pic",
-    "src/utils/vpk/vpk_change.py",
+    "src/shared/vpk/vpk_change.py",
     "src/views/ui",
 ]
 

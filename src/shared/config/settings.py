@@ -4,8 +4,8 @@
 # @File: settings.py
 from qfluentwidgets import QConfig, ConfigItem, BoolValidator, qconfig
 
-from .validator import *
-from ..constants import appConstants
+from .validators import *
+from ..app import appConstants
 
 
 class Config(QConfig):

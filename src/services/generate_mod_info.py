@@ -6,10 +6,10 @@ from pathlib import Path
 
 from PySide6.QtCore import QThread, Signal
 
-from core import get_db, LogBase
-from core.models import *
-from schemas import ModInfo, ModCategory
-from utils.vpk import AnalysisVPK
+from shared.mods import ModCategory, ModInfo
+from shared.persistence import VPKInfo, get_db
+from shared.runtime import LogBase
+from shared.vpk import AnalysisVPK
 
 
 class GenerateModInfo(QThread, LogBase):

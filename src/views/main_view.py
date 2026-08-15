@@ -6,7 +6,11 @@ from PySide6.QtGui import QIcon
 from qfluentPackage.windows import CFluentWindow
 from qfluentwidgets import NavigationItemPosition, FluentIcon as FIF
 
-from core import *
+from shared.app import appConstants
+from shared.config import l4d2Config
+from shared.persistence import dispose
+from shared.runtime import LogBase, signalBus
+from shared.ui import Icon
 from views import SettingView, ModShowView, LogView
 
 

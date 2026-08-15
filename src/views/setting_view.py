@@ -21,7 +21,8 @@ from qfluentwidgets import (
     SwitchSettingCard,
 )
 
-from core import l4d2Config, appConstants, GCFApplicationPathValidator
+from shared.app import appConstants
+from shared.config import GCFApplicationPathValidator, l4d2Config
 
 
 # from common.check_version import show_version_dialog

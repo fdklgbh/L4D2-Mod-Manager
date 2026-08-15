@@ -4,9 +4,10 @@
 # @File: mod_info.py
 from pydantic import Field
 
-from core import VPKInfo
-from schemas.base import Base
-from schemas.mod_category import ModCategory
+from shared.persistence.models import VPKInfo
+
+from .base import Base
+from .category import ModCategory
 
 
 class ModInfo(Base):

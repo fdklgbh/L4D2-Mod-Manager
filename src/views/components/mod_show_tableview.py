@@ -17,10 +17,13 @@ from qfluentwidgets import (
     InfoBarPosition,
 )
 
-from core import LogBase, Icon, l4d2Config, appConstants, signalBus
+from shared.app import appConstants
+from shared.config import l4d2Config
+from shared.mods import ModInfo
+from shared.runtime import LogBase, signalBus
+from shared.ui import Icon
 from models import ProxyModSearch, ModShowModel
-from schemas import ModInfo
-from utils.components import customDialog
+from shared.widgets import customDialog
 
 
 class ModShowTableView(TableView, LogBase):
@@ -325,7 +328,7 @@ class ModShowTableView(TableView, LogBase):
         self.clearSelection()
 
     def dev_action(self, select_index: list[QModelIndex]):
-        from utils.vpk.open_vpk import OpenVPK
+        from shared.vpk import OpenVPK
 
         self.logger.debug(f"[DEV]目录: {self.folderPath}")
         select_modInfos = [self.getSourceIndexInfo(i) for i in select_index]

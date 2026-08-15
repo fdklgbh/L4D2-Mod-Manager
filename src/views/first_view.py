@@ -10,7 +10,8 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication
 from qfluentwidgets import FluentWidget
 
-from core import GamePathValidator, l4d2Config, Icon
+from shared.config import GamePathValidator, l4d2Config
+from shared.ui import Icon
 from views.ui import Ui_firstUse
 
 

@@ -5,7 +5,7 @@
 from sqlalchemy import Column, Integer, String, JSON
 from sqlalchemy.orm import relationship
 
-from core.database import Base
+from ..database import Base
 
 
 class VPKInfo(Base):

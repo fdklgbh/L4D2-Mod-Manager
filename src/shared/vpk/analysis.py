@@ -8,10 +8,13 @@ from typing import TypeAlias
 
 import vdf
 
-from core import LogBase, appConstants, MenuCategory, Menu, VPKInfo
-from schemas import ModCategory
-from schemas.vpk_file_schemas import VPKFilePath
-from .open_vpk import OpenVPK
+from shared.app import appConstants
+from shared.mods import Menu, MenuCategory, ModCategory
+from shared.persistence.models import VPKInfo
+from shared.runtime import LogBase
+
+from .file_paths import VPKFilePath
+from .open import OpenVPK
 
 CategoryResult: TypeAlias = ModCategory | None
 FileList: TypeAlias = list[str]

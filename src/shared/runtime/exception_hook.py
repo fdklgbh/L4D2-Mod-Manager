@@ -8,8 +8,8 @@ import traceback
 from PySide6.QtWidgets import QApplication
 from loguru import logger
 
-from core import dispose
-from .components import customDialog
+from shared.persistence import dispose
+from shared.widgets import customDialog
 
 
 def handle_exception(exc_type, exc_value, exc_traceback):
@@ -19,9 +19,6 @@ def handle_exception(exc_type, exc_value, exc_traceback):
         exc_type:
         exc_value:
         exc_traceback:
-
-    Returns:
-
     """
     if issubclass(exc_type, KeyboardInterrupt):
         # 允许 Ctrl+C 正常退出

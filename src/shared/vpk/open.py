@@ -7,8 +7,9 @@ from pathlib import Path
 
 import chardet
 
-from core import LogBase
-from utils.vpk import vpk_change as vpk
+from shared.runtime import LogBase
+
+from . import vpk_change as vpk
 
 
 class OpenVPK(LogBase):

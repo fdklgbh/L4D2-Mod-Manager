@@ -5,7 +5,7 @@
 from PySide6.QtWidgets import QVBoxLayout
 from qfluentwidgets import ScrollArea, PlainTextEdit
 
-from core import signalBus
+from shared.runtime import signalBus
 
 
 class LogView(ScrollArea):

@@ -11,11 +11,12 @@ from PySide6.QtCore import (
 from loguru import logger
 from qfluentwidgets import FluentTranslator
 
-import utils.exception_hook  # type: ignore  # noqa: F401
-import utils.logger_setup  # type: ignore  # noqa: F401
-from core import l4d2Config, dispose
+import shared.runtime.exception_hook  # type: ignore  # noqa: F401
+import shared.runtime.logger_setup  # type: ignore  # noqa: F401
+from shared.config import l4d2Config
+from shared.persistence import dispose
 from resources import resource_rc  # type: ignore  # noqa: F401
-from utils.safe_application import SafeApplication
+from shared.runtime.safe_application import SafeApplication
 from views.first_view import FirstView
 from views.main_view import MainWindow
 
@@ -39,7 +40,7 @@ try:
     w = None
 
     def show():
-        from utils import updateDB  # type: ignore  # noqa: F401
+        import shared.persistence.migrate  # type: ignore  # noqa: F401
 
         global w
         w = MainWindow()

@@ -4,8 +4,8 @@
 # @File: mod_search_proxy.py
 from PySide6.QtCore import QSortFilterProxyModel, Qt
 
-from core import LogBase
-from schemas import ModCategory
+from shared.mods import ModCategory
+from shared.runtime import LogBase
 
 
 class ProxyModSearch(QSortFilterProxyModel, LogBase):

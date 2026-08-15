@@ -5,7 +5,7 @@
 from sqlalchemy import Column, Integer, ForeignKey, CheckConstraint
 from sqlalchemy.orm import relationship
 
-from core.database import Base
+from ..database import Base
 
 
 class ClassificationInfo(Base):

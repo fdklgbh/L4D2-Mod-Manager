@@ -7,7 +7,7 @@ from contextlib import contextmanager
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
 
-from .constants import appConstants
+from ..app import appConstants
 
 engine = create_engine(
     appConstants.dbUrl,

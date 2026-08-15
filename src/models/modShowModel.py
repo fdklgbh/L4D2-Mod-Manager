@@ -8,8 +8,8 @@ from pathlib import Path
 from PySide6.QtCore import QAbstractTableModel, Qt, QModelIndex
 from PySide6.QtWidgets import QWidget
 
-from core import LogBase
-from schemas import *
+from shared.mods import ModCategory, ModInfo
+from shared.runtime import LogBase
 
 
 class ModShowModel(QAbstractTableModel, LogBase):
@@ -83,9 +83,6 @@ class ModShowModel(QAbstractTableModel, LogBase):
         解析后添加
         Args:
             modInfo:
-
-        Returns:
-
         """
         row = len(self._data)
         self.beginInsertRows(QModelIndex(), row, row)
@@ -102,9 +99,6 @@ class ModShowModel(QAbstractTableModel, LogBase):
         解析后添加
         Args:
             modInfos:
-
-        Returns:
-
         """
         row = len(self._data)
         self.beginInsertRows(QModelIndex(), row, row + len(modInfos) - 1)
@@ -122,9 +116,6 @@ class ModShowModel(QAbstractTableModel, LogBase):
         删除
         Args:
             row:
-
-        Returns:
-
         """
         if 0 <= row < len(self._data):
             self.beginRemoveRows(QModelIndex(), row, row)

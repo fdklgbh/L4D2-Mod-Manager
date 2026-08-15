@@ -4,8 +4,8 @@
 # @File: change_category.py
 from qfluentwidgets import MessageBoxBase
 
-from core import LogBase, signalBus
-from schemas import ModInfo
+from shared.mods import ModInfo
+from shared.runtime import LogBase, signalBus
 from .category_tree_widget import CategoryTreeWidget
 
 __all__ = ["ChangeCategoryMessageBox"]

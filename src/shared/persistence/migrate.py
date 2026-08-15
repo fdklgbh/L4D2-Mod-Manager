@@ -5,7 +5,7 @@
 from alembic import command
 from alembic.config import Config
 
-from core import appConstants
+from shared.app import appConstants
 
 cfg = Config(
     "alembic.ini"

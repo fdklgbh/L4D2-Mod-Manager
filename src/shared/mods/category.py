@@ -2,7 +2,7 @@
 # @Time: 2025/12/16
 # @Author: Administrator
 # @File: mod_category.py
-from schemas.base import Base
+from .base import Base
 
 
 class ModCategory(Base):

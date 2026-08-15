@@ -21,9 +21,10 @@ from qfluentwidgets import (
     StateToolTip,
 )
 
-from core import l4d2Config, LogBase, Menu, signalBus
+from shared.config import l4d2Config
+from shared.mods import Menu, ModCategory, ModInfo
+from shared.runtime import LogBase, signalBus
 from models import *
-from schemas import ModInfo, ModCategory
 from services import GenerateModInfo
 from .ui import Ui_modShowView
 

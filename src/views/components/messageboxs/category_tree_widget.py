@@ -6,8 +6,7 @@ from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QTreeWidgetItem
 from qfluentwidgets import TreeWidget
 
-from core import *
-from schemas import ModCategory
+from shared.mods import Menu, ModCategory
 
 
 class CategoryTreeWidget(QFrame):

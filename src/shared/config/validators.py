@@ -7,7 +7,7 @@ from pathlib import Path
 
 from qfluentwidgets import ConfigValidator
 
-from ..constants import appConstants
+from ..app import appConstants
 
 
 class GamePathValidator(ConfigValidator):
