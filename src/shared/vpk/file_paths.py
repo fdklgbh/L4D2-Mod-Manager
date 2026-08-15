@@ -5,7 +5,7 @@
 
 from pydantic import Field
 
-from .base import Base
+from shared.mods.base import Base
 
 
 class VPKFilePath(Base):

@@ -12,7 +12,7 @@ from qfluentwidgets import FluentWidget
 
 from shared.config import GamePathValidator, l4d2Config
 from shared.ui import Icon
-from views.ui import Ui_firstUse
+from .ui.firstwidget import Ui_firstUse
 
 
 class FirstView(FluentWidget, Ui_firstUse):

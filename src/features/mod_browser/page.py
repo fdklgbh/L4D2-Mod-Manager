@@ -24,9 +24,10 @@ from qfluentwidgets import (
 from shared.config import l4d2Config
 from shared.mods import Menu, ModCategory, ModInfo
 from shared.runtime import LogBase, signalBus
-from models import *
-from services import GenerateModInfo
-from .ui import Ui_modShowView
+from .proxy_model import ProxyModSearch
+from .table_model import ModShowModel
+from .ui.modules_page import Ui_modShowView
+from .worker import GenerateModInfo
 
 
 class ModuleStacked(QWidget, Ui_modShowView, LogBase):

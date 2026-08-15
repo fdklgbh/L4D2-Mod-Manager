@@ -1,6 +1,6 @@
 # Feature-Oriented Source Layout
 
-- [ ] Create the shared package layout.
-- [ ] Move feature-owned pages and supporting files.
-- [ ] Update imports and package exports.
-- [ ] Run static verification and inspect the final tree.
+- [x] Create the shared package layout.
+- [x] Move feature-owned pages and supporting files.
+- [x] Update imports and package exports.
+- [x] Run static verification and inspect the final tree.

@@ -225,7 +225,7 @@
   <customwidget>
    <class>ModShowTableView</class>
    <extends>QTableView</extends>
-   <header>views.components</header>
+   <header>features.mod_browser.table_view</header>
   </customwidget>
  </customwidgets>
  <tabstops>

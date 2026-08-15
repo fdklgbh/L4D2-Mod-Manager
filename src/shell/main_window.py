@@ -6,12 +6,14 @@ from PySide6.QtGui import QIcon
 from qfluentPackage.windows import CFluentWindow
 from qfluentwidgets import NavigationItemPosition, FluentIcon as FIF
 
+from features.logs.page import LogView
+from features.mod_browser.page import ModShowView
+from features.settings.page import SettingView
 from shared.app import appConstants
 from shared.config import l4d2Config
 from shared.persistence import dispose
 from shared.runtime import LogBase, signalBus
 from shared.ui import Icon
-from views import SettingView, ModShowView, LogView
 
 
 class MainWindow(CFluentWindow, LogBase):

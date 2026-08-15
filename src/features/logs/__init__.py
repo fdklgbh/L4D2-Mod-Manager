@@ -1,0 +1,1 @@
+"""Application log viewer feature."""

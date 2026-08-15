@@ -27,7 +27,7 @@ from qfluentwidgets import (
     SearchLineEdit,
     SplitPushButton,
 )
-from views.components import ModShowTableView
+from features.mod_browser.table_view import ModShowTableView
 
 
 class Ui_modShowView(object):

@@ -22,8 +22,9 @@ from shared.config import l4d2Config
 from shared.mods import ModInfo
 from shared.runtime import LogBase, signalBus
 from shared.ui import Icon
-from models import ProxyModSearch, ModShowModel
 from shared.widgets import customDialog
+from .proxy_model import ProxyModSearch
+from .table_model import ModShowModel
 
 
 class ModShowTableView(TableView, LogBase):

@@ -16,10 +16,10 @@ packages. Preserve the existing `src/main.py` entry point and runtime behavior.
 
 ## Tasks
 
-1. Create the target package skeleton and move reusable shared code.
-2. Move the application shell and each current page into feature packages.
-3. Update imports, Alembic metadata imports, and generated UI imports.
-4. Verify imports and lint the moved source files.
+1. [x] Create the target package skeleton and move reusable shared code.
+2. [x] Move the application shell and each current page into feature packages.
+3. [x] Update imports, Alembic metadata imports, and generated UI imports.
+4. [x] Verify imports and lint the moved source files.
 
 ## Verification
 
