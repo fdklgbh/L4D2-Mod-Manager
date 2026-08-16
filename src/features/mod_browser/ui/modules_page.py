@@ -18,8 +18,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-
-from qfluentwidgets import (
+from qfluentwidgets_pro import (
     CheckBox,
     DropDownPushButton,
     PixmapLabel,
@@ -27,6 +26,7 @@ from qfluentwidgets import (
     SearchLineEdit,
     SplitPushButton,
 )
+
 from features.mod_browser.table_view import ModShowTableView
 
 

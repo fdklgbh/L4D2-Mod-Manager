@@ -4,7 +4,7 @@
 # @File: category_tree_widget.py
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QTreeWidgetItem
-from qfluentwidgets import TreeWidget
+from qfluentwidgets_pro import TreeWidget
 
 from shared.mods import Menu, ModCategory
 

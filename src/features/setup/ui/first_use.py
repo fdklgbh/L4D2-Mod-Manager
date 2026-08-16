@@ -17,7 +17,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 
-from qfluentwidgets import (
+from qfluentwidgets_pro import (
     BodyLabel,
     LineEdit,
     PrimaryPushButton,

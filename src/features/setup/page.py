@@ -8,7 +8,7 @@ from pathlib import Path
 from PySide6.QtCore import Signal
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication
-from qfluentwidgets import FluentWidget
+from qfluentwidgets_pro import FluentWidget
 
 from shared.config import GamePathValidator, l4d2Config
 from shared.steam import find_l4d2_path

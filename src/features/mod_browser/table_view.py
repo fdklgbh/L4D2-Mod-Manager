@@ -7,7 +7,7 @@ from pathlib import Path
 
 from PySide6.QtCore import QModelIndex, Signal, Qt
 from PySide6.QtGui import QContextMenuEvent, QDesktopServices
-from qfluentwidgets import (
+from qfluentwidgets_pro import (
     TableView,
     RoundMenu,
     Action,
@@ -134,12 +134,26 @@ class ModShowTableView(TableView, LogBase):
         move_more.triggered.connect(
             lambda x: self.move_mod(target_path, select_indexes)
         )
-        # refreshAction.triggered.connect(
-        #             lambda x: self.refreshCacheSignal.emit([data.data(Qt.UserRole + 2)[0] for data in select_indexes]))
+        refreshAction.triggered.connect(
+            lambda x: self.refreshCacheSignal.emit(
+                [self.getSourceIndexInfo(i).filename for i in select_indexes]
+            )
+        )
         menu.closedSignal.connect(menu.deleteLater)
         menu.exec(a0.globalPos(), aniType=MenuAnimationType.DROP_DOWN)
 
     def move_mod(self, target_path: Path, select_indexes: list[QModelIndex]):
+        """按选中行倒序发出移动信号，避免删除行后索引错位。"""
+        for proxy_index in sorted(
+            select_indexes, key=lambda index: index.row(), reverse=True
+        ):
+            mod_info = self.getSourceIndexInfo(proxy_index)
+            if mod_info:
+                self.modeEnableSignal.emit(
+                    target_path, proxy_index.row(), mod_info.filename
+                )
+
+    def move_files(self, target_path: Path, select_indexes: list[QModelIndex]):
         """移动mod文件到目标路径
 
         Args:

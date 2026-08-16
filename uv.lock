@@ -182,6 +182,7 @@ dependencies = [
     { name = "pyside6" },
     { name = "pyside6-fluent-widgets" },
     { name = "qfluentpackage" },
+    { name = "qfluentwidgets-pro" },
     { name = "qtawesome" },
     { name = "requests" },
     { name = "vdf" },
@@ -202,7 +203,8 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.12.3" },
     { name = "pyside6", specifier = ">=6.10.1" },
     { name = "pyside6-fluent-widgets", specifier = ">=1.10.5" },
-    { name = "qfluentpackage", url = "https://github.com/fdklgbh/my_qfluent_utils_package/releases/download/1.0.4/qfluentpackage-1.0.4-py3-none-any.whl" },
+    { name = "qfluentpackage", url = "https://github.com/fdklgbh/my_qfluent_utils_package/releases/download/1.0.5/qfluentpackage-1.0.5-py3-none-any.whl" },
+    { name = "qfluentwidgets-pro", url = "https://github.com/fdklgbh/PySide6-Fluent-Widgets-Pro/releases/download/20260816.2/qfluentwidgets_pro-1.11.1-py3-none-any.whl" },
     { name = "qtawesome", specifier = ">=1.4.0" },
     { name = "requests", specifier = ">=2.32.5" },
     { name = "vdf", specifier = ">=3.4" },
@@ -2801,17 +2803,46 @@ wheels = [
 
 [[package]]
 name = "qfluentpackage"
-version = "1.0.4"
-source = { url = "https://github.com/fdklgbh/my_qfluent_utils_package/releases/download/1.0.4/qfluentpackage-1.0.4-py3-none-any.whl" }
+version = "1.0.5"
+source = { url = "https://github.com/fdklgbh/my_qfluent_utils_package/releases/download/1.0.5/qfluentpackage-1.0.5-py3-none-any.whl" }
 dependencies = [
-    { name = "pyside6-fluent-widgets" },
+    { name = "qfluentwidgets-pro" },
 ]
 wheels = [
-    { url = "https://github.com/fdklgbh/my_qfluent_utils_package/releases/download/1.0.4/qfluentpackage-1.0.4-py3-none-any.whl", hash = "sha256:0c5a59f6a99c085bc1c23a32de2fd7f9b942a2fc7626868764d80518e7e2c192" },
+    { url = "https://github.com/fdklgbh/my_qfluent_utils_package/releases/download/1.0.5/qfluentpackage-1.0.5-py3-none-any.whl", hash = "sha256:502c18164fbf326cb193f5def0801f2ff6e63c5f1ea1d629d7fd0dfc31ec4b98" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "pyside6-fluent-widgets" }]
+requires-dist = [{ name = "qfluentwidgets-pro", specifier = ">=1.11.1" }]
+
+[[package]]
+name = "qfluentwidgets-pro"
+version = "1.11.1"
+source = { url = "https://github.com/fdklgbh/PySide6-Fluent-Widgets-Pro/releases/download/20260816.2/qfluentwidgets_pro-1.11.1-py3-none-any.whl" }
+dependencies = [
+    { name = "darkdetect" },
+    { name = "pyside6" },
+    { name = "pywin32", marker = "sys_platform == 'win32'" },
+]
+wheels = [
+    { url = "https://github.com/fdklgbh/PySide6-Fluent-Widgets-Pro/releases/download/20260816.2/qfluentwidgets_pro-1.11.1-py3-none-any.whl", hash = "sha256:0d38c9dc2b96a3a7ab2bfa9857dbe0e53ce4f309afbe5f046a11891abc14dc73" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "colorthief", marker = "extra == 'full'" },
+    { name = "colorthief", marker = "extra == 'image'" },
+    { name = "darkdetect", specifier = ">=0.8" },
+    { name = "numpy", marker = "extra == 'full'" },
+    { name = "numpy", marker = "extra == 'image'" },
+    { name = "pillow", marker = "extra == 'full'" },
+    { name = "pillow", marker = "extra == 'image'" },
+    { name = "pyside6", specifier = ">=6.6" },
+    { name = "pywin32", marker = "sys_platform == 'win32'", specifier = ">=306" },
+    { name = "scipy", marker = "extra == 'full'" },
+    { name = "scipy", marker = "extra == 'image'" },
+]
+provides-extras = ["image", "full"]
 
 [[package]]
 name = "qtawesome"

@@ -22,17 +22,21 @@ class GenerateModInfo(QThread, LogBase):
         self._folder = folder
         self._analysisVPK = AnalysisVPK()
         self._reload = False
+        self._reload_files: set[str] | None = None
 
     def file(self):
         for i in self._folder.glob("*.vpk"):
-            if i.is_file():
+            if i.is_file() and (
+                self._reload_files is None or i.stem in self._reload_files
+            ):
                 yield i
 
     def get_total(self):
         return len([1 for i in self.file()])
 
-    def reload(self):
+    def reload(self, filenames: list[str] | None = None):
         self._reload = True
+        self._reload_files = set(filenames) if filenames else None
 
     def __call__(self, *args, **kwargs):
         with get_db() as session:
@@ -57,6 +61,7 @@ class GenerateModInfo(QThread, LogBase):
                     session.commit()
                 self.itemSignal.emit(ModInfo.from_vpk_info(vpkInfo))
         self._reload = False
+        self._reload_files = None
 
     def run(self):
         try:

@@ -4,7 +4,7 @@
 # @File: main_view.py
 from PySide6.QtGui import QIcon
 from qfluentPackage.windows import CFluentWindow
-from qfluentwidgets import NavigationItemPosition, FluentIcon as FIF
+from qfluentwidgets_pro import NavigationItemPosition, FluentIcon as FIF
 
 from features.logs import LogView
 from features.mod_browser import ModShowView

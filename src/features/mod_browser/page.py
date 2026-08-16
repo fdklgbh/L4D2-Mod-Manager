@@ -4,15 +4,11 @@
 # @File: mod_view.py
 from pathlib import Path
 
-from PySide6.QtCore import (
-    Qt,
-    QRegularExpression,
-    QModelIndex,
-)
-from PySide6.QtGui import QShortcut, QKeySequence
+from PySide6.QtCore import QProcess, Qt, QRegularExpression, QModelIndex, QUrl
+from PySide6.QtGui import QDesktopServices, QShortcut, QKeySequence
 from PySide6.QtWidgets import QWidget, QAbstractItemView, QApplication, QHeaderView
 from qfluentPackage.widget import CSegmentedWidget
-from qfluentwidgets import (
+from qfluentwidgets_pro import (
     RoundMenu,
     Action,
     InfoBar,
@@ -167,10 +163,45 @@ class ModuleStacked(QWidget, Ui_modShowView, LogBase):
         self.analysisVpkThread.finished.connect(self.threadFinished)
         self.analysisVpkThread.itemSignal.connect(self.addRow)
         signalBus.modMoveSignal.connect(self.onModMoved)
+        self.tableView.openFolderSignal.connect(self.show_vpk_file)
+        self.tableView.openGCFSpaceSignal.connect(self.show_gcfspace)
+        self.tableView.modeEnableSignal.connect(self.move_file)
+        self.tableView.refreshCacheSignal.connect(self.refresh_cache)
         QShortcut(QKeySequence("ctrl+f"), self).activated.connect(
             self.search_edit.setFocus
         )
         QShortcut(QKeySequence("f5"), self).activated.connect(self.refresh)
+
+    def show_vpk_file(self, filename: str):
+        file_path = self._folder / f"{filename}.vpk"
+        if l4d2Config.is_win:
+            QProcess.startDetached("explorer.exe", [f"/select,{file_path}"])
+        else:
+            QDesktopServices.openUrl(QUrl.fromLocalFile(str(self._folder)))
+
+    def show_gcfspace(self, filename: str):
+        gcfspace_path = l4d2Config.gcfspace_path
+        if not gcfspace_path:
+            return
+        file_path = self._folder / f"{filename}.vpk"
+        started = QProcess.startDetached(str(gcfspace_path), [str(file_path)])
+        if not started:
+            self.logger.warning(f"启动GCFScape失败: {gcfspace_path}")
+
+    def move_file(self, target_path: Path, row: int, filename: str):
+        proxy_index = self.tableView.model().index(row, 0)
+        mod_info = self.tableView.getSourceIndexInfo(proxy_index)
+        if not mod_info or mod_info.filename != filename:
+            self.logger.warning(f"移动mod索引无效: row={row}, filename={filename}")
+            return
+        self.tableView.move_files(target_path, [proxy_index])
+
+    def refresh_cache(self, filenames: list[str]):
+        self.logger.debug(f"刷新mod缓存: {filenames}")
+        self.hide_vkp_info()
+        self.tableView.clearSelection()
+        self.analysisVpkThread.reload(filenames)
+        self.analysisVpkThread.start()
 
     def onModMoved(self, target_path: Path):
         """当mod被移动到本目录时, 触发刷新"""
@@ -267,7 +298,7 @@ class ModuleStacked(QWidget, Ui_modShowView, LogBase):
             self.stateTooltip.setContent(
                 f"{self.progress_num}/{self.mod_total} {modInfo.filename}"
             )
-        self.source_model.addModInfo(modInfo)
+        self.source_model.upsertModInfo(modInfo)
 
     def closeEvent(self, a0):
         self.cleanup()

@@ -2,7 +2,7 @@
 # @Time: 2025/12/14
 # @Author: Administrator
 # @File: customDialog.py
-from qfluentwidgets import MessageBox, Dialog
+from qfluentwidgets_pro import MessageBox, Dialog
 
 
 def customDialog(

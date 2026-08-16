@@ -9,8 +9,8 @@ from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import QWidget, QFileDialog
 
 # from common.style_sheet import StyleSheet
-from qfluentwidgets import FluentIcon as FIF, TitleLabel
-from qfluentwidgets import (
+from qfluentwidgets_pro import FluentIcon as FIF, TitleLabel
+from qfluentwidgets_pro import (
     ScrollArea,
     SettingCardGroup,
     ExpandLayout,
@@ -20,9 +20,9 @@ from qfluentwidgets import (
     SwitchSettingCard,
 )
 
+from features.updates.check_version import CheckVersion, show_version_dialog
 from shared.app import appConstants
 from shared.config import GCFApplicationPathValidator, l4d2Config
-from features.updates.check_version import CheckVersion, show_version_dialog
 
 
 class SettingView(ScrollArea):

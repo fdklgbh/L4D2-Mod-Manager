@@ -5,7 +5,7 @@
 import os
 from pathlib import Path
 
-from qfluentwidgets import ConfigValidator
+from qfluentwidgets_pro import ConfigValidator
 
 from ..app import appConstants
 

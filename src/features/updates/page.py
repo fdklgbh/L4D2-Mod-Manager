@@ -1,8 +1,7 @@
 from PySide6.QtGui import QDesktopServices
-from qfluentwidgets import ScrollArea
+from qfluentwidgets_pro import ScrollArea
 
 from shared.app import appConstants
-
 from .ui.update_page import Ui_updateView
 
 

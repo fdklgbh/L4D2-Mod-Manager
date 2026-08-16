@@ -6,7 +6,7 @@
 
 from enum import Enum
 
-from qfluentwidgets import Theme, FluentIconBase
+from qfluentwidgets_pro import Theme, FluentIconBase
 
 
 class Icon(FluentIconBase, Enum):

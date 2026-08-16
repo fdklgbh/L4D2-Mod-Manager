@@ -8,20 +8,14 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
-    QMetaObject, QObject, QPoint, QRect,
-    QSize, QTime, QUrl, Qt)
-from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
-    QFont, QFontDatabase, QGradient, QIcon,
-    QImage, QKeySequence, QLinearGradient, QPainter,
-    QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QAbstractItemView, QApplication, QHBoxLayout, QListWidgetItem,
-    QSizePolicy, QSpacerItem, QStackedWidget, QVBoxLayout,
-    QWidget)
+from PySide6.QtCore import (QCoreApplication, QMetaObject, QSize, Qt)
+from PySide6.QtWidgets import (QAbstractItemView, QHBoxLayout, QSizePolicy, QSpacerItem, QStackedWidget, QVBoxLayout,
+                               QWidget)
 
-from qfluentwidgets import (CheckBox, DropDownPushButton, LineEdit, ListWidget,
-    PrimaryPushButton, ProgressBar, PushButton, SearchLineEdit,
-    SubtitleLabel)
+from qfluentwidgets_pro import (CheckBox, DropDownPushButton, LineEdit, ListWidget,
+                                PrimaryPushButton, ProgressBar, PushButton, SearchLineEdit,
+                                SubtitleLabel)
+
 
 class Ui_Form(object):
     def setupUi(self, Form):
@@ -118,7 +112,6 @@ class Ui_Form(object):
 
         self.verticalLayout_3.addItem(self.verticalSpacer_6)
 
-
         self.horizontalLayout_7.addLayout(self.verticalLayout_3)
 
         self.horizontalSpacer_6 = QSpacerItem(396, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
@@ -195,7 +188,6 @@ class Ui_Form(object):
 
         self.horizontalLayout_3.addWidget(self.stackedWidget)
 
-
         self.verticalLayout_2.addLayout(self.horizontalLayout_3)
 
         self.horizontalLayout_2 = QHBoxLayout()
@@ -221,7 +213,6 @@ class Ui_Form(object):
 
         self.verticalLayout_2.addLayout(self.horizontalLayout_2)
 
-
         self.retranslateUi(Form)
         self.searchLineEdit.textChanged.connect(Form.searchChange)
         self.searchLineEdit.clearSignal.connect(Form.searchChange)
@@ -238,8 +229,8 @@ class Ui_Form(object):
 
         self.stackedWidget.setCurrentIndex(1)
 
-
         QMetaObject.connectSlotsByName(Form)
+
     # setupUi
 
     def retranslateUi(self, Form):
@@ -252,12 +243,12 @@ class Ui_Form(object):
         self.searchLineEdit.setPlaceholderText(QCoreApplication.translate("Form", u"\u641c\u7d22", None))
         self.SubtitleLabel.setText(QCoreApplication.translate("Form", u"\u6b63\u5728\u52a0\u8f7d:", None))
         self.loadingModText.setText(QCoreApplication.translate("Form", u"\u52a0\u8f7d\u4e2d...", None))
-#if QT_CONFIG(tooltip)
+        # if QT_CONFIG(tooltip)
         self.disabledWdiget.setToolTip("")
-#endif // QT_CONFIG(tooltip)
-#if QT_CONFIG(statustip)
+        # endif // QT_CONFIG(tooltip)
+        # if QT_CONFIG(statustip)
         self.disabledWdiget.setStatusTip("")
-#endif // QT_CONFIG(statustip)
+        # endif // QT_CONFIG(statustip)
         self.enabledBtn.setText(QCoreApplication.translate("Form", u"\u542f\u7528", None))
         self.disabledBtn.setText(QCoreApplication.translate("Form", u"\u7981\u7528", None))
         self.disableAllBtn.setText(QCoreApplication.translate("Form", u"\u5168\u90e8\u7981\u7528", None))

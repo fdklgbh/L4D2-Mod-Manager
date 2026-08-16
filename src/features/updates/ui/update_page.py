@@ -11,7 +11,7 @@
 from PySide6.QtCore import QCoreApplication, QMetaObject, Qt
 from PySide6.QtWidgets import QVBoxLayout
 
-from qfluentwidgets import TextBrowser
+from qfluentwidgets_pro import TextBrowser
 
 
 class Ui_updateView(object):

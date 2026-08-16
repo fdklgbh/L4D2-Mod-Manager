@@ -9,14 +9,14 @@ from PySide6.QtCore import (
     QLocale,
 )
 from loguru import logger
-from qfluentwidgets import FluentTranslator
+from qfluentwidgets_pro import FluentTranslator
 
-from features.setup import FirstView
 import shared.runtime.exception_hook  # type: ignore  # noqa: F401
 import shared.runtime.logger_setup  # type: ignore  # noqa: F401
+from features.setup import FirstView
+from resources import resource_rc  # type: ignore  # noqa: F401
 from shared.config import l4d2Config
 from shared.persistence import dispose
-from resources import resource_rc  # type: ignore  # noqa: F401
 from shared.runtime.safe_application import SafeApplication
 from shell.main_window import MainWindow
 

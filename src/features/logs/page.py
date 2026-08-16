@@ -3,7 +3,7 @@
 # @Author: Administrator
 # @File: logView.py
 from PySide6.QtWidgets import QVBoxLayout
-from qfluentwidgets import ScrollArea, PlainTextEdit
+from qfluentwidgets_pro import ScrollArea, PlainTextEdit
 
 from shared.runtime import signalBus
 

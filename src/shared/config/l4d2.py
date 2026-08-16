@@ -3,12 +3,12 @@
 # @Author: Administrator
 # @File: l4d2cfg.py
 import platform
+from functools import lru_cache
 from pathlib import Path
 
-from qfluentwidgets import ConfigItem
+from qfluentwidgets_pro import ConfigItem
 
 from .settings import setting_cfg
-from functools import lru_cache
 
 
 class L4d2Config:

@@ -89,6 +89,19 @@ class ModShowModel(QAbstractTableModel, LogBase):
         self._add_once_data(modInfo)
         self.endInsertRows()
 
+    def upsertModInfo(self, modInfo: ModInfo):
+        if modInfo.filename not in self._data:
+            self.addModInfo(modInfo)
+            return
+
+        row = self._filenames.index(modInfo.filename)
+        self._remove_menu_info(self._data[modInfo.filename])
+        self._data[modInfo.filename] = modInfo
+        self._add_menu_info(modInfo)
+        self.dataChanged.emit(
+            self.index(row, 0), self.index(row, self.columnCount() - 1)
+        )
+
     def _add_once_data(self, modInfo: ModInfo):
         self._data[modInfo.filename] = modInfo
         self._filenames.append(modInfo.filename)

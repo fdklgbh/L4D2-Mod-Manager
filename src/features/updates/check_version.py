@@ -1,14 +1,13 @@
 from collections.abc import Mapping
 
 import requests
-from packaging import version
 from PySide6.QtCore import QThread, QUrl, Signal
 from PySide6.QtGui import QDesktopServices
-from qfluentwidgets import MessageBox
-
 from loguru import logger
-from shared.app import appConstants
+from packaging import version
+from qfluentwidgets_pro import MessageBox
 
+from shared.app import appConstants
 
 UPDATE_URL = "https://fdklgbh.github.io/L4D2-Mod-Manager/update_version.json"
 

@@ -2,7 +2,7 @@
 # @Time: 2026/1/13
 # @Author: Administrator
 # @File: change_category.py
-from qfluentwidgets import MessageBoxBase
+from qfluentwidgets_pro import MessageBoxBase
 
 from shared.mods import ModInfo
 from shared.runtime import LogBase, signalBus

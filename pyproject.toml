@@ -13,6 +13,7 @@ dependencies = [
     "pyside6>=6.10.1",
     "pyside6-fluent-widgets>=1.10.5",
     "qfluentpackage",
+    "qfluentwidgets-pro",
     "qtawesome>=1.4.0",
     "requests>=2.32.5",
     "vdf>=3.4",
@@ -54,4 +55,5 @@ select = ["F401", "DOC102", "DOC202", "DOC402", "DOC403", "DOC502"]
 preview = false
 
 [tool.uv.sources]
-qfluentpackage = { url = "https://github.com/fdklgbh/my_qfluent_utils_package/releases/download/1.0.4/qfluentpackage-1.0.4-py3-none-any.whl" }
+qfluentpackage = { url = "https://github.com/fdklgbh/my_qfluent_utils_package/releases/download/1.0.5/qfluentpackage-1.0.5-py3-none-any.whl" }
+qfluentwidgets-pro = { url = "https://github.com/fdklgbh/PySide6-Fluent-Widgets-Pro/releases/download/20260816.2/qfluentwidgets_pro-1.11.1-py3-none-any.whl" }

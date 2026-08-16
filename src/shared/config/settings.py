@@ -2,7 +2,7 @@
 # @Time: 2025/12/19
 # @Author: Administrator
 # @File: settings.py
-from qfluentwidgets import QConfig, ConfigItem, BoolValidator, qconfig
+from qfluentwidgets_pro import QConfig, ConfigItem, BoolValidator, qconfig
 
 from .validators import *
 from ..app import appConstants
