@@ -6,9 +6,10 @@ from PySide6.QtGui import QIcon
 from qfluentPackage.windows import CFluentWindow
 from qfluentwidgets import NavigationItemPosition, FluentIcon as FIF
 
-from features.logs.page import LogView
-from features.mod_browser.page import ModShowView
-from features.settings.page import SettingView
+from features.logs import LogView
+from features.mod_browser import ModShowView
+from features.settings import SettingView
+from features.updates import UpdateView
 from shared.app import appConstants
 from shared.config import l4d2Config
 from shared.persistence import dispose
@@ -23,6 +24,7 @@ class MainWindow(CFluentWindow, LogBase):
         super().__init__()
         self.initWindow()
         self.setWindowIcon(QIcon(Icon.L4D2.path()))
+        self.update_view = UpdateView(self)
         self.settings_view = SettingView(self)
         self.log_view = LogView(self)
         self.mod_view = ModShowView(
@@ -38,6 +40,11 @@ class MainWindow(CFluentWindow, LogBase):
         self.logger.info("MainWindow success")
 
     def initNavigation(self):
+        self.addSubInterface(
+            self.update_view,
+            FIF.HOME,
+            appConstants.VERSION + self.tr("更新日志"),
+        )
         self.addSubInterface(self.mod_view, Icon.M, self.tr("Mod"))
         self.addSubInterface(
             self.log_view,

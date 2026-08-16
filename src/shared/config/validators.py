@@ -77,4 +77,9 @@ class GCFApplicationPathValidator(ApplicationPathValidator):
         return super()._is_exe(path)
 
 
-__all__ = ["GamePathValidator", "FolderValidator", "GCFApplicationPathValidator"]
+__all__ = [
+    "GamePathValidator",
+    "FolderValidator",
+    "GCFApplicationPathValidator",
+    "ApplicationPathValidator",
+]

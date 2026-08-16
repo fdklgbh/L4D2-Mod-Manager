@@ -11,7 +11,7 @@ from PySide6.QtCore import (
 from loguru import logger
 from qfluentwidgets import FluentTranslator
 
-from features.setup.page import FirstView
+from features.setup import FirstView
 import shared.runtime.exception_hook  # type: ignore  # noqa: F401
 import shared.runtime.logger_setup  # type: ignore  # noqa: F401
 from shared.config import l4d2Config

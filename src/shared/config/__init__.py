@@ -1,4 +1,4 @@
-from .l4d2 import L4d2Config, l4d2Config
+from .l4d2 import l4d2Config
 from .validators import (
     ApplicationPathValidator,
     FolderValidator,
@@ -11,6 +11,5 @@ __all__ = [
     "FolderValidator",
     "GCFApplicationPathValidator",
     "GamePathValidator",
-    "L4d2Config",
     "l4d2Config",
 ]

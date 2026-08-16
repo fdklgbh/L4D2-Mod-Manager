@@ -9,7 +9,6 @@ from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import QWidget, QFileDialog
 
 # from common.style_sheet import StyleSheet
-# from common.thread import CheckVersion
 from qfluentwidgets import FluentIcon as FIF, TitleLabel
 from qfluentwidgets import (
     ScrollArea,
@@ -23,9 +22,7 @@ from qfluentwidgets import (
 
 from shared.app import appConstants
 from shared.config import GCFApplicationPathValidator, l4d2Config
-
-
-# from common.check_version import show_version_dialog
+from features.updates.check_version import CheckVersion, show_version_dialog
 
 
 class SettingView(ScrollArea):
