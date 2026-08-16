@@ -16,7 +16,7 @@ class AppConstants:
     @property
     @lru_cache()
     def DEBUG(self):
-        if hasattr(sys, "frozen"):
+        if hasattr(sys, "frozen") or globals().get("__compiled__"):
             return False
         return True
 
@@ -28,9 +28,26 @@ class AppConstants:
     @property
     @lru_cache()
     def dataFolder(self):
+        folder_name = self._data_folder_name(self.DEBUG)
+        user_folder = Path.home() / ".config" / folder_name
+        program_folder = self._program_folder() / folder_name
+        return self._select_data_folder(user_folder, program_folder)
+
+    @staticmethod
+    def _data_folder_name(debug: bool) -> str:
+        return f"l4d2ModManager{'-dev' if debug else ''}"
+
+    def _program_folder(self) -> Path:
         if self.DEBUG:
-            return self.__mkdir(self.workSpace.parent / "l4d2ModManager")
-        return self.__mkdir(Path.home() / ".l4d2ModManager")
+            return self.workSpace.parent
+        return Path(sys.executable).resolve().parent
+
+    @staticmethod
+    def _select_data_folder(user_folder: Path, program_folder: Path) -> Path:
+        for folder in (user_folder, program_folder):
+            if (folder / "config" / "config.json").is_file():
+                return folder
+        return user_folder
 
     @property
     @lru_cache()

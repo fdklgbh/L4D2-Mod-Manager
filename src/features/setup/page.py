@@ -11,6 +11,7 @@ from PySide6.QtWidgets import QApplication
 from qfluentwidgets import FluentWidget
 
 from shared.config import GamePathValidator, l4d2Config
+from shared.steam import find_l4d2_path
 from shared.ui import Icon
 from .ui.firstwidget import Ui_firstUse
 
@@ -23,9 +24,14 @@ class FirstView(FluentWidget, Ui_firstUse):
         self.setupUi(self)
         self.setWindowIcon(QIcon(Icon.L4D2.path()))
         self.setFixedSize(420, 200)
+        self.__fill_steam_game_path()
         self.quitBtn.clicked.connect(self.quit)
         self.sureBtn.clicked.connect(self.setPath)
         self.verticalLayout.setContentsMargins(10, self.titleBar.height() + 10, 10, 10)
+
+    def __fill_steam_game_path(self):
+        if game_path := find_l4d2_path():
+            self.gamePathEdit.setText(str(game_path))
 
     def quit(self):
         print("quit")
