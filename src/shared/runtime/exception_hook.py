@@ -14,11 +14,12 @@ from shared.widgets import customDialog
 
 def handle_exception(exc_type, exc_value, exc_traceback):
     """
-    全局异常处理器
+    全局异常处理器。
+
     Args:
-        exc_type:
-        exc_value:
-        exc_traceback:
+        exc_type：异常类型。
+        exc_value：异常值。
+        exc_traceback：异常回溯信息。
     """
     if issubclass(exc_type, KeyboardInterrupt):
         # 允许 Ctrl+C 正常退出

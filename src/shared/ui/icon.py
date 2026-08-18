@@ -10,7 +10,7 @@ from qfluentwidgets_pro import Theme, FluentIconBase
 
 
 class Icon(FluentIconBase, Enum):
-    """Custom icons"""
+    """自定义图标。"""
 
     M = "m"
     GCF = "gcf"

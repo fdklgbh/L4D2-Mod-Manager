@@ -15,8 +15,11 @@ class ProxyModSearch(QSortFilterProxyModel, LogBase):
         super().__init__(parent)
         self._disableFilter = False
         self._filter_category: ModCategory | None = None
-        self.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+        self.setManualSearchModel()
         self.setFilterKeyColumn(-1)
+
+    def setManualSearchModel(self):
+        self.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
 
     def setCategoryFilter(self, category: ModCategory | None):
         self._filter_category = category

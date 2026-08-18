@@ -6,10 +6,10 @@ from pathlib import Path
 
 from PySide6.QtCore import QThread, Signal
 
-from shared.mods import ModCategory, ModInfo
-from shared.persistence import VPKInfo, get_db
+from shared.mods import ModInfo
 from shared.runtime import LogBase
 from shared.vpk import AnalysisVPK
+from .service import mod_browser_service
 
 
 class GenerateModInfo(QThread, LogBase):
@@ -39,27 +39,12 @@ class GenerateModInfo(QThread, LogBase):
         self._reload_files = set(filenames) if filenames else None
 
     def __call__(self, *args, **kwargs):
-        with get_db() as session:
-            for file in self.file():
-                vpkInfo: VPKInfo | None = (
-                    session.query(VPKInfo).filter(VPKInfo.fileName == file.stem).first()
-                )
-                if vpkInfo is None:
-                    vpkInfo = self._analysisVPK.getAddonInfo(file)
-                    session.add(vpkInfo)
-                    session.commit()
-                elif self._reload:
-                    tmp = self._analysisVPK.getAddonInfo(
-                        file,
-                        ModCategory(
-                            category=vpkInfo.category,
-                            subCategory=vpkInfo.subCategory,
-                        ),
-                    )
-                    vpkInfo.customAddonInfo = tmp.addonInfo
-                    vpkInfo.customAddonInfoContent = tmp.addonInfoContent
-                    session.commit()
-                self.itemSignal.emit(ModInfo.from_vpk_info(vpkInfo))
+        """批量解析当前目录中的 VPK 信息并发送结果。"""
+        mod_infos = mod_browser_service.load_or_refresh_mod_infos(
+            self.file(), self._analysisVPK, self._reload
+        )
+        for mod_info in mod_infos:
+            self.itemSignal.emit(mod_info)
         self._reload = False
         self._reload_files = None
 

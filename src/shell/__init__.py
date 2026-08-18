@@ -1,1 +1,3 @@
-"""Application window composition and navigation."""
+# -*- coding: utf-8 -*-
+
+"""应用窗口的组合与导航。"""

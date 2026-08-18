@@ -1,1 +1,3 @@
-"""Preset-related UI resources."""
+# -*- coding: utf-8 -*-
+
+"""与预设相关的界面资源。"""

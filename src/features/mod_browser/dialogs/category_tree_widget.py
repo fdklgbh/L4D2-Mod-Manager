@@ -12,8 +12,9 @@ from shared.mods import Menu, ModCategory
 class CategoryTreeWidget(QFrame):
     selectedSignal = Signal(str, str, bool)
 
-    def __init__(self, parent, data: ModCategory):
+    def __init__(self, parent, data: ModCategory | None):
         super().__init__(parent=parent)
+        self.data = data
         self.hBoxLayout = QHBoxLayout(self)
         self.hBoxLayout.setContentsMargins(0, 8, 0, 0)
         self.setObjectName("frame")
@@ -22,17 +23,16 @@ class CategoryTreeWidget(QFrame):
         self.hBoxLayout.addWidget(self.tree)
         for key in Menu.category:
             if Menu.has_child(key):
-                for k, v in Menu.get_category(key).items():
-                    item = QTreeWidgetItem(self.tree, [k])
-                    isFirst = data.category == k
-                    for i in v:
-                        sub = QTreeWidgetItem(item, [i])
-                        if isFirst and data.subCategory == v:
-                            sub.setSelected(True)
-                            item.setExpanded(True)
+                item = QTreeWidgetItem(self.tree, [key])
+                is_category = data is not None and data.category == key
+                for subcategory in Menu.find_subcategory(key) or []:
+                    sub = QTreeWidgetItem(item, [subcategory])
+                    if is_category and data.subCategory == subcategory:
+                        sub.setSelected(True)
+                        item.setExpanded(True)
             else:
                 item = QTreeWidgetItem(self.tree, [key])
-                if data.category == key:
+                if data is not None and data.category == key:
                     item.setSelected(True)
 
         self.tree.setHeaderHidden(True)
@@ -47,14 +47,14 @@ class CategoryTreeWidget(QFrame):
 
     def itemSelectionChanged(self):
         item = self.tree.currentItem()
-        if not item.isSelected() or item.childCount():
+        if item is None or not item.isSelected() or item.childCount():
             self.selectedSignal.emit("", "", False)
             return
-        child = item.text(0)
+        subcategory = item.text(0)
         parent = item.parent()
-        if parent:
-            father = parent.text(0)
+        if parent is not None:
+            category = parent.text(0)
         else:
-            father = child
-            child = ""
-        self.selectedSignal.emit(child, father, not bool(parent))
+            category = subcategory
+            subcategory = ""
+        self.selectedSignal.emit(category, subcategory, True)

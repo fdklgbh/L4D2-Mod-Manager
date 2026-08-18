@@ -1,1 +1,3 @@
-"""Reusable application infrastructure and domain support."""
+# -*- coding: utf-8 -*-
+
+"""可复用的应用基础设施和领域支持。"""

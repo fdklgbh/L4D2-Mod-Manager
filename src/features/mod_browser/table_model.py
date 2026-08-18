@@ -80,9 +80,10 @@ class ModShowModel(QAbstractTableModel, LogBase):
 
     def addModInfo(self, modInfo: ModInfo):
         """
-        解析后添加
+        添加解析后的模组信息。
+
         Args:
-            modInfo:
+            modInfo：模组信息。
         """
         row = len(self._data)
         self.beginInsertRows(QModelIndex(), row, row)
@@ -109,9 +110,10 @@ class ModShowModel(QAbstractTableModel, LogBase):
 
     def addModInfos(self, modInfos: list[ModInfo]):
         """
-        解析后添加
+        添加解析后的模组信息列表。
+
         Args:
-            modInfos:
+            modInfos：模组信息列表。
         """
         row = len(self._data)
         self.beginInsertRows(QModelIndex(), row, row + len(modInfos) - 1)
@@ -126,9 +128,10 @@ class ModShowModel(QAbstractTableModel, LogBase):
 
     def removeModInfo(self, row: int):
         """
-        删除
+        删除指定行。
+
         Args:
-            row:
+            row：行索引。
         """
         if 0 <= row < len(self._data):
             self.beginRemoveRows(QModelIndex(), row, row)
@@ -161,14 +164,24 @@ class ModShowModel(QAbstractTableModel, LogBase):
 
     def changeCategory(self, infos: dict[str, ModCategory]):
         """
-        :return:
+        修改模组分类。
         """
         for filename, category in infos.items():
             if filename not in self._data:
                 continue
+            current = self._data[filename].modCategory
+            if current == category:
+                continue
             self._remove_menu_info(self._data[filename])
-            self._add_menu_info(self._data[filename])
             self._data[filename].modCategory = category
+            self._add_menu_info(self._data[filename])
+            self._menu_info["all"] -= 1
+            row = self._filenames.index(filename)
+            self.dataChanged.emit(
+                self.index(row, 0),
+                self.index(row, self.columnCount() - 1),
+                [Qt.DisplayRole, Qt.UserRole, Qt.UserRole + 1],
+            )
 
     def clearAll(self):
         """清空所有数据"""

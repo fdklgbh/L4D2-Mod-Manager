@@ -2,10 +2,11 @@
 # @Time: 2026/1/13
 # @Author: Administrator
 # @File: change_category.py
+from PySide6.QtCore import Signal
 from qfluentwidgets_pro import MessageBoxBase
 
-from shared.mods import ModInfo
-from shared.runtime import LogBase, signalBus
+from shared.mods import ModCategory, ModInfo
+from shared.runtime import LogBase
 from .category_tree_widget import CategoryTreeWidget
 
 __all__ = ["ChangeCategoryMessageBox"]
@@ -13,16 +14,15 @@ __all__ = ["ChangeCategoryMessageBox"]
 
 class ChangeCategoryMessageBox(MessageBoxBase, LogBase):
     TAG = "ChangeCategoryMessageBox"
+    categoryChanged = Signal(list, ModCategory)
 
     def __init__(self, parent, data: list[ModInfo]):
         super().__init__(parent)
-        self.new_check_type = ""
-        self.new_father_type = ""
+        self.data_info = data
         self.setWindowTitle("修改Mod分类")
-        self.category = category = data[0].modCategory
-        if len(data) > 1:
-            category = None
-        self.tableWidget = CategoryTreeWidget(self, category)
+        self.category = data[0].modCategory if len(data) == 1 else None
+        self.selected_category: ModCategory | None = None
+        self.tableWidget = CategoryTreeWidget(self, self.category)
 
         self.viewLayout.addWidget(self.tableWidget)
         self.yesButton.setText(self.tr("确定"))
@@ -34,42 +34,20 @@ class ChangeCategoryMessageBox(MessageBoxBase, LogBase):
         self.yesButton.clicked.connect(self.yesButton_clicked)
 
     def yesButton_clicked(self, *args):
-        child_type = self.new_check_type
-        father_type = self.new_father_type
-        self.logger.debug("yesButton_clicked %s %s", child_type, father_type)
-        for data in self.data_info:
-            signalBus.fileTypeChanged.emit(
-                data, father_type, child_type, self.father_type, self.child_type
-            )
+        self.categoryChanged.emit(self.data_info, self.selected_category)
 
-    def check(self, category, subcategory):
+    def check(self, category: str, subcategory: str, valid_leaf: bool):
         """
-        确定按钮显示与否
-        :param category: 一级
-        :param subcategory: 二级
-        :return:
+        确定按钮是否显示
+
+        :param category: 一级分类
+        :param subcategory: 二级分类
+        :param valid_leaf: 是否选中了可保存的叶节点
         """
-
-        def change_disable_status(status):
-            self.yesButton.setDisabled(status)
-            if status is False:
-                self.new_check_type = subcategory
-                self.new_father_type = category
-
-        if self.category is None:
-            change_disable_status(False)
-            return
-
-        if category == self:
-            if child_type and child_type != self.child_type:
-                change_disable_status(False)
-                return
-            change_disable_status(True)
-            return
-        # 一级目录不一样的时候
-        if no_child:
-            change_disable_status(False)
-        elif child_type:
-            change_disable_status(False)
-        else:
-            change_disable_status(True)
+        self.selected_category = (
+            ModCategory(category=category, subCategory=subcategory)
+            if valid_leaf
+            else None
+        )
+        unchanged = self.category == self.selected_category
+        self.yesButton.setDisabled(not valid_leaf or unchanged)

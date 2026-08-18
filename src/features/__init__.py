@@ -1,1 +1,3 @@
-"""Feature-owned application modules."""
+# -*- coding: utf-8 -*-
+
+"""按功能划分的应用模块。"""

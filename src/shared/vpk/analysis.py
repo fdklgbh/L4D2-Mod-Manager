@@ -281,10 +281,11 @@ class AnalysisVPK(LogBase):
     @staticmethod
     def _check_map(fileList, data) -> CategoryResult:
         """
-        检测地图类型
+        检测地图类型。
+
         Args:
-            fileList:
-            data:
+            fileList：文件列表。
+            data：解析数据。
 
         Returns:
 

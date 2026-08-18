@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Steam installation discovery helpers."""
+"""Steam 安装发现辅助工具。"""
 
 import platform
 from pathlib import Path
@@ -11,7 +11,7 @@ L4D2_APP_ID = "550"
 
 
 def find_l4d2_path(steam_roots: Iterable[Path] | None = None) -> Path | None:
-    """Find an installed L4D2 directory from Steam library metadata."""
+    """从 Steam 库元数据中查找已安装的 L4D2 目录。"""
     roots = find_steam_roots() if steam_roots is None else steam_roots
 
     for steam_root in roots:
@@ -33,7 +33,7 @@ def find_l4d2_path(steam_roots: Iterable[Path] | None = None) -> Path | None:
 
 
 def find_steam_roots(system: str | None = None, home: Path | None = None) -> list[Path]:
-    """Return likely Steam roots for the current operating system."""
+    """返回当前操作系统可能使用的 Steam 根目录。"""
     system = platform.system() if system is None else system
     home = Path.home() if home is None else home
 

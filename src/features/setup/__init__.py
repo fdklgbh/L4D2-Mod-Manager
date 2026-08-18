@@ -1,4 +1,6 @@
-"""First-run setup feature."""
+# -*- coding: utf-8 -*-
+
+"""首次使用设置功能。"""
 
 from .page import FirstView
 

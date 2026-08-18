@@ -5,7 +5,6 @@
 from pydantic import Field
 
 from shared.persistence.models import VPKInfo
-
 from .base import Base
 from .category import ModCategory
 
@@ -28,11 +27,11 @@ class ModInfo(Base):
 
     @classmethod
     def from_vpk_info(cls, vpkInfo: VPKInfo):
-        addonInfo: dict[str, dict] = vpkInfo.customAddonInfo or vpkInfo.addonInfo or {}
+        addonInfo: dict[str, str] = vpkInfo.customAddonInfo or vpkInfo.addonInfo or {}
         return cls(
             filename=vpkInfo.fileName,
             title=addonInfo.get("addontitle", ""),
-            customTitle=vpkInfo.customTitle,
+            customTitle=vpkInfo.customTitle or "",
             modCategory=ModCategory(
                 category=vpkInfo.category, subCategory=vpkInfo.subCategory
             ),

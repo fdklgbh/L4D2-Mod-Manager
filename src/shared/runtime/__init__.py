@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from .log_base import LogBase
 from .signals import signalBus
 

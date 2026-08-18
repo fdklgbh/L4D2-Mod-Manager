@@ -1,1 +1,3 @@
-"""Dialogs owned by the mod browser feature."""
+# -*- coding: utf-8 -*-
+
+"""模组浏览功能所属的对话框。"""

@@ -23,7 +23,7 @@ class GamePathValidator(ConfigValidator):
 
 
 class FolderValidator(ConfigValidator):
-    """Folder validator"""
+    """文件夹验证器。"""
 
     def __init__(self, mkdir=False):
         self.mkdir = mkdir

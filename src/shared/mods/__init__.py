@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from .category import ModCategory
 from .enums import MenuCategory
 from .info import ModInfo

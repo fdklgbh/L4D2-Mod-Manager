@@ -2,11 +2,11 @@
 # @Time: 2025/12/14
 # @Author: Administrator
 # @File: mod_show_tableview.py
-import shutil
 from pathlib import Path
 
-from PySide6.QtCore import QModelIndex, Signal, Qt
+from PySide6.QtCore import QModelIndex, QTimer, Signal, Qt
 from PySide6.QtGui import QContextMenuEvent, QDesktopServices
+from PySide6.QtWidgets import QDialog
 from qfluentwidgets_pro import (
     TableView,
     RoundMenu,
@@ -19,11 +19,13 @@ from qfluentwidgets_pro import (
 
 from shared.app import appConstants
 from shared.config import l4d2Config
-from shared.mods import ModInfo
+from shared.mods import ModInfo, ModCategory
 from shared.runtime import LogBase, signalBus
 from shared.ui import Icon
 from shared.widgets import customDialog
+from .dialogs.change_category import ChangeCategoryMessageBox
 from .proxy_model import ProxyModSearch
+from .service import mod_browser_service
 from .table_model import ModShowModel
 
 
@@ -126,9 +128,11 @@ class ModShowTableView(TableView, LogBase):
         open_gcf.triggered.connect(
             lambda x: self.openGCFSpaceSignal.emit(source.filename)
         )
+        category_data = [self.getSourceIndexInfo(j) for j in select_indexes]
         type_action.triggered.connect(
-            lambda x: self.changeCategory(
-                [self.getSourceIndexInfo(j) for j in select_indexes],
+            lambda x: QTimer.singleShot(
+                0,
+                lambda: self.changeCategory(category_data),
             )
         )
         move_more.triggered.connect(
@@ -154,30 +158,51 @@ class ModShowTableView(TableView, LogBase):
                 )
 
     def move_files(self, target_path: Path, select_indexes: list[QModelIndex]):
-        """移动mod文件到目标路径
+        """移动模组文件到目标路径。
 
         Args:
-            target_path: 目标文件夹路径
-            select_indexes: 选中的代理模型索引列表
+            target_path：目标文件夹路径。
+            select_indexes：选中的代理模型索引列表。
         """
+        managed_paths = self._get_managed_move_paths(target_path)
+        if managed_paths is None:
+            return
+        source_path, target_path = managed_paths
         source_model = self.sourceModel()
         # 收集需要移动的信息: (source_row, mod_info)
         move_items: list[tuple[int, ModInfo]] = []
+        filenames: set[str] = set()
         for proxy_index in select_indexes:
             source_index = self.getSourceIndex(proxy_index)
             mod_info: ModInfo = source_index.data(Qt.UserRole)
-            if mod_info:
+            if (
+                mod_info
+                and self._is_safe_filename(mod_info.filename)
+                and mod_info.filename not in filenames
+            ):
                 move_items.append((source_index.row(), mod_info))
+                filenames.add(mod_info.filename)
 
         # 按源模型行号降序排列，避免删除时索引错位
         move_items.sort(key=lambda x: x[0], reverse=True)
 
-        success_count = 0
+        if not move_items:
+            return
+
+        try:
+            addonlist_data = l4d2Config.read_addonlist()
+        except FileNotFoundError:
+            addonlist_data = {}
+        except Exception as error:
+            self._show_move_error(f"读取 addonlist.txt 失败: {error}")
+            return
+
+        moved_items: list[tuple[int, ModInfo]] = []
         for source_row, mod_info in move_items:
-            src_file = self.folderPath / f"{mod_info.filename}.vpk"
+            src_file = source_path / f"{mod_info.filename}.vpk"
             dst_file = target_path / f"{mod_info.filename}.vpk"
 
-            if not src_file.exists():
+            if not src_file.is_file():
                 self.logger.warning(f"源文件不存在: {src_file}")
                 continue
 
@@ -223,88 +248,135 @@ class ModShowTableView(TableView, LogBase):
             try:
                 target_path.mkdir(parents=True, exist_ok=True)
                 if target_exists:
-                    # 目标已存在，使用 replace 进行原子替换
-                    try:
-                        src_file.replace(dst_file)
-                    except OSError:
-                        # 跨文件系统时 replace 可能失败，回退到 shutil
-                        dst_file.unlink()
-                        shutil.move(str(src_file), str(dst_file))
+                    src_file.replace(dst_file)
                 else:
-                    shutil.move(str(src_file), str(dst_file))
+                    src_file.rename(dst_file)
+            except Exception as error:
+                self._show_move_error(f"移动 {src_file.name} 失败: {error}")
+                continue
 
-                # 处理关联的图片文件
-                src_pic = self.folderPath / f"{mod_info.filename}.jpg"
-                dst_pic = target_path / f"{mod_info.filename}.jpg"
-                if src_pic.exists():
-                    try:
-                        if dst_pic.exists():
-                            src_pic.replace(dst_pic)
-                        else:
-                            shutil.move(str(src_pic), str(dst_pic))
-                    except Exception as e:
-                        self.logger.warning(f"图片移动失败: {src_pic.name}, 错误: {e}")
-
-                source_model.removeModInfo(source_row)
-                self.logger.info(f"移动成功: {src_file.name} -> {target_path}")
-                success_count += 1
-            except PermissionError as e:
-                if l4d2Config.is_win:
-                    winerror = getattr(e, "winerror", 0)
-                    if winerror == 32:  # ERROR_SHARING_VIOLATION
-                        self.logger.warning(f"文件被占用: {src_file.name}")
-                        InfoBar.error(
-                            title="",
-                            content="当前文件被占用",
-                            orient=Qt.Horizontal,
-                            isClosable=False,
-                            position=InfoBarPosition.TOP,
-                            parent=self.window(),
-                        )
-                    elif winerror == 5:  # ERROR_ACCESS_DENIED
-                        self.logger.warning(f"拒绝访问: {dst_file.name}")
-                        InfoBar.error(
-                            title="移动失败",
-                            content="被覆盖文件使用中",
-                            orient=Qt.Horizontal,
-                            isClosable=False,
-                            position=InfoBarPosition.TOP,
-                            parent=self.window(),
-                        )
+            src_pic = source_path / f"{mod_info.filename}.jpg"
+            dst_pic = target_path / f"{mod_info.filename}.jpg"
+            if src_pic.is_file():
+                try:
+                    if dst_pic.exists():
+                        src_pic.replace(dst_pic)
                     else:
-                        self.logger.error(f"权限错误: {src_file.name}, 错误: {e}")
-                        InfoBar.error(
-                            title="移动失败",
-                            content=str(e),
-                            orient=Qt.Horizontal,
-                            isClosable=False,
-                            position=InfoBarPosition.TOP,
-                            parent=self.window(),
-                        )
-                else:
-                    self.logger.error(f"权限错误: {src_file.name}, 错误: {e}")
-                    InfoBar.error(
-                        title="移动失败",
-                        content=str(e),
-                        orient=Qt.Horizontal,
-                        isClosable=False,
-                        position=InfoBarPosition.TOP,
-                        parent=self.window(),
-                    )
-            except Exception as e:
-                self.logger.error(f"移动失败: {src_file.name}, 错误: {e}")
+                        src_pic.rename(dst_pic)
+                except Exception as error:
+                    self.logger.warning(f"图片移动失败: {src_pic.name}, 错误: {error}")
+
+            self._update_addonlist_for_move(
+                addonlist_data, source_path, target_path, mod_info.filename
+            )
+            moved_items.append((source_row, mod_info))
+            self.logger.info(f"移动成功: {src_file.name} -> {target_path}")
+
+        if not moved_items:
+            self.clearSelection()
+            return
+
+        try:
+            l4d2Config.write_addonlist(addonlist_data)
+        except Exception as error:
+            self._show_move_error(f"文件已移动，但同步 addonlist.txt 失败: {error}")
+            self.clearSelection()
+            return
+
+        for source_row, _ in moved_items:
+            source_model.removeModInfo(source_row)
 
         self.clearSelection()
-        self.logger.info(f"移动完成: 成功 {success_count}/{len(move_items)}")
-        if success_count > 0:
-            signalBus.modMoveSignal.emit(target_path.resolve())
+        self.logger.info(f"移动完成: 成功 {len(moved_items)}/{len(move_items)}")
+        signalBus.modMoveSignal.emit(target_path)
+
+    @staticmethod
+    def _is_safe_filename(filename: str) -> bool:
+        return bool(filename) and Path(filename).name == filename
+
+    @staticmethod
+    def _normalize_path(path: Path | str | None) -> Path | None:
+        if not path:
+            return None
+        return Path(path).expanduser().resolve()
+
+    def _get_managed_move_paths(self, target_path: Path) -> tuple[Path, Path] | None:
+        source_path = self._normalize_path(self.folderPath)
+        destination_path = self._normalize_path(target_path)
+        managed_paths = {
+            path
+            for path in (
+                self._normalize_path(l4d2Config.addons_path),
+                self._normalize_path(l4d2Config.workshop_path),
+                self._normalize_path(l4d2Config.disable_mod_path),
+            )
+            if path is not None
+        }
+        if (
+            source_path is None
+            or destination_path is None
+            or source_path not in managed_paths
+            or destination_path not in managed_paths
+            or source_path == destination_path
+        ):
+            self.logger.warning(
+                f"拒绝移动不受管理的目录: {source_path} -> {destination_path}"
+            )
+            return None
+        return source_path, destination_path
+
+    @staticmethod
+    def _addonlist_key(path: Path, filename: str) -> str:
+        suffix = f"{filename}.vpk"
+        if l4d2Config.is_workshop(path):
+            return f"workshop\\{suffix}"
+        return suffix
+
+    def _update_addonlist_for_move(
+        self,
+        data: dict[str, str],
+        source_path: Path,
+        target_path: Path,
+        filename: str,
+    ) -> None:
+        source_key = self._addonlist_key(source_path, filename)
+        target_key = self._addonlist_key(target_path, filename)
+        normal_key = f"{filename}.vpk"
+        workshop_key = f"workshop\\{normal_key}"
+        keys_to_remove = {
+            key.casefold() for key in (source_key, target_key, normal_key, workshop_key)
+        }
+        value = next(
+            (
+                item_value
+                for item_key, item_value in data.items()
+                if item_key.replace("/", "\\").casefold() in keys_to_remove
+            ),
+            "1",
+        )
+        for item_key in list(data):
+            if item_key.replace("/", "\\").casefold() in keys_to_remove:
+                del data[item_key]
+        if l4d2Config.is_addons(target_path) or l4d2Config.is_workshop(target_path):
+            data[target_key] = value
+
+    def _show_move_error(self, content: str) -> None:
+        self.logger.exception(content)
+        InfoBar.error(
+            title="移动失败",
+            content=content,
+            orient=Qt.Horizontal,
+            isClosable=False,
+            position=InfoBarPosition.TOP,
+            parent=self.window(),
+        )
 
     @staticmethod
     def _is_file_used(file_path: Path) -> bool:
-        """检查文件是否被其他进程占用
+        """检查文件是否被其他进程占用。
 
-        Windows: 通过 CreateFileW 以独占模式打开文件来检测
-        Linux: 始终返回 False (Linux 下文件不会被进程锁定)
+        Windows：通过 CreateFileW 以独占模式打开文件进行检测。
+        Linux：始终返回 False（Linux 下文件不会被进程锁定）。
         """
         if not l4d2Config.is_win:
             return False
@@ -339,8 +411,32 @@ class ModShowTableView(TableView, LogBase):
         return self.model().sourceModel()
 
     def changeCategory(self, data: list[ModInfo]):
-        data.sort(key=lambda x: x.filename)
+        """显示分类对话框并保存选中的 Mod 分类。"""
+        self.logger.debug(f"changeCategory, {data}")
+        if not data:
+            return
+        dialog = ChangeCategoryMessageBox(self.window(), data)
+        dialog.categoryChanged.connect(self.categoryChanged)
+        result = dialog.exec()
+        if result != QDialog.DialogCode.Accepted:
+            return
         self.clearSelection()
+
+    def categoryChanged(self, data: list[ModInfo], category: ModCategory):
+        self.logger.debug(f"categoryChanged, {data}, {category}")
+        if not data:
+            return
+
+        filenames = [mod_info.filename for mod_info in data]
+        try:
+            mod_browser_service.update_categories(filenames, category)
+        except Exception as error:
+            self._show_move_error(f"保存 Mod 分类失败: {error}")
+            return
+
+        self.sourceModel().changeCategory(
+            {filename: category for filename in filenames}
+        )
 
     def dev_action(self, select_index: list[QModelIndex]):
         from shared.vpk import OpenVPK

@@ -67,7 +67,7 @@ SUBCATEGORY = {
         "猴子": {"mdl": ["jockey"], "folder": "jockey"},
         "口水": {"mdl": ["spitter"], "folder": "spitter"},
         "妹子": {"mdl": ["witch"], "folder": "witch"},
-        # read_vpk使用文本
+        # 使用文本读取 read_vpk
         "多种特感": {"mdl": [], "folder": ""},
         "语音": {
             "path": [
@@ -941,9 +941,10 @@ class Menu:
     @lru_cache()
     def find_subcategory(self, category: MenuCategory) -> None | list[str]:
         """
-        找一级分类的子分类
+        查找一级分类的子分类。
+
         Args:
-            category:
+            category：一级分类。
 
         Returns:
 
@@ -971,10 +972,11 @@ class Menu:
         self, category: MenuCategory, sub: str
     ) -> None | dict[str, dict]:
         """
-        子分类匹配规则
+        子分类匹配规则。
+
         Args:
-            category:
-            sub:
+            category：一级分类。
+            sub：二级分类。
 
         Returns:
 

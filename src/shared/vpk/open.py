@@ -59,9 +59,10 @@ class OpenVPK(LogBase):
 
     def _decode_file(self, content: bytes):
         """
-        二进制文件解码返回数据
+        解码二进制文件并返回数据。
+
         Args:
-            content:
+            content：文件内容。
 
         Returns:
 

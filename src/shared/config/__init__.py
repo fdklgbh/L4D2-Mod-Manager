@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from .l4d2 import l4d2Config
 from .validators import (
     ApplicationPathValidator,

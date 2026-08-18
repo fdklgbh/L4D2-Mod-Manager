@@ -113,7 +113,7 @@ class ModuleStacked(QWidget, Ui_modShowView, LogBase):
             icon=InfoBarIcon.INFORMATION,
             title="复制成功",
             content=content,
-            orient=Qt.Vertical,  # vertical layout
+            orient=Qt.Vertical,  # 垂直布局
             isClosable=True,
             position=InfoBarPosition.TOP_RIGHT,
             duration=2000,
@@ -153,6 +153,7 @@ class ModuleStacked(QWidget, Ui_modShowView, LogBase):
             self.search_edit.setPlaceholderText("正则搜索")
         else:
             self.search_edit.setPlaceholderText("关键词搜索")
+            self.proxy_model.setManualSearchModel()
             self.updateSearchEditStyle(False)
         self.perform_search(self.search_edit.text())
 
@@ -204,7 +205,7 @@ class ModuleStacked(QWidget, Ui_modShowView, LogBase):
         self.analysisVpkThread.start()
 
     def onModMoved(self, target_path: Path):
-        """当mod被移动到本目录时, 触发刷新"""
+        """当模组被移动到本目录时，触发刷新。"""
         if self._folder.resolve() == target_path:
             self.logger.info(f"检测到mod移入目录 {self._folder.name}, 触发刷新")
             self.refresh()

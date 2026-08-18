@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from PySide6.QtGui import QDesktopServices
 from qfluentwidgets_pro import ScrollArea
 
