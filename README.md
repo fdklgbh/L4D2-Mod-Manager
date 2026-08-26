@@ -1,3 +1,5 @@
+
+
 # L4D2 Mod Manager
 
 求生之路2 模组管理器
@@ -141,7 +143,7 @@
 
 1. 标题列内容可以自定义,右键编辑(不会存到vpk文件中)
 2. 检查有无版本更新(可以启动就检查,默认关闭,
-   请求链接: [update_version.json](https://fdklgbh.github.io/L4D2-Mod-Manager/update_version.json))
+   请求链接: [update_version.json](https://raw.githubusercontent.com/fdklgbh/L4D2-Mod-Manager/refs/heads/master/docs/update_version.json))
 3. 设置-清理缓存:清除已删除vpk文件的缓存文件
 
 ## 1.0.4
